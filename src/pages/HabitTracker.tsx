@@ -1,4 +1,3 @@
-
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { ProgressChart } from "@/components/ProgressChart";
 import { 
-  Cup, 
+  Coffee, 
   Droplets, 
   Footprints, 
   Apple, 
@@ -38,7 +37,7 @@ const HabitTracker = () => {
       id: '1',
       name: 'Chá Jaro',
       description: '6 doses diárias',
-      icon: <Cup className="w-6 h-6" />,
+      icon: <Coffee className="w-6 h-6" />,
       completed: false,
       tip: 'Tome 15 minutos antes das refeições para melhor absorção'
     },

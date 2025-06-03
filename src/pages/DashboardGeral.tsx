@@ -1,11 +1,10 @@
-
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ProgressChart } from "@/components/ProgressChart";
 import { 
-  Cup, 
+  Coffee, 
   CheckCircle, 
   Scale, 
   ChefHat, 
@@ -24,7 +23,7 @@ const DashboardGeral = () => {
   const progressoCards = [
     {
       title: "Chá Jaro",
-      icon: <Cup className="w-6 h-6 text-neon-green" />,
+      icon: <Coffee className="w-6 h-6 text-neon-green" />,
       valor: "5/7 dias",
       descricao: "Dias completados esta semana",
       progresso: 71,
@@ -308,7 +307,7 @@ const DashboardGeral = () => {
           
           <Card className="bg-dark-bg border-white/10">
             <CardContent className="p-6 text-center">
-              <Cup className="w-8 h-8 text-neon-green mx-auto mb-3" />
+              <Coffee className="w-8 h-8 text-neon-green mx-auto mb-3" />
               <div className="text-2xl font-bold text-neon-green">142</div>
               <div className="text-sm text-white/70">Doses de chá tomadas</div>
             </CardContent>

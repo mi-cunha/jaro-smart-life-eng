@@ -1,9 +1,8 @@
-
 import { Layout } from "@/components/Layout";
 import { ProgressCard } from "@/components/ProgressCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Cup, CheckCircle, ForkKnife, Scale, BarChart3, Calendar } from "lucide-react";
+import { Coffee, CheckCircle, ForkKnife, Scale, BarChart3, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
@@ -90,7 +89,7 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <ProgressCard
               title="Chá Jaro"
-              icon={<Cup className="w-5 h-5 text-neon-green" />}
+              icon={<Coffee className="w-5 h-5 text-neon-green" />}
               progress={chaJaroProgress}
               current={dailyProgress.chaJaro}
               total={6}
@@ -159,7 +158,7 @@ const Index = () => {
             <Card className="bg-dark-bg border-white/10">
               <CardHeader>
                 <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <Cup className="w-5 h-5 text-neon-green" />
+                  <Coffee className="w-5 h-5 text-neon-green" />
                   Chá Jaro (Mensal)
                 </CardTitle>
               </CardHeader>
@@ -296,7 +295,7 @@ const Index = () => {
               className="h-16 bg-neon-green text-black hover:bg-neon-green/90 font-medium text-lg"
               disabled={dailyProgress.chaJaro >= 6}
             >
-              <Cup className="w-6 h-6 mr-2" />
+              <Coffee className="w-6 h-6 mr-2" />
               Marcar Dose de Chá
             </Button>
             

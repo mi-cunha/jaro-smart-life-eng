@@ -1,10 +1,9 @@
-
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Cup, Clock, Flame, Droplets, CheckCircle } from "lucide-react";
+import { Coffee, Clock, Flame, Droplets, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -32,9 +31,9 @@ const ChaJaro = () => {
 
   const preparationSteps = [
     { icon: <Droplets className="w-4 h-4" />, text: "Ferva a água em uma panela" },
-    { icon: <Cup className="w-4 h-4" />, text: "Adicione o gengibre e a canela" },
+    { icon: <Coffee className="w-4 h-4" />, text: "Adicione o gengibre e a canela" },
     { icon: <Flame className="w-4 h-4" />, text: "Deixe ferver por 3 minutos" },
-    { icon: <Cup className="w-4 h-4" />, text: "Adicione o chá verde e cúrcuma" },
+    { icon: <Coffee className="w-4 h-4" />, text: "Adicione o chá verde e cúrcuma" },
     { icon: <Clock className="w-4 h-4" />, text: "Abafe por 5 minutos" },
     { icon: <CheckCircle className="w-4 h-4" />, text: "Coe e sirva morno" }
   ];
@@ -106,7 +105,7 @@ const ChaJaro = () => {
           <Card className="bg-dark-bg border-white/10">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
-                <Cup className="w-5 h-5 text-neon-green" />
+                <Coffee className="w-5 h-5 text-neon-green" />
                 Ingredientes
               </CardTitle>
               <Badge variant="outline" className="w-fit border-neon-green/30 text-neon-green">
@@ -182,7 +181,7 @@ const ChaJaro = () => {
         <Card className="bg-dark-bg border-white/10">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Cup className="w-5 h-5 text-neon-green" />
+              <Coffee className="w-5 h-5 text-neon-green" />
               Progresso de Hoje
             </CardTitle>
           </CardHeader>
