@@ -5,6 +5,25 @@ import { SupabaseService } from '@/services/supabaseService';
 import { Receita, ItemCompra } from '@/types/receitas';
 import { toast } from 'sonner';
 
+// Helper function to transform Supabase receita data to our Receita interface
+const transformSupabaseReceita = (supabaseReceita: any): Receita => {
+  return {
+    id: supabaseReceita.id,
+    nome: supabaseReceita.nome,
+    tempo: supabaseReceita.tempo,
+    calorias: supabaseReceita.calorias,
+    refeicao: supabaseReceita.refeicao,
+    ingredientes: supabaseReceita.ingredientes || [],
+    preparo: supabaseReceita.preparo || [],
+    macros: {
+      proteinas: supabaseReceita.proteinas || 0,
+      carboidratos: supabaseReceita.carboidratos || 0,
+      gorduras: supabaseReceita.gorduras || 0,
+    },
+    favorita: supabaseReceita.favorita || false
+  };
+};
+
 export function useSupabaseReceitas() {
   const { user } = useAuth();
   const [receitas, setReceitas] = useState<{ [key: string]: Receita[] }>({
@@ -32,7 +51,7 @@ export function useSupabaseReceitas() {
         if (error) {
           console.error(`Erro ao carregar receitas de ${refeicao}:`, error);
         } else {
-          receitasPorRefeicao[refeicao] = data;
+          receitasPorRefeicao[refeicao] = data.map(transformSupabaseReceita);
         }
       }
 
@@ -55,10 +74,11 @@ export function useSupabaseReceitas() {
         return;
       }
 
-      // Atualizar estado local
+      // Transform and update local state
+      const receitaTransformada = transformSupabaseReceita(data);
       setReceitas(prev => ({
         ...prev,
-        [receita.refeicao]: [...prev[receita.refeicao], data]
+        [receita.refeicao]: [...prev[receita.refeicao], receitaTransformada]
       }));
 
       toast.success('Receita salva com sucesso!');
