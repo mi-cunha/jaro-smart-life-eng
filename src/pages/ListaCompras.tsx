@@ -1,13 +1,14 @@
-
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingCart, Download, ChefHat } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { ListaComprasStats } from "@/components/ListaCompras/ListaComprasStats";
+import { TabelaItensRefeicao } from "@/components/ListaCompras/TabelaItensRefeicao";
+import { EstatisticasRefeicao } from "@/components/ListaCompras/EstatisticasRefeicao";
 
 interface ItemCompra {
   id: string;
@@ -102,7 +103,6 @@ const ListaCompras = () => {
       total: calcularTotalRefeicao(refeicao)
     }));
 
-    // Simular download
     console.log("Exportando lista:", dadosExport);
     toast.success("Lista exportada com sucesso! 📊");
   };
@@ -112,38 +112,12 @@ const ListaCompras = () => {
   return (
     <Layout title="Lista de Compras Inteligente" breadcrumb={["Home", "Lista de Compras"]}>
       <div className="space-y-8">
-        {/* Resumo Total */}
-        <Card className="bg-gradient-to-r from-neon-green/10 to-transparent border-neon-green/30">
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-              <div>
-                <h2 className="text-2xl font-bold text-neon-green">
-                  R$ {calcularTotalGeral().toFixed(2)}
-                </h2>
-                <p className="text-white/70">Total estimado da compra</p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={exportarLista}
-                  variant="outline"
-                  className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Exportar Lista
-                </Button>
-                <Button
-                  onClick={() => navigate("/gerador-receitas")}
-                  className="bg-neon-green text-black hover:bg-neon-green/90"
-                >
-                  <ChefHat className="w-4 h-4 mr-2" />
-                  Voltar às Receitas
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <ListaComprasStats
+          totalGeral={calcularTotalGeral()}
+          onExportar={exportarLista}
+          onVoltarReceitas={() => navigate("/gerador-receitas")}
+        />
 
-        {/* Abas por Refeição */}
         <Tabs defaultValue="Café da Manhã" className="w-full">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-dark-bg border border-white/10">
             {refeicoes.map((refeicao) => (
@@ -180,88 +154,18 @@ const ListaCompras = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-white/10">
-                          <th className="text-left text-white/80 py-3 w-12"></th>
-                          <th className="text-left text-white/80 py-3">Item</th>
-                          <th className="text-left text-white/80 py-3">Quantidade</th>
-                          <th className="text-left text-white/80 py-3">Preço Estimado</th>
-                          <th className="text-left text-white/80 py-3">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {itensPorRefeicao[refeicao].map((item) => (
-                          <tr
-                            key={item.id}
-                            className={`border-b border-white/5 ${
-                              item.comprado ? 'bg-neon-green/5' : ''
-                            }`}
-                          >
-                            <td className="py-3">
-                              <Checkbox
-                                checked={item.comprado}
-                                onCheckedChange={() => toggleItem(refeicao, item.id)}
-                                className="data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green"
-                              />
-                            </td>
-                            <td className={`py-3 ${item.comprado ? 'text-white line-through' : 'text-white'}`}>
-                              {item.nome}
-                            </td>
-                            <td className="text-white/70 py-3">{item.quantidade}</td>
-                            <td className="text-neon-green py-3 font-medium">
-                              R$ {item.preco.toFixed(2)}
-                            </td>
-                            <td className="py-3">
-                              {item.comprado ? (
-                                <span className="text-neon-green text-sm font-medium">✅ Comprado</span>
-                              ) : (
-                                <span className="text-white/40 text-sm">Pendente</span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <TabelaItensRefeicao
+                    itens={itensPorRefeicao[refeicao]}
+                    onToggleItem={(itemId) => toggleItem(refeicao, itemId)}
+                  />
 
-                  {/* Estatísticas da Aba */}
-                  <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card className="bg-white/5 border-white/10">
-                      <CardContent className="p-4 text-center">
-                        <div className="text-2xl font-bold text-neon-green">
-                          {itensPorRefeicao[refeicao].filter(item => item.comprado).length}
-                        </div>
-                        <div className="text-sm text-white/70">Itens Comprados</div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-white/5 border-white/10">
-                      <CardContent className="p-4 text-center">
-                        <div className="text-2xl font-bold text-neon-green">
-                          {itensPorRefeicao[refeicao].filter(item => !item.comprado).length}
-                        </div>
-                        <div className="text-sm text-white/70">Itens Pendentes</div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-white/5 border-white/10">
-                      <CardContent className="p-4 text-center">
-                        <div className="text-2xl font-bold text-neon-green">
-                          {((itensPorRefeicao[refeicao].filter(item => item.comprado).length / itensPorRefeicao[refeicao].length) * 100).toFixed(0)}%
-                        </div>
-                        <div className="text-sm text-white/70">Concluído</div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                  <EstatisticasRefeicao itens={itensPorRefeicao[refeicao]} />
                 </CardContent>
               </Card>
             </TabsContent>
           ))}
         </Tabs>
 
-        {/* Resumo Geral */}
         <Card className="bg-dark-bg border-white/10">
           <CardHeader>
             <CardTitle className="text-white">Resumo da Compra</CardTitle>
@@ -294,7 +198,6 @@ const ListaCompras = () => {
           </CardContent>
         </Card>
 
-        {/* Dicas */}
         <Card className="bg-gradient-to-r from-neon-green/10 to-transparent border-neon-green/30">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
