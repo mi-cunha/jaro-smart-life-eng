@@ -56,6 +56,36 @@ export function useIngredientes() {
     }));
   };
 
+  const adicionarIngrediente = (refeicao: string, nomeIngrediente: string) => {
+    setIngredientesPorRefeicao(prev => {
+      const ingredientesExistentes = prev[refeicao] || [];
+      const jaExiste = ingredientesExistentes.some(item => 
+        item.nome.toLowerCase() === nomeIngrediente.toLowerCase()
+      );
+      
+      if (jaExiste) {
+        // Se já existe, apenas marca como selecionado
+        return {
+          ...prev,
+          [refeicao]: ingredientesExistentes.map(item =>
+            item.nome.toLowerCase() === nomeIngrediente.toLowerCase()
+              ? { ...item, selecionado: true }
+              : item
+          )
+        };
+      } else {
+        // Se não existe, adiciona como novo ingrediente selecionado
+        return {
+          ...prev,
+          [refeicao]: [
+            ...ingredientesExistentes,
+            { nome: nomeIngrediente, selecionado: true }
+          ]
+        };
+      }
+    });
+  };
+
   const getIngredientesSelecionados = (refeicao: string) => {
     return ingredientesPorRefeicao[refeicao]
       .filter(item => item.selecionado)
@@ -66,6 +96,7 @@ export function useIngredientes() {
     ingredientesPorRefeicao,
     toggleIngrediente,
     toggleTodosIngredientes,
+    adicionarIngrediente,
     getIngredientesSelecionados
   };
 }

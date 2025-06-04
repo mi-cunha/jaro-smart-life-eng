@@ -25,7 +25,8 @@ const GeradorReceitas = () => {
     ingredientesPorRefeicao,
     toggleIngrediente,
     toggleTodosIngredientes,
-    getIngredientesSelecionados
+    getIngredientesSelecionados,
+    adicionarIngrediente
   } = useIngredientes();
 
   const {
@@ -37,6 +38,10 @@ const GeradorReceitas = () => {
   const handleGerarReceitas = (refeicao: string) => {
     const ingredientesSelecionados = getIngredientesSelecionados(refeicao);
     gerarNovasReceitas(refeicao, ingredientesSelecionados);
+  };
+
+  const handleAdicionarIngrediente = (refeicao: string, ingrediente: string) => {
+    adicionarIngrediente(refeicao, ingrediente);
   };
 
   const refeicoes = ["Café da Manhã", "Almoço", "Lanche", "Jantar"];
@@ -55,10 +60,8 @@ const GeradorReceitas = () => {
 
         <FiltrosReceitas
           objetivo={filtros.objetivo}
-          preferencias={filtros.preferencias}
           caloriesMax={filtros.caloriesMax}
           onObjetivoChange={(value) => setFiltros(prev => ({ ...prev, objetivo: value }))}
-          onPreferenciasChange={(value) => setFiltros(prev => ({ ...prev, preferencias: value }))}
           onCaloriesMaxChange={(value) => setFiltros(prev => ({ ...prev, caloriesMax: value }))}
         />
 
@@ -85,7 +88,10 @@ const GeradorReceitas = () => {
             Ver Lista de Compras
           </Button>
 
-          <SugerirItemModal refeicoes={refeicoes} />
+          <SugerirItemModal 
+            refeicoes={refeicoes}
+            onAddIngrediente={handleAdicionarIngrediente}
+          />
         </div>
       </div>
     </Layout>

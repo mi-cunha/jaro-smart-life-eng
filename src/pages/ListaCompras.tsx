@@ -1,7 +1,9 @@
+
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -9,6 +11,8 @@ import { useNavigate } from "react-router-dom";
 import { ListaComprasStats } from "@/components/ListaCompras/ListaComprasStats";
 import { TabelaItensRefeicao } from "@/components/ListaCompras/TabelaItensRefeicao";
 import { EstatisticasRefeicao } from "@/components/ListaCompras/EstatisticasRefeicao";
+import { RestrictionsModal } from "@/components/RestrictionsModal";
+import { GerarListaModal } from "@/components/ListaCompras/GerarListaModal";
 
 interface ItemCompra {
   id: string;
@@ -20,6 +24,9 @@ interface ItemCompra {
 
 const ListaCompras = () => {
   const navigate = useNavigate();
+  
+  const [preferenciasAlimentares, setPreferenciasAlimentares] = useState("nenhuma");
+  const [restricoesAlimentares, setRestricoesAlimentares] = useState<string[]>([]);
   
   const [itensPorRefeicao, setItensPorRefeicao] = useState<{ [key: string]: ItemCompra[] }>({
     "Café da Manhã": [
@@ -107,11 +114,62 @@ const ListaCompras = () => {
     toast.success("Lista exportada com sucesso! 📊");
   };
 
+  const adicionarItensGerados = (refeicao: string, novosItens: any[]) => {
+    const itensConvertidos = novosItens.map(item => ({
+      id: Date.now().toString() + Math.random().toString(36),
+      nome: item.nome,
+      quantidade: item.quantidade,
+      preco: item.preco,
+      comprado: false
+    }));
+
+    setItensPorRefeicao(prev => ({
+      ...prev,
+      [refeicao]: [...prev[refeicao], ...itensConvertidos]
+    }));
+  };
+
   const refeicoes = ["Café da Manhã", "Almoço", "Lanche", "Jantar"];
 
   return (
     <Layout title="Lista de Compras Inteligente" breadcrumb={["Home", "Lista de Compras"]}>
       <div className="space-y-8">
+        {/* Configurações */}
+        <Card className="bg-dark-bg border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white">Configurações Pessoais</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-white/80 text-sm mb-2 block">Preferências Alimentares</label>
+                <Select value={preferenciasAlimentares} onValueChange={setPreferenciasAlimentares}>
+                  <SelectTrigger className="bg-white/5 border-white/20 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-dark-bg border-white/20">
+                    <SelectItem value="nenhuma">Nenhuma preferência</SelectItem>
+                    <SelectItem value="vegetariano">Vegetariano</SelectItem>
+                    <SelectItem value="vegano">Vegano</SelectItem>
+                    <SelectItem value="low-carb">Low Carb</SelectItem>
+                    <SelectItem value="cetogenico">Cetogênico</SelectItem>
+                    <SelectItem value="mediterraneo">Mediterrâneo</SelectItem>
+                    <SelectItem value="paleo">Paleo</SelectItem>
+                    <SelectItem value="sem-gluten">Sem Glúten</SelectItem>
+                    <SelectItem value="sem-lactose">Sem Lactose</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex items-end">
+                <RestrictionsModal 
+                  restrictions={restricoesAlimentares}
+                  onUpdate={setRestricoesAlimentares}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <ListaComprasStats
           totalGeral={calcularTotalGeral()}
           onExportar={exportarLista}
@@ -140,14 +198,22 @@ const ListaCompras = () => {
                       <ShoppingCart className="w-5 h-5 text-neon-green" />
                       {refeicao}
                     </CardTitle>
-                    <Button
-                      onClick={() => toggleTodosItens(refeicao)}
-                      variant="outline"
-                      size="sm"
-                      className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
-                    >
-                      Selecionar/Desmarcar Todos
-                    </Button>
+                    <div className="flex gap-2">
+                      <GerarListaModal
+                        refeicao={refeicao}
+                        preferenciasAlimentares={preferenciasAlimentares}
+                        restricoesAlimentares={restricoesAlimentares}
+                        onAddItens={(itens) => adicionarItensGerados(refeicao, itens)}
+                      />
+                      <Button
+                        onClick={() => toggleTodosItens(refeicao)}
+                        variant="outline"
+                        size="sm"
+                        className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
+                      >
+                        Selecionar/Desmarcar Todos
+                      </Button>
+                    </div>
                   </div>
                   <div className="text-neon-green font-medium">
                     Total estimado: R$ {calcularTotalRefeicao(refeicao).toFixed(2)}

@@ -1,4 +1,3 @@
-
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,10 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Heart, Clock, Trash2, History, ChefHat } from "lucide-react";
+import { Heart, Clock, Trash2, History, ChefHat, Eye } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { ReceitaDetalhesModal } from "@/components/GeradorReceitas/ReceitaDetalhesModal";
 
 interface ReceitaFavorita {
   id: string;
@@ -25,6 +25,7 @@ interface ReceitaFavorita {
     gorduras: number;
   };
   dataAdicionada: string;
+  favorita: boolean;
 }
 
 interface HistoricoGeracao {
@@ -33,11 +34,25 @@ interface HistoricoGeracao {
   hora: string;
   quantidadeReceitas: number;
   refeicao: string;
-  receitas: string[];
+  receitas: ReceitaCompleta[];
+}
+
+interface ReceitaCompleta {
+  nome: string;
+  tempo: number;
+  calorias: number;
+  ingredientes: string[];
+  preparo: string[];
+  macros: {
+    proteinas: number;
+    carboidratos: number;
+    gorduras: number;
+  };
 }
 
 const ColecaoReceitas = () => {
   const navigate = useNavigate();
+  const [receitaDetalhes, setReceitaDetalhes] = useState<ReceitaFavorita | null>(null);
   
   const [receitasFavoritas, setReceitasFavoritas] = useState<{ [key: string]: ReceitaFavorita[] }>({
     "Café da Manhã": [
@@ -55,7 +70,8 @@ const ColecaoReceitas = () => {
           "Adicione mel a gosto e sirva"
         ],
         macros: { proteinas: 15, carboidratos: 45, gorduras: 8 },
-        dataAdicionada: "15/02/2024"
+        dataAdicionada: "15/02/2024",
+        favorita: true
       },
       {
         id: "fav2",
@@ -71,7 +87,8 @@ const ColecaoReceitas = () => {
           "Despeje a massa e cozinhe dos dois lados"
         ],
         macros: { proteinas: 12, carboidratos: 35, gorduras: 9 },
-        dataAdicionada: "12/02/2024"
+        dataAdicionada: "12/02/2024",
+        favorita: true
       }
     ],
     "Almoço": [
@@ -89,7 +106,8 @@ const ColecaoReceitas = () => {
           "Monte o prato e sirva quente"
         ],
         macros: { proteinas: 35, carboidratos: 30, gorduras: 10 },
-        dataAdicionada: "14/02/2024"
+        dataAdicionada: "14/02/2024",
+        favorita: true
       }
     ],
     "Lanche": [
@@ -107,7 +125,8 @@ const ColecaoReceitas = () => {
           "Consuma imediatamente"
         ],
         macros: { proteinas: 12, carboidratos: 18, gorduras: 12 },
-        dataAdicionada: "13/02/2024"
+        dataAdicionada: "13/02/2024",
+        favorita: true
       }
     ],
     "Jantar": []
@@ -120,7 +139,24 @@ const ColecaoReceitas = () => {
       hora: "19:30",
       quantidadeReceitas: 3,
       refeicao: "Jantar",
-      receitas: ["Tofu Grelhado com Legumes", "Salmão com Aspargos", "Salada de Quinoa"]
+      receitas: [
+        {
+          nome: "Tofu Grelhado com Legumes",
+          tempo: 20,
+          calorias: 250,
+          ingredientes: ["Tofu", "Abobrinha", "Cogumelos", "Azeite"],
+          preparo: ["Corte o tofu", "Grelhe até dourar", "Refogue os legumes", "Sirva quente"],
+          macros: { proteinas: 18, carboidratos: 12, gorduras: 14 }
+        },
+        {
+          nome: "Salmão com Aspargos",
+          tempo: 25,
+          calorias: 320,
+          ingredientes: ["Salmão", "Aspargos", "Limão", "Ervas"],
+          preparo: ["Tempere o salmão", "Asse no forno", "Cozinhe aspargos no vapor", "Finalize com limão"],
+          macros: { proteinas: 28, carboidratos: 8, gorduras: 18 }
+        }
+      ]
     },
     {
       id: "hist2",
@@ -128,31 +164,16 @@ const ColecaoReceitas = () => {
       hora: "12:15",
       quantidadeReceitas: 2,
       refeicao: "Almoço",
-      receitas: ["Frango com Batata Doce", "Bowl Vegano de Grão-de-bico"]
-    },
-    {
-      id: "hist3",
-      data: "13/02/2024",
-      hora: "08:45",
-      quantidadeReceitas: 4,
-      refeicao: "Café da Manhã",
-      receitas: ["Smoothie Verde", "Tapioca com Queijo", "Vitamina de Frutas", "Pão Integral com Abacate"]
-    },
-    {
-      id: "hist4",
-      data: "12/02/2024",
-      hora: "16:20",
-      quantidadeReceitas: 2,
-      refeicao: "Lanche",
-      receitas: ["Húmus com Vegetais", "Biscoito de Aveia"]
-    },
-    {
-      id: "hist5",
-      data: "11/02/2024",
-      hora: "20:10",
-      quantidadeReceitas: 3,
-      refeicao: "Jantar",
-      receitas: ["Peixe Assado", "Ratatouille", "Sopa de Legumes"]
+      receitas: [
+        {
+          nome: "Frango com Batata Doce",
+          tempo: 30,
+          calorias: 380,
+          ingredientes: ["Frango", "Batata Doce", "Brócolis"],
+          preparo: ["Grelhe o frango", "Asse a batata doce", "Refogue o brócolis", "Monte o prato"],
+          macros: { proteinas: 35, carboidratos: 30, gorduras: 10 }
+        }
+      ]
     }
   ]);
 
@@ -380,7 +401,7 @@ const ColecaoReceitas = () => {
             )}
           </TabsContent>
 
-          {/* Seção Histórico */}
+          {/* Seção Histórico Atualizada */}
           <TabsContent value="historico" className="space-y-6">
             <Card className="bg-dark-bg border-white/10">
               <CardHeader>
@@ -455,37 +476,54 @@ const ColecaoReceitas = () => {
                             </Badge>
                           </div>
                           
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
-                              >
-                                Ver Itens Gerados
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="bg-dark-bg border-white/10">
-                              <DialogHeader>
-                                <DialogTitle className="text-white">
-                                  Receitas Geradas - {item.data}
-                                </DialogTitle>
-                              </DialogHeader>
-                              <div className="space-y-3">
-                                <div className="text-white/70">
-                                  {item.refeicao} • {item.hora}
-                                </div>
-                                <ul className="space-y-2">
-                                  {item.receitas.map((receita, index) => (
-                                    <li key={index} className="text-white flex items-center gap-2">
-                                      <div className="w-1.5 h-1.5 bg-neon-green rounded-full" />
-                                      {receita}
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {item.receitas.map((receita, index) => (
+                              <Card key={index} className="bg-white/5 border-white/10">
+                                <CardContent className="p-3">
+                                  <div className="flex justify-between items-start mb-2">
+                                    <h5 className="text-white text-sm font-medium">{receita.nome}</h5>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setReceitaDetalhes({
+                                        ...receita,
+                                        id: `hist-${index}`,
+                                        refeicao: item.refeicao,
+                                        dataAdicionada: item.data,
+                                        favorita: false
+                                      })}
+                                      className="p-1 h-6 w-6"
+                                    >
+                                      <Eye className="w-3 h-3 text-neon-green" />
+                                    </Button>
+                                  </div>
+                                  <div className="flex gap-2 mb-2">
+                                    <Badge variant="outline" className="border-neon-green/30 text-neon-green text-xs">
+                                      <Clock className="w-2 h-2 mr-1" />
+                                      {receita.tempo}min
+                                    </Badge>
+                                    <Badge variant="outline" className="border-orange-400/30 text-orange-400 text-xs">
+                                      {receita.calorias} kcal
+                                    </Badge>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-1 text-xs">
+                                    <div className="text-center">
+                                      <div className="text-neon-green font-bold">{receita.macros.proteinas}g</div>
+                                      <div className="text-white/60">Prot.</div>
+                                    </div>
+                                    <div className="text-center">
+                                      <div className="text-neon-green font-bold">{receita.macros.carboidratos}g</div>
+                                      <div className="text-white/60">Carb.</div>
+                                    </div>
+                                    <div className="text-center">
+                                      <div className="text-neon-green font-bold">{receita.macros.gorduras}g</div>
+                                      <div className="text-white/60">Gord.</div>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
                         </CardContent>
                       </Card>
                     ))}
@@ -515,6 +553,12 @@ const ColecaoReceitas = () => {
           </Button>
         </div>
       </div>
+
+      <ReceitaDetalhesModal
+        receita={receitaDetalhes}
+        isOpen={!!receitaDetalhes}
+        onClose={() => setReceitaDetalhes(null)}
+      />
     </Layout>
   );
 };

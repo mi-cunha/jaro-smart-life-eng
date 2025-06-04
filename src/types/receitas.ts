@@ -25,3 +25,18 @@ export interface Filtros {
   preferencias: string;
   caloriesMax: number[];
 }
+
+export interface ItemCompra {
+  id: string;
+  nome: string;
+  quantidade: string;
+  preco: number;
+  comprado: boolean;
+  categoria?: string;
+}
+
+export interface PreferenciasUsuario {
+  alimentares: string;
+  restricoes: string[];
+  objetivo: string;
+}
