@@ -3,7 +3,6 @@ import { Home, Calendar, Scale, CheckCircle, ChefHat, ShoppingCart, Heart, BarCh
 import { Link, useLocation } from "react-router-dom";
 import { EnhancedLogo } from "./EnhancedLogo";
 import { JaroSmartLogo } from "./JaroSmartLogo";
-
 const menuItems = [{
   title: "Home",
   url: "/",
@@ -46,11 +45,7 @@ export function AppSidebar() {
   return <Sidebar className="border-r border-white/10">
       <SidebarHeader className="p-6">
         <div className="flex items-center space-x-3">
-          <EnhancedLogo
-            src="/lovable-uploads/1bca3051-bc7b-4356-8960-4e12b4fd56ca.png"
-            alt="JaroSmart Logo"
-            className="w-12 h-12 flex-shrink-0"
-          />
+          <EnhancedLogo src="/lovable-uploads/1bca3051-bc7b-4356-8960-4e12b4fd56ca.png" alt="JaroSmart Logo" className="w-12 h-12 flex-shrink-0" />
           <span className="text-neon-green font-semibold">JaroSmart</span>
         </div>
         
@@ -76,9 +71,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-6">
-        <div className="text-xs text-white/50 text-center">
-          © 2024 JaroSmart
-        </div>
+        <div className="text-xs text-white/50 text-center">© 2025 JaroSmart</div>
       </SidebarFooter>
     </Sidebar>;
 }
