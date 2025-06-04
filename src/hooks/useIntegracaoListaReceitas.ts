@@ -1,35 +1,19 @@
 
-import { useListaCompras } from "./useListaCompras";
+import { useSupabaseListaCompras } from "./useSupabaseListaCompras";
 
 export function useIntegracaoListaReceitas() {
-  const { itensPorRefeicao } = useListaCompras();
+  const { itensCompra } = useSupabaseListaCompras();
 
-  const getItensCompradosPorRefeicao = (refeicao: string): string[] => {
-    const itens = itensPorRefeicao[refeicao] || [];
-    return itens
-      .filter(item => item.comprado)
-      .map(item => item.nome);
+  const getItensCompradosPorRefeicao = (refeicao: string) => {
+    return itensCompra[refeicao]?.filter(item => item.comprado).map(item => item.nome) || [];
   };
 
-  const getAllItensComprados = (): string[] => {
-    const todasRefeicoes = Object.keys(itensPorRefeicao);
-    const todosItens: string[] = [];
-    
-    todasRefeicoes.forEach(refeicao => {
-      const itensComprados = getItensCompradosPorRefeicao(refeicao);
-      todosItens.push(...itensComprados);
-    });
-    
-    return [...new Set(todosItens)]; // Remove duplicatas
-  };
-
-  const hasItensComprados = (refeicao: string): boolean => {
-    return getItensCompradosPorRefeicao(refeicao).length > 0;
+  const hasItensComprados = (refeicao: string) => {
+    return itensCompra[refeicao]?.some(item => item.comprado) || false;
   };
 
   return {
     getItensCompradosPorRefeicao,
-    getAllItensComprados,
     hasItensComprados
   };
 }
