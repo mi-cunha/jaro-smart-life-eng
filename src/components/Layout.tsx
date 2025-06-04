@@ -21,7 +21,7 @@ export function Layout({
                     {index < breadcrumb.length - 1 && " > "}
                   </span>)}
               </nav>}
-            {title && <h1 className="text-neon-green">{title}</h1>}
+            {title && <h1 className="text-neon-green text-base font-bold">{title}</h1>}
           </div>
         </div>
       </header>
