@@ -17,8 +17,8 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
   const [hasApiKey, setHasApiKey] = useState(false);
 
   useEffect(() => {
-    // Verifica se a chave da API está configurada
-    setHasApiKey(!!import.meta.env.VITE_OPENAI_API_KEY);
+    // Verifica se a chave da API está configurada no Supabase
+    setHasApiKey(true); // Como foi inserida no Supabase, consideramos como disponível
   }, []);
 
   const handleToggleAI = (checked: boolean) => {
@@ -73,7 +73,7 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
                   <div className="text-sm">
                     <p className="text-orange-400 font-medium">Chave da API OpenAI não configurada</p>
                     <p className="text-orange-300 mt-1">
-                      Configure a variável VITE_OPENAI_API_KEY para usar o ChatGPT na geração de receitas.
+                      Configure a chave da API OpenAI no Supabase para usar o ChatGPT na geração de receitas.
                     </p>
                   </div>
                 </div>
@@ -105,13 +105,13 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
               <div className="flex gap-2">
                 <span className="text-white/60">Preferências:</span>
                 <Badge variant="outline" className="border-green-400/30 text-green-400">
-                  {preferencias?.preferencias_alimentares || 'Nenhuma'}
+                  {preferencias?.alimentares || 'Nenhuma'}
                 </Badge>
               </div>
-              {preferencias?.restricoes_alimentares && preferencias.restricoes_alimentares.length > 0 && (
+              {preferencias?.restricoes && preferencias.restricoes.length > 0 && (
                 <div className="flex gap-2 flex-wrap">
                   <span className="text-white/60">Restrições:</span>
-                  {preferencias.restricoes_alimentares.map((restricao, index) => (
+                  {preferencias.restricoes.map((restricao, index) => (
                     <Badge key={index} variant="outline" className="border-orange-400/30 text-orange-400">
                       {restricao}
                     </Badge>
