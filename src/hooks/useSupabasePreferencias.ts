@@ -13,13 +13,26 @@ export function useSupabasePreferencias() {
       const { data, error } = await SupabaseService.buscarPreferencias();
       if (!error && data) {
         setPreferencias({
-          objetivo: data.objetivo,
-          alimentares: data.preferencias_alimentares,
+          objetivo: data.objetivo || 'Perda de peso',
+          alimentares: data.preferencias_alimentares || 'nenhuma',
           restricoes: data.restricoes_alimentares || []
+        });
+      } else {
+        // Se não há preferências, criar padrões
+        setPreferencias({
+          objetivo: 'Perda de peso',
+          alimentares: 'nenhuma',
+          restricoes: []
         });
       }
     } catch (error) {
       console.error('Erro ao carregar preferências:', error);
+      // Definir preferências padrão em caso de erro
+      setPreferencias({
+        objetivo: 'Perda de peso',
+        alimentares: 'nenhuma',
+        restricoes: []
+      });
     } finally {
       setLoading(false);
     }

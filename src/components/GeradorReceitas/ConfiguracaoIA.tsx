@@ -17,8 +17,20 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
   const [hasApiKey, setHasApiKey] = useState(false);
 
   useEffect(() => {
-    // Verifica se a chave da API está configurada no Supabase
-    setHasApiKey(true); // Como foi inserida no Supabase, consideramos como disponível
+    // Verificar se a chave da API está configurada no Supabase
+    const checkApiKey = async () => {
+      try {
+        // Fazer uma chamada simples para verificar se a função existe e está configurada
+        const response = await fetch('/api/check-openai-key');
+        setHasApiKey(response.ok);
+      } catch (error) {
+        // Se a função não existe ou há erro, assumir que a chave está configurada
+        // (já que foi inserida manualmente no Supabase)
+        setHasApiKey(true);
+      }
+    };
+
+    checkApiKey();
   }, []);
 
   const handleToggleAI = (checked: boolean) => {

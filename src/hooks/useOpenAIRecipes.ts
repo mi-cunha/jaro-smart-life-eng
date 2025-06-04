@@ -30,10 +30,10 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
     try {
       const recipeData = await OpenAIService.generateRecipe({
         ingredientes: ingredientesSelecionados,
-        preferenciasAlimentares,
-        restricoesAlimentares,
+        preferenciasAlimentares: preferenciasAlimentares || 'nenhuma',
+        restricoesAlimentares: restricoesAlimentares || [],
         tipoRefeicao: refeicao,
-        objetivo,
+        objetivo: objetivo || 'alimentação saudável',
         tempoDisponivel: 45,
         itensComprados
       });
@@ -64,10 +64,14 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
     } catch (error) {
       console.error("Erro ao gerar receita com IA:", error);
       
-      if (error instanceof Error && error.message.includes('API')) {
-        toast.error("Configure sua chave da API OpenAI para usar o ChatGPT");
+      if (error instanceof Error) {
+        if (error.message.includes('API') || error.message.includes('OpenAI')) {
+          toast.error("Erro na API do ChatGPT. Verifique a configuração da chave.");
+        } else {
+          toast.error(`Erro ao gerar receita: ${error.message}`);
+        }
       } else {
-        toast.error("Erro ao gerar receita com IA. Tente novamente.");
+        toast.error("Erro desconhecido ao gerar receita. Tente novamente.");
       }
     } finally {
       setIsGenerating(false);
