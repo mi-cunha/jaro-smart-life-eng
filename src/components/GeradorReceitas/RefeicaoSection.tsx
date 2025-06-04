@@ -1,7 +1,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, ShoppingCart } from "lucide-react";
 import { SelecaoIngredientes } from "./SelecaoIngredientes";
 import ReceitaCard from "@/components/ColecaoReceitas/ReceitaCard";
 import { Receita, Ingrediente } from "@/types/receitas";
@@ -15,6 +16,8 @@ interface RefeicaoSectionProps {
   onToggleFavorito: (receitaId: string) => void;
   onGerarReceitas: () => void;
   onRemoverReceita: (receitaId: string) => void;
+  itensComprados?: string[];
+  temItensComprados?: boolean;
 }
 
 export function RefeicaoSection({
@@ -25,12 +28,34 @@ export function RefeicaoSection({
   onToggleTodos,
   onToggleFavorito,
   onGerarReceitas,
-  onRemoverReceita
+  onRemoverReceita,
+  itensComprados = [],
+  temItensComprados = false
 }: RefeicaoSectionProps) {
   return (
     <Card className="bg-dark-bg border-white/10">
       <CardHeader>
         <CardTitle className="text-white text-xl">{refeicao}</CardTitle>
+        {temItensComprados && (
+          <div className="mt-3">
+            <div className="flex items-center gap-2 mb-2">
+              <ShoppingCart className="w-4 h-4 text-neon-green" />
+              <span className="text-neon-green text-sm font-medium">
+                Itens Comprados Disponíveis:
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {itensComprados.map((item, index) => (
+                <Badge 
+                  key={index} 
+                  className="bg-neon-green/20 text-neon-green border-neon-green/30"
+                >
+                  ✓ {item}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-6">
         <SelecaoIngredientes
@@ -48,7 +73,7 @@ export function RefeicaoSection({
               className="bg-neon-green text-black hover:bg-neon-green/90"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Gerar Mais Receitas
+              {temItensComprados ? 'Gerar Receita com Itens Comprados' : 'Gerar Mais Receitas'}
             </Button>
           </div>
 

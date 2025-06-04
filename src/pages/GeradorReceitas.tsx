@@ -10,6 +10,7 @@ import { SugerirItemModal } from "@/components/GeradorReceitas/SugerirItemModal"
 import { RefeicaoSection } from "@/components/GeradorReceitas/RefeicaoSection";
 import { useReceitasGeradas } from "@/hooks/useReceitasGeradas";
 import { useIngredientes } from "@/hooks/useIngredientes";
+import { useIntegracaoListaReceitas } from "@/hooks/useIntegracaoListaReceitas";
 import { Filtros } from "@/types/receitas";
 
 const GeradorReceitas = () => {
@@ -36,9 +37,17 @@ const GeradorReceitas = () => {
     removerReceita
   } = useReceitasGeradas();
 
+  const {
+    getItensCompradosPorRefeicao,
+    hasItensComprados
+  } = useIntegracaoListaReceitas();
+
   const handleGerarReceitas = (refeicao: string) => {
     const ingredientesSelecionados = getIngredientesSelecionados(refeicao);
-    gerarNovasReceitas(refeicao, ingredientesSelecionados);
+    const itensComprados = getItensCompradosPorRefeicao(refeicao);
+    
+    // Prioriza itens comprados da lista de compras
+    gerarNovasReceitas(refeicao, ingredientesSelecionados, itensComprados);
   };
 
   const handleAdicionarIngrediente = (refeicao: string, ingrediente: string) => {
@@ -53,8 +62,8 @@ const GeradorReceitas = () => {
         <Card className="bg-gradient-to-r from-neon-green/10 to-transparent border-neon-green/30">
           <CardContent className="p-6">
             <p className="text-white/80">
-              As receitas abaixo foram geradas com base nos itens que você marcou em sua Lista de Compras. 
-              Cada uma é balanceada para manter saciedade e apoiar seu emagrecimento.
+              As receitas são geradas com base nos ingredientes selecionados e nos itens comprados da sua Lista de Compras. 
+              Cada receita é balanceada nutricionalmente e recomendada por profissionais da área.
             </p>
           </CardContent>
         </Card>
@@ -66,19 +75,26 @@ const GeradorReceitas = () => {
           onCaloriesMaxChange={(value) => setFiltros(prev => ({ ...prev, caloriesMax: value }))}
         />
 
-        {refeicoes.map((refeicao) => (
-          <RefeicaoSection
-            key={refeicao}
-            refeicao={refeicao}
-            ingredientes={ingredientesPorRefeicao[refeicao]}
-            receitas={receitasGeradas[refeicao]}
-            onToggleIngrediente={(index) => toggleIngrediente(refeicao, index)}
-            onToggleTodos={() => toggleTodosIngredientes(refeicao)}
-            onToggleFavorito={(receitaId) => toggleFavorito(refeicao, receitaId)}
-            onGerarReceitas={() => handleGerarReceitas(refeicao)}
-            onRemoverReceita={(receitaId) => removerReceita(refeicao, receitaId)}
-          />
-        ))}
+        {refeicoes.map((refeicao) => {
+          const itensComprados = getItensCompradosPorRefeicao(refeicao);
+          const temItensComprados = hasItensComprados(refeicao);
+
+          return (
+            <RefeicaoSection
+              key={refeicao}
+              refeicao={refeicao}
+              ingredientes={ingredientesPorRefeicao[refeicao]}
+              receitas={receitasGeradas[refeicao]}
+              onToggleIngrediente={(index) => toggleIngrediente(refeicao, index)}
+              onToggleTodos={() => toggleTodosIngredientes(refeicao)}
+              onToggleFavorito={(receitaId) => toggleFavorito(refeicao, receitaId)}
+              onGerarReceitas={() => handleGerarReceitas(refeicao)}
+              onRemoverReceita={(receitaId) => removerReceita(refeicao, receitaId)}
+              itensComprados={itensComprados}
+              temItensComprados={temItensComprados}
+            />
+          );
+        })}
 
         <div className="flex flex-col sm:flex-row gap-4">
           <Button
