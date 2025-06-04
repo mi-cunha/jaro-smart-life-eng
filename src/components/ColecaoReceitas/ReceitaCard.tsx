@@ -25,7 +25,7 @@ interface ReceitaCardProps {
   onToggleFavorito: () => void;
 }
 
-export function ReceitaCard({ receita, onToggleFavorito }: ReceitaCardProps) {
+export default function ReceitaCard({ receita, onToggleFavorito }: ReceitaCardProps) {
   return (
     <Card className="bg-white/5 border-white/10 hover:border-white/20 transition-colors">
       <CardHeader className="pb-3">

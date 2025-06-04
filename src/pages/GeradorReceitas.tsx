@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { FiltrosReceitas } from "@/components/GeradorReceitas/FiltrosReceitas";
 import { SelecaoIngredientes } from "@/components/GeradorReceitas/SelecaoIngredientes";
 import { SugerirItemModal } from "@/components/GeradorReceitas/SugerirItemModal";
-import { ReceitaCard } from "@/components/ColecaoReceitas/ReceitaCard";
+import ReceitaCard from "@/components/ColecaoReceitas/ReceitaCard";
 
 interface Receita {
   id: string;
