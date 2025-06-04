@@ -44,9 +44,11 @@ export function AppSidebar() {
       <SidebarHeader className="p-6">
         <div className="flex items-center space-x-3">
           <div className="relative">
-            <img src="/lovable-uploads/70bf8baa-4aca-498a-b434-b6e5cd3db328.png" alt="JaroSmart Logo" style={{
-            filter: 'brightness(0) saturate(100%) invert(85%) sepia(75%) saturate(4841%) hue-rotate(86deg) brightness(108%) contrast(103%)'
-          }} className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center object-cover" />
+            <img 
+              src="/lovable-uploads/1bca3051-bc7b-4356-8960-4e12b4fd56ca.png" 
+              alt="JaroSmart Logo" 
+              className="w-10 h-10 rounded-xl object-contain" 
+            />
           </div>
           <span className="text-neon-green">JaroSmart</span>
         </div>
