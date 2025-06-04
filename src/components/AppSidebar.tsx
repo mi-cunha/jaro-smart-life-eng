@@ -2,6 +2,7 @@ import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGrou
 import { Home, Calendar, Scale, CheckCircle, ChefHat, ShoppingCart, Heart, BarChart3, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { EnhancedLogo } from "./EnhancedLogo";
+import { JaroSmartLogo } from "./JaroSmartLogo";
 
 const menuItems = [{
   title: "Home",
@@ -46,15 +47,20 @@ export function AppSidebar() {
       <SidebarHeader className="p-6">
         <div className="flex items-center space-x-3">
           <div className="relative">
+            {/* Tenta usar o logo personalizado primeiro, com fallback para o novo logo */}
             <EnhancedLogo
               src="/lovable-uploads/1bca3051-bc7b-4356-8960-4e12b4fd56ca.png"
               alt="JaroSmart Logo"
-              className="w-12 h-12 rounded-xl object-contain"
+              className="w-12 h-12"
             />
           </div>
           <span className="text-neon-green font-semibold">JaroSmart</span>
         </div>
+        
+        {/* Logo alternativo mais elaborado (descomente para usar) */}
+        {/* <JaroSmartLogo size="md" variant="full" animated={true} /> */}
       </SidebarHeader>
+      
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-white/70">Menu Principal</SidebarGroupLabel>

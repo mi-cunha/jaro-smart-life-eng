@@ -1,79 +1,54 @@
 
-import { useState, useEffect } from 'react';
-import { removeBackground, loadImage } from '@/utils/backgroundRemoval';
+import { useState } from 'react';
 
 interface EnhancedLogoProps {
-  src: string;
+  src?: string;
   alt: string;
   className?: string;
+  showText?: boolean;
 }
 
-export function EnhancedLogo({ src, alt, className }: EnhancedLogoProps) {
-  const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function EnhancedLogo({ src, alt, className, showText = false }: EnhancedLogoProps) {
+  const [imageError, setImageError] = useState(false);
 
-  useEffect(() => {
-    const processImage = async () => {
-      setIsProcessing(true);
-      setError(null);
-      
-      try {
-        // Fetch the original image
-        const response = await fetch(src);
-        const blob = await response.blob();
-        
-        // Load image element
-        const img = await loadImage(blob);
-        
-        // Remove background
-        const processedBlob = await removeBackground(img);
-        
-        // Create URL for processed image
-        const url = URL.createObjectURL(processedBlob);
-        setProcessedImageUrl(url);
-        
-        console.log('Logo background removed successfully');
-      } catch (err) {
-        console.error('Error processing logo:', err);
-        setError('Erro ao processar logo');
-        // Fallback to original image
-        setProcessedImageUrl(src);
-      } finally {
-        setIsProcessing(false);
-      }
-    };
-
-    processImage();
-
-    // Cleanup function
-    return () => {
-      if (processedImageUrl && processedImageUrl !== src) {
-        URL.revokeObjectURL(processedImageUrl);
-      }
-    };
-  }, [src]);
-
-  if (isProcessing) {
+  // Se não tiver imagem ou houver erro, mostra o logo customizado
+  if (!src || imageError) {
     return (
-      <div className={`${className} bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center`}>
-        <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+      <div className={`${className} flex items-center justify-center bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg border-2 border-green-400/30`}>
+        <div className="flex items-center space-x-2">
+          {/* Ícone do logo */}
+          <div className="relative">
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-inner">
+              <div className="text-green-600 font-bold text-lg">J</div>
+            </div>
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full border border-white shadow-sm"></div>
+          </div>
+          
+          {/* Texto do logo (se habilitado) */}
+          {showText && (
+            <div className="text-white font-semibold text-sm">
+              <div className="leading-tight">Jaro</div>
+              <div className="text-xs text-green-100">Smart</div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <img 
-      src={processedImageUrl || src}
-      alt={alt}
-      className={`${className} drop-shadow-lg`}
-      style={{
-        filter: processedImageUrl ? 'contrast(1.1) brightness(1.05)' : undefined
-      }}
-      onError={() => {
-        console.error('Error loading processed image, falling back to original');
-        setProcessedImageUrl(src);
-      }}
-    />
+    <div className={`${className} relative overflow-hidden rounded-xl`}>
+      <img 
+        src={src}
+        alt={alt}
+        className="w-full h-full object-contain"
+        style={{
+          filter: 'contrast(1.1) brightness(1.05) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))'
+        }}
+        onError={() => setImageError(true)}
+      />
+      {/* Overlay sutil para melhorar o contraste */}
+      <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 to-emerald-600/10 rounded-xl"></div>
+    </div>
   );
 }
