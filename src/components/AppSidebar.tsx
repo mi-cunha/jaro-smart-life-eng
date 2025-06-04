@@ -68,9 +68,16 @@ export function AppSidebar() {
   return (
     <Sidebar className="border-r border-white/10">
       <SidebarHeader className="p-6">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-neon-green rounded-lg flex items-center justify-center">
-            <span className="text-black font-bold text-lg">J</span>
+        <div className="flex items-center space-x-3">
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/70bf8baa-4aca-498a-b434-b6e5cd3db328.png" 
+              alt="JaroSmart Logo" 
+              className="w-10 h-10 object-contain brightness-0 invert"
+              style={{
+                filter: 'brightness(0) saturate(100%) invert(85%) sepia(75%) saturate(4841%) hue-rotate(86deg) brightness(108%) contrast(103%)'
+              }}
+            />
           </div>
           <span className="text-xl font-bold text-white">JaroSmart</span>
         </div>
