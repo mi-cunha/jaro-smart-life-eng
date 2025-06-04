@@ -11,6 +11,8 @@ import { useReceitasGeradas } from "@/hooks/useReceitasGeradas";
 import { useIngredientes } from "@/hooks/useIngredientes";
 import { useIntegracaoListaReceitas } from "@/hooks/useIntegracaoListaReceitas";
 import { Filtros } from "@/types/receitas";
+import { ConfiguracaoIA } from "@/components/GeradorReceitas/ConfiguracaoIA";
+import { useSupabasePreferencias } from "@/hooks/useSupabasePreferencias";
 
 const GeradorReceitas = () => {
   const navigate = useNavigate();
@@ -20,6 +22,8 @@ const GeradorReceitas = () => {
     preferencias: "",
     caloriesMax: [400]
   });
+
+  const { preferencias } = useSupabasePreferencias();
 
   const {
     ingredientesPorRefeicao,
@@ -33,7 +37,9 @@ const GeradorReceitas = () => {
     receitasGeradas,
     toggleFavorito,
     gerarNovasReceitas,
-    removerReceita
+    removerReceita,
+    useAI,
+    setUseAI
   } = useReceitasGeradas();
 
   const {
@@ -46,7 +52,14 @@ const GeradorReceitas = () => {
     const itensComprados = getItensCompradosPorRefeicao(refeicao);
     
     // Prioriza itens comprados da lista de compras
-    gerarNovasReceitas(refeicao, ingredientesSelecionados, itensComprados);
+    gerarNovasReceitas(
+      refeicao, 
+      ingredientesSelecionados, 
+      itensComprados,
+      preferencias?.alimentares || "nenhuma",
+      preferencias?.restricoes || [],
+      preferencias?.objetivo || "alimentação saudável"
+    );
   };
 
   const handleAdicionarIngrediente = (refeicao: string, ingrediente: string) => {
@@ -60,10 +73,23 @@ const GeradorReceitas = () => {
       <div className="space-y-8">
         <Card className="bg-gradient-to-r from-neon-green/10 to-transparent border-neon-green/30">
           <CardContent className="p-6">
-            <p className="text-white/80">
-              As receitas são geradas com base nos ingredientes selecionados e nos itens comprados da sua Lista de Compras. 
-              Cada receita é balanceada nutricionalmente e recomendada por profissionais da área.
-            </p>
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-white/80 mb-2">
+                  As receitas são geradas com base nos ingredientes selecionados e nos itens comprados da sua Lista de Compras. 
+                  Cada receita é balanceada nutricionalmente e recomendada por profissionais da área.
+                </p>
+                {useAI && (
+                  <p className="text-neon-green text-sm">
+                    🤖 Modo ChatGPT ativo - Receitas personalizadas com IA
+                  </p>
+                )}
+              </div>
+              <ConfiguracaoIA 
+                useAI={useAI}
+                onToggleAI={setUseAI}
+              />
+            </div>
           </CardContent>
         </Card>
 

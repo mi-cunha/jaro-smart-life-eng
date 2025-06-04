@@ -6,6 +6,7 @@ import { receitasBase } from "@/data/receitasBase";
 import { selecionarReceitaInteligente } from "@/utils/receitaUtils";
 import { criarVariacaoReceita, gerarReceitaAdaptativa } from "@/utils/receitaVariacoes";
 import { useSupabaseReceitas } from "./useSupabaseReceitas";
+import { useOpenAIRecipes } from "./useOpenAIRecipes";
 
 export function useReceitasGeradas() {
   const { 
@@ -17,6 +18,11 @@ export function useReceitasGeradas() {
   } = useSupabaseReceitas();
 
   const [receitasJaGeradas, setReceitasJaGeradas] = useState<Set<string>>(new Set());
+  const [useAI, setUseAI] = useState(false);
+
+  const { generateRecipeWithAI, isGenerating } = useOpenAIRecipes({
+    onRecipeGenerated: salvarReceita
+  });
 
   const toggleFavorito = async (refeicao: string, receitaId: string) => {
     await toggleFavoritoSupabase(refeicao, receitaId);
@@ -26,12 +32,33 @@ export function useReceitasGeradas() {
     await removerReceitaSupabase(refeicao, receitaId);
   };
 
-  const gerarNovasReceitas = async (refeicao: string, ingredientesSelecionados: string[], itensComprados?: string[]) => {
+  const gerarNovasReceitas = async (
+    refeicao: string, 
+    ingredientesSelecionados: string[], 
+    itensComprados?: string[],
+    preferenciasAlimentares: string = "nenhuma",
+    restricoesAlimentares: string[] = [],
+    objetivo: string = "alimentação saudável"
+  ) => {
     if (ingredientesSelecionados.length === 0 && (!itensComprados || itensComprados.length === 0)) {
       toast.error("Selecione pelo menos um ingrediente ou tenha itens comprados na lista!");
       return;
     }
 
+    // Se o usuário ativou IA e tem chave configurada, usa ChatGPT
+    if (useAI) {
+      await generateRecipeWithAI(
+        refeicao,
+        ingredientesSelecionados,
+        preferenciasAlimentares,
+        restricoesAlimentares,
+        objetivo,
+        itensComprados
+      );
+      return;
+    }
+
+    // Caso contrário, usa a lógica original
     toast.loading("Analisando ingredientes e gerando receita personalizada...", { duration: 2500 });
     
     setTimeout(async () => {
@@ -82,6 +109,8 @@ export function useReceitasGeradas() {
     toggleFavorito,
     gerarNovasReceitas,
     removerReceita,
-    loading
+    loading: loading || isGenerating,
+    useAI,
+    setUseAI
   };
 }
