@@ -1,338 +1,268 @@
 import { Layout } from "@/components/Layout";
-import { ProgressCard } from "@/components/ProgressCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Coffee, CheckCircle, ForkKnife, Scale, BarChart3, Calendar } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Calendar, Target, TrendingUp, Coffee, ChefHat, ShoppingCart, BookOpen, BarChart3, CheckCircle, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { WelcomeModal } from "@/components/WelcomeModal";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useState, useEffect } from "react";
-
-interface DailyProgress {
-  chaJaro: number;
-  habitos: number;
-  refeicoes: number;
-  peso: { atual: number; objetivo: number };
-}
 
 const Index = () => {
   const navigate = useNavigate();
-  const [dailyProgress, setDailyProgress] = useState<DailyProgress>({
-    chaJaro: 4,
-    habitos: 6,
-    refeicoes: 3,
-    peso: { atual: 75.2, objetivo: 70 }
-  });
+  const [showWelcome, setShowWelcome] = useState(false);
 
-  const [monthlyProgress] = useState({
-    chaJaroDias: 22,
-    habitosPercentual: 85,
-    receitasConsumidas: 24,
-    pesoAlteracao: -2.5
-  });
-
-  const chaJaroProgress = (dailyProgress.chaJaro / 6) * 100;
-  const habitosProgress = (dailyProgress.habitos / 8) * 100;
-  const refeicoesProgress = (dailyProgress.refeicoes / 4) * 100;
-  const pesoProgress = ((dailyProgress.peso.atual - dailyProgress.peso.objetivo) / (80 - dailyProgress.peso.objetivo)) * 100;
-
-  // Verificar se 100% do dia foi completado
   useEffect(() => {
-    if (chaJaroProgress === 100 && habitosProgress === 100 && refeicoesProgress === 100) {
-      toast.success("🎉 Você finalizou 100% do seu dia!", {
-        duration: 5000,
-        action: {
-          label: "Ver Medalhas",
-          onClick: () => navigate("/dashboard")
-        }
-      });
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    if (!hasSeenWelcome) {
+      setShowWelcome(true);
     }
-  }, [chaJaroProgress, habitosProgress, refeicoesProgress, navigate]);
+  }, []);
 
-  const handleMarcarDose = () => {
-    if (dailyProgress.chaJaro < 6) {
-      setDailyProgress(prev => ({
-        ...prev,
-        chaJaro: prev.chaJaro + 1
-      }));
-      toast.success("Dose de Chá Jaro marcada! ✅");
-    }
+  const handleCloseWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('hasSeenWelcome', 'true');
   };
 
-  const handleRegistrarPeso = () => {
-    navigate("/progresso-peso");
-  };
+  const pesoAtual = 78;
+  const pesoMeta = 70;
+  const progressoPeso = ((85 - pesoAtual) / (85 - pesoMeta)) * 100;
 
-  // Heatmap para os últimos 30 dias
-  const generateHeatmapData = () => {
-    const days = [];
-    for (let i = 29; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      const doses = Math.floor(Math.random() * 7); // Simular doses
-      days.push({
-        date: date.getDate(),
-        doses,
-        intensity: doses / 6
-      });
-    }
-    return days;
-  };
+  const habitosHoje = [
+    { nome: "Tomar Chá Jaro", concluido: true },
+    { nome: "8 copos de água", concluido: true },
+    { nome: "30min exercício", concluido: false },
+    { nome: "Meditar 10min", concluido: true },
+  ];
 
-  const heatmapData = generateHeatmapData();
+  const habitosConcluidos = habitosHoje.filter(h => h.concluido).length;
+
+  const proximasRefeicoes = [
+    { nome: "Lanche da Tarde", horario: "15:30", calorias: 150 },
+    { nome: "Jantar", horario: "19:00", calorias: 400 },
+  ];
 
   return (
-    <Layout title="Bem-vindo ao JaroSmart" breadcrumb={["Home"]}>
+    <Layout title="Dashboard JaroSmart" breadcrumb={["Home"]}>
+      <WelcomeModal isOpen={showWelcome} onClose={handleCloseWelcome} />
+      
       <div className="space-y-8">
-        {/* Cards de Progresso Diário */}
-        <section>
-          <h2 className="text-xl font-semibold text-white mb-6">Seu Progresso Hoje</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <ProgressCard
-              title="Chá Jaro"
-              icon={<Coffee className="w-5 h-5 text-neon-green" />}
-              progress={chaJaroProgress}
-              current={dailyProgress.chaJaro}
-              total={6}
-              description="doses tomadas"
-              buttonText="Ver Receita do Chá"
-              onButtonClick={() => navigate("/cha-jaro")}
-            />
-            
-            <ProgressCard
-              title="Hábitos do Dia"
-              icon={<CheckCircle className="w-5 h-5 text-neon-green" />}
-              progress={habitosProgress}
-              current={dailyProgress.habitos}
-              total={8}
-              description="hábitos concluídos"
-              buttonText="Ver Habit Tracker"
-              onButtonClick={() => navigate("/habit-tracker")}
-            />
-            
-            <ProgressCard
-              title="Refeições do Dia"
-              icon={<ForkKnife className="w-5 h-5 text-neon-green" />}
-              progress={refeicoesProgress}
-              current={dailyProgress.refeicoes}
-              total={4}
-              description="refeições consumidas"
-              buttonText="Ver Gerador de Receitas"
-              onButtonClick={() => navigate("/gerador-receitas")}
-            />
-            
-            <Card className="bg-dark-bg border-white/10 hover:border-neon-green/50 transition-all duration-300">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-white text-lg">
-                  <Scale className="w-5 h-5 text-neon-green" />
-                  Peso
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-white/80 text-sm">
-                  Atual: {dailyProgress.peso.atual} kg / Objetivo: {dailyProgress.peso.objetivo} kg
-                </div>
-                <div className="progress-bar h-2">
-                  <div 
-                    className="progress-fill h-full"
-                    style={{ width: `${Math.max(0, 100 - pesoProgress)}%` }}
-                  />
-                </div>
-                <div className="text-right text-xs text-white/60">
-                  {(dailyProgress.peso.atual - dailyProgress.peso.objetivo).toFixed(1)} kg restantes
-                </div>
-                <Button 
-                  onClick={handleRegistrarPeso}
-                  className="w-full bg-neon-green text-black hover:bg-neon-green/90 font-medium"
-                >
-                  Registrar Peso
-                </Button>
-              </CardContent>
-            </Card>
+        {/* Header com Theme Toggle */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Olá! Bem-vindo ao <span className="text-neon-green">JaroSmart</span> 👋
+            </h1>
+            <p className="text-white/70">Sua jornada de emagrecimento inteligente</p>
           </div>
-        </section>
+          <ThemeToggle />
+        </div>
 
-        {/* Progresso Geral */}
-        <section>
-          <h2 className="text-xl font-semibold text-white mb-6">Progresso Geral</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="bg-dark-bg border-white/10">
-              <CardHeader>
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <Coffee className="w-5 h-5 text-neon-green" />
-                  Chá Jaro (Mensal)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-2xl font-bold text-neon-green">
-                  {monthlyProgress.chaJaroDias}/30 dias
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="bg-gradient-to-br from-neon-green/20 to-neon-green/5 border-neon-green/30">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-neon-green/80 text-sm font-medium">Peso Atual</p>
+                  <h3 className="text-2xl font-bold text-neon-green">{pesoAtual}kg</h3>
                 </div>
-                {/* Heatmap */}
-                <div className="grid grid-cols-7 gap-1">
-                  {heatmapData.slice(-21).map((day, index) => (
-                    <div
-                      key={index}
-                      className="w-4 h-4 rounded-sm"
-                      style={{
-                        backgroundColor: day.intensity > 0 
-                          ? `rgba(0, 255, 102, ${day.intensity})` 
-                          : '#333'
-                      }}
-                      title={`${day.date}: ${day.doses}/6 doses`}
-                    />
-                  ))}
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => navigate("/cha-jaro")}
-                  className="w-full border-neon-green/30 text-neon-green hover:bg-neon-green/10"
-                >
-                  Ver Detalhes
-                </Button>
-              </CardContent>
-            </Card>
+                <Target className="h-8 w-8 text-neon-green" />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="bg-dark-bg border-white/10">
-              <CardHeader>
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-neon-green" />
-                  Hábitos (Mês)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-2xl font-bold text-neon-green">
-                  {monthlyProgress.habitosPercentual}%
+          <Card className="bg-dark-bg border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/70 text-sm font-medium">Meta</p>
+                  <h3 className="text-2xl font-bold text-white">{pesoMeta}kg</h3>
                 </div>
-                <div className="text-sm text-white/70">
-                  cumpridos neste mês
-                </div>
-                <div className="progress-bar h-2">
-                  <div 
-                    className="progress-fill h-full"
-                    style={{ width: `${monthlyProgress.habitosPercentual}%` }}
-                  />
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => navigate("/habit-tracker")}
-                  className="w-full border-neon-green/30 text-neon-green hover:bg-neon-green/10"
-                >
-                  Ver Detalhes
-                </Button>
-              </CardContent>
-            </Card>
+                <TrendingUp className="h-8 w-8 text-white/70" />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="bg-dark-bg border-white/10">
-              <CardHeader>
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <ForkKnife className="w-5 h-5 text-neon-green" />
-                  Receitas (Semana)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-2xl font-bold text-neon-green">
-                  {monthlyProgress.receitasConsumidas}/28
+          <Card className="bg-dark-bg border-white/10">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/70 text-sm font-medium">Hábitos Hoje</p>
+                  <h3 className="text-2xl font-bold text-white">{habitosConcluidos}/{habitosHoje.length}</h3>
                 </div>
-                <div className="text-sm text-white/70">
-                  refeições saudáveis
-                </div>
-                <div className="progress-bar h-2">
-                  <div 
-                    className="progress-fill h-full"
-                    style={{ width: `${(monthlyProgress.receitasConsumidas / 28) * 100}%` }}
-                  />
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => navigate("/gerador-receitas")}
-                  className="w-full border-neon-green/30 text-neon-green hover:bg-neon-green/10"
-                >
-                  Ver Detalhes
-                </Button>
-              </CardContent>
-            </Card>
+                <CheckCircle className="h-8 w-8 text-white/70" />
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card className="bg-dark-bg border-white/10">
-              <CardHeader>
-                <CardTitle className="text-white text-lg flex items-center gap-2">
-                  <Scale className="w-5 h-5 text-neon-green" />
-                  Peso (Período)
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-2xl font-bold text-neon-green">
-                  {monthlyProgress.pesoAlteracao} kg
+          <Card className="bg-gradient-to-br from-purple-500/20 to-purple-500/5 border-purple-500/30">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-400/80 text-sm font-medium">Progresso</p>
+                  <h3 className="text-2xl font-bold text-purple-400">{progressoPeso.toFixed(0)}%</h3>
                 </div>
-                <div className="text-sm text-white/70">
-                  em 14 dias
-                </div>
-                <div className="h-8 flex items-center">
-                  <div className="w-full h-1 bg-gray-700 rounded-full">
-                    <div className="h-full bg-neon-green rounded-full w-3/4" />
-                  </div>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => navigate("/progresso-peso")}
-                  className="w-full border-neon-green/30 text-neon-green hover:bg-neon-green/10"
-                >
-                  Ver Detalhes
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+                <BarChart3 className="h-8 w-8 text-purple-400" />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Resumo do Progresso */}
+        <Card className="bg-dark-bg border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Target className="w-5 h-5 text-neon-green" />
+              Resumo do Progresso
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-white/80">Progresso do Peso</span>
+                <span className="text-neon-green font-semibold">{progressoPeso.toFixed(1)}%</span>
+              </div>
+              <Progress value={progressoPeso} className="h-2" />
+              <p className="text-sm text-white/60 mt-1">
+                Faltam apenas {(pesoAtual - pesoMeta).toFixed(1)}kg para sua meta!
+              </p>
+            </div>
+
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-white/80">Hábitos Diários</span>
+                <span className="text-neon-green font-semibold">
+                  {((habitosConcluidos / habitosHoje.length) * 100).toFixed(0)}%
+                </span>
+              </div>
+              <Progress value={(habitosConcluidos / habitosHoje.length) * 100} className="h-2" />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Ações Rápidas */}
-        <section>
-          <h2 className="text-xl font-semibold text-white mb-6">Ações Rápidas</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button 
-              onClick={handleMarcarDose}
-              className="h-16 bg-neon-green text-black hover:bg-neon-green/90 font-medium text-lg"
-              disabled={dailyProgress.chaJaro >= 6}
-            >
-              <Coffee className="w-6 h-6 mr-2" />
-              Marcar Dose de Chá
-            </Button>
-            
-            <Button 
-              onClick={() => navigate("/dashboard")}
-              variant="outline"
-              className="h-16 border-neon-green/30 text-neon-green hover:bg-neon-green/10 font-medium text-lg"
-            >
-              <BarChart3 className="w-6 h-6 mr-2" />
-              Ver Dashboard Completo
-            </Button>
-            
-            <Button 
-              onClick={() => navigate("/gerador-receitas")}
-              variant="outline"
-              className="h-16 border-neon-green/30 text-neon-green hover:bg-neon-green/10 font-medium text-lg"
-            >
-              <ForkKnife className="w-6 h-6 mr-2" />
-              Gerar Nova Receita
-            </Button>
-          </div>
-        </section>
+        <Card className="bg-dark-bg border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white">Ações Rápidas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Button
+                onClick={() => navigate("/cha-jaro")}
+                className="bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 h-auto py-4 flex flex-col items-center gap-2"
+              >
+                <Coffee className="w-6 h-6" />
+                <span className="text-sm">Chá Jaro</span>
+              </Button>
 
-        {/* Rodapé */}
-        <footer className="border-t border-white/10 pt-8 mt-12">
-          <div className="text-center text-white/60 text-sm space-y-2">
-            <div className="flex justify-center space-x-6">
-              <a href="#" className="hover:text-neon-green transition-colors">Sobre</a>
-              <a href="#" className="hover:text-neon-green transition-colors">Privacidade</a>
-              <a href="#" className="hover:text-neon-green transition-colors">Termos de Uso</a>
-              <a href="#" className="hover:text-neon-green transition-colors">Suporte</a>
+              <Button
+                onClick={() => navigate("/gerador-receitas")}
+                className="bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 h-auto py-4 flex flex-col items-center gap-2"
+              >
+                <ChefHat className="w-6 h-6" />
+                <span className="text-sm">Receitas</span>
+              </Button>
+
+              <Button
+                onClick={() => navigate("/lista-compras")}
+                className="bg-gradient-to-r from-orange-600 to-orange-700 text-white hover:from-orange-700 hover:to-orange-800 h-auto py-4 flex flex-col items-center gap-2"
+              >
+                <ShoppingCart className="w-6 h-6" />
+                <span className="text-sm">Compras</span>
+              </Button>
+
+              <Button
+                onClick={() => navigate("/colecao-receitas")}
+                className="bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 h-auto py-4 flex flex-col items-center gap-2"
+              >
+                <BookOpen className="w-6 h-6" />
+                <span className="text-sm">Coleção</span>
+              </Button>
             </div>
-            <div>
-              © 2024 JaroSmart. Todos os direitos reservados.
+          </CardContent>
+        </Card>
+
+        {/* Hábitos de Hoje */}
+        <Card className="bg-dark-bg border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <CheckCircle className="w-5 h-5 text-neon-green" />
+              Hábitos de Hoje
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {habitosHoje.map((habito, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <span className={habito.concluido ? "text-neon-green" : "text-white/70"}>
+                    {habito.nome}
+                  </span>
+                  {habito.concluido ? (
+                    <Badge className="bg-neon-green/20 text-neon-green border-neon-green/30">
+                      Concluído ✓
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline" className="border-white/30 text-white/60">
+                      Pendente
+                    </Badge>
+                  )}
+                </div>
+              ))}
             </div>
-          </div>
-        </footer>
+          </CardContent>
+        </Card>
+
+        {/* Próximas Refeições */}
+        <Card className="bg-dark-bg border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-neon-green" />
+              Próximas Refeições
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {proximasRefeicoes.map((refeicao, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                  <div>
+                    <h4 className="text-white font-medium">{refeicao.nome}</h4>
+                    <p className="text-white/60 text-sm">{refeicao.horario}</p>
+                  </div>
+                  <Badge variant="outline" className="border-neon-green/30 text-neon-green">
+                    {refeicao.calorias} kcal
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Call to Action */}
+        <Card className="bg-gradient-to-r from-neon-green/20 to-transparent border-neon-green/30">
+          <CardContent className="p-6 text-center">
+            <Zap className="w-12 h-12 text-neon-green mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">Continue sua jornada!</h3>
+            <p className="text-white/70 mb-4">
+              Cada passo conta. Mantenha o foco nos seus objetivos e celebrate cada conquista.
+            </p>
+            <div className="flex gap-4 justify-center">
+              <Button
+                onClick={() => navigate("/habit-tracker")}
+                className="bg-neon-green text-black hover:bg-neon-green/90"
+              >
+                Ver Todos os Hábitos
+              </Button>
+              <Button
+                onClick={() => navigate("/dashboard")}
+                variant="outline"
+                className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
+              >
+                Dashboard Completo
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   );
