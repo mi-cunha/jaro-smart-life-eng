@@ -28,7 +28,9 @@ export const criarVariacaoReceita = (receitaBase: any, ingredientesDisponiveis: 
   return {
     ...receitaBase,
     nome: nomeVariado,
-    ingredientes: ingredientesAdaptados
+    ingredientes: ingredientesAdaptados,
+    id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    favorita: false
   };
 };
 
@@ -40,9 +42,8 @@ export const gerarReceitaAdaptativa = (refeicao: string, ingredientesDisponiveis
     "Jantar": ["vegano", "detox", "leve-premium"]
   };
   
-  const categoria = categoriasPorRefeicao[refeicao as keyof typeof categoriasPorRefeicao]?.[
-    Math.floor(Math.random() * 3)
-  ] || "nutritivo";
+  const categorias = categoriasPorRefeicao[refeicao as keyof typeof categoriasPorRefeicao] || ["nutritivo"];
+  const categoria = categorias[Math.floor(Math.random() * categorias.length)];
   
   const preparosPersonalizados = {
     "proteico": [
@@ -62,8 +63,52 @@ export const gerarReceitaAdaptativa = (refeicao: string, ingredientesDisponiveis
       "Prepare no vapor para preservar máximo de nutrientes",
       "Use apenas temperos naturais como limão e ervas",
       "Consuma preferencialmente quente e fresco"
+    ],
+    "energético": [
+      "Combine carboidratos complexos com proteínas",
+      "Adicione frutas para energia natural",
+      "Misture ingredientes preservando texturas",
+      "Sirva imediatamente para manter propriedades"
+    ],
+    "leve": [
+      "Prepare os ingredientes de forma simples e natural",
+      "Use métodos de cocção que preservem leveza",
+      "Tempere sutilmente para realçar sabores naturais",
+      "Sirva em porções adequadas"
+    ],
+    "nutritivo": [
+      "Combine diferentes grupos alimentares",
+      "Preserve nutrientes durante o preparo",
+      "Use temperos naturais e ervas frescas",
+      "Sirva balanceando sabores e texturas"
+    ],
+    "cremoso": [
+      "Misture ingredientes até obter textura homogênea",
+      "Adicione elementos cremosos naturais",
+      "Tempere delicadamente",
+      "Sirva na temperatura ideal"
+    ],
+    "proteico-leve": [
+      "Combine proteínas magras com vegetais frescos",
+      "Prepare de forma simples e saudável",
+      "Tempere com ervas e especiarias naturais",
+      "Sirva fresco e nutritivo"
+    ],
+    "vegano": [
+      "Use apenas ingredientes de origem vegetal",
+      "Combine proteínas vegetais para completude nutricional",
+      "Tempere com especiarias e ervas naturais",
+      "Sirva colorido e nutritivo"
+    ],
+    "leve-premium": [
+      "Selecione ingredientes de alta qualidade",
+      "Prepare com técnicas que realcem sabores",
+      "Apresente de forma elegante e balanceada",
+      "Sirva na temperatura perfeita"
     ]
   };
+  
+  const preparo = preparosPersonalizados[categoria as keyof typeof preparosPersonalizados] || preparosPersonalizados["nutritivo"];
   
   return {
     id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -72,7 +117,7 @@ export const gerarReceitaAdaptativa = (refeicao: string, ingredientesDisponiveis
     calorias: Math.floor(Math.random() * 250) + 200,
     refeicao,
     ingredientes: ingredientesDisponiveis.slice(0, Math.min(6, ingredientesDisponiveis.length)),
-    preparo: preparosPersonalizados[categoria as keyof typeof preparosPersonalizados] || preparosPersonalizados["proteico"],
+    preparo,
     macros: {
       proteinas: Math.floor(Math.random() * 20) + 10,
       carboidratos: Math.floor(Math.random() * 30) + 15,

@@ -146,39 +146,46 @@ export function useReceitasGeradas() {
     toast.loading("Analisando ingredientes e gerando receita personalizada...", { duration: 2500 });
     
     setTimeout(() => {
-      // Prioriza itens comprados, mas combina com ingredientes selecionados
-      const todosIngredientes = [
-        ...(itensComprados || []),
-        ...ingredientesSelecionados
-      ].filter((item, index, arr) => arr.indexOf(item) === index); // Remove duplicatas
-      
-      let novaReceita;
-      
-      // Tenta selecionar receita da base primeiro
-      const receitaSelecionada = selecionarReceitaInteligente(refeicao, todosIngredientes, receitasBase, receitasJaGeradas);
-      
-      if (receitaSelecionada && receitaSelecionada.compatibilidade?.score > 0.3) {
-        // Usa receita da base com possível variação
-        novaReceita = criarVariacaoReceita(receitaSelecionada, todosIngredientes);
-        setReceitasJaGeradas(prev => new Set(prev).add(`${refeicao}-${receitaSelecionada.nome}`));
-      } else {
-        // Cria receita completamente adaptativa
-        novaReceita = gerarReceitaAdaptativa(refeicao, todosIngredientes);
-      }
-      
-      // Garante ID único
-      novaReceita.id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-      setReceitasGeradas(prev => ({
-        ...prev,
-        [refeicao]: [...prev[refeicao], novaReceita]
-      }));
-
-      const tipoReceita = itensComprados && itensComprados.length > 0 
-        ? "baseada nos seus itens comprados" 
-        : "personalizada com seus ingredientes";
+      try {
+        // Prioriza itens comprados, mas combina com ingredientes selecionados
+        const todosIngredientes = [
+          ...(itensComprados || []),
+          ...ingredientesSelecionados
+        ].filter((item, index, arr) => arr.indexOf(item) === index); // Remove duplicatas
         
-      toast.success(`Nova receita ${tipoReceita} gerada com sucesso! 🍽️`);
+        let novaReceita;
+        
+        // Tenta selecionar receita da base primeiro
+        const receitaSelecionada = selecionarReceitaInteligente(refeicao, todosIngredientes, receitasBase, receitasJaGeradas);
+        
+        if (receitaSelecionada && receitaSelecionada.compatibilidade?.score > 0.3) {
+          // Usa receita da base com possível variação
+          novaReceita = criarVariacaoReceita(receitaSelecionada, todosIngredientes);
+          setReceitasJaGeradas(prev => new Set(prev).add(`${refeicao}-${receitaSelecionada.nome}`));
+        } else {
+          // Cria receita completamente adaptativa
+          novaReceita = gerarReceitaAdaptativa(refeicao, todosIngredientes);
+        }
+        
+        // Garante ID único
+        if (!novaReceita.id) {
+          novaReceita.id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        }
+
+        setReceitasGeradas(prev => ({
+          ...prev,
+          [refeicao]: [...prev[refeicao], novaReceita]
+        }));
+
+        const tipoReceita = itensComprados && itensComprados.length > 0 
+          ? "baseada nos seus itens comprados" 
+          : "personalizada com seus ingredientes";
+          
+        toast.success(`Nova receita ${tipoReceita} gerada com sucesso! 🍽️`);
+      } catch (error) {
+        console.error("Erro ao gerar receita:", error);
+        toast.error("Erro ao gerar receita. Tente novamente.");
+      }
     }, 2500);
   };
 
