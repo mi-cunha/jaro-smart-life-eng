@@ -3,7 +3,7 @@ import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ListaComprasStats } from "@/components/ListaCompras/ListaComprasStats";
@@ -30,7 +30,9 @@ const ListaCompras = () => {
     calcularTotalGeral,
     exportarLista,
     adicionarItensGerados,
-    adicionarItemSugerido
+    adicionarItemSugerido,
+    removerItem,
+    removerItensSelecionados
   } = useListaCompras();
 
   const refeicoes = ["Café da Manhã", "Almoço", "Lanche", "Jantar"];
@@ -64,51 +66,67 @@ const ListaCompras = () => {
             ))}
           </TabsList>
 
-          {refeicoes.map((refeicao) => (
-            <TabsContent key={refeicao} value={refeicao} className="space-y-4">
-              <Card className="bg-dark-bg border-white/10">
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle className="text-white flex items-center gap-2">
-                      <ShoppingCart className="w-5 h-5 text-neon-green" />
-                      {refeicao}
-                    </CardTitle>
-                    <div className="flex gap-2">
-                      <GerarListaModal
-                        refeicao={refeicao}
-                        preferenciasAlimentares={preferenciasAlimentares}
-                        restricoesAlimentares={restricoesAlimentares}
-                        onAddItens={(itens) => adicionarItensGerados(refeicao, itens)}
-                      />
-                      <SugerirItemModal
-                        refeicoes={[refeicao]}
-                        onAddIngrediente={(refeicaoSelecionada, item) => adicionarItemSugerido(refeicaoSelecionada, item)}
-                      />
-                      <Button
-                        onClick={() => toggleTodosItens(refeicao)}
-                        variant="outline"
-                        size="sm"
-                        className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
-                      >
-                        Selecionar/Desmarcar Todos
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="text-neon-green font-medium">
-                    Total estimado: R$ {calcularTotalRefeicao(refeicao).toFixed(2)}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <TabelaItensRefeicao
-                    itens={itensPorRefeicao[refeicao]}
-                    onToggleItem={(itemId) => toggleItem(refeicao, itemId)}
-                  />
+          {refeicoes.map((refeicao) => {
+            const itensSelecionados = itensPorRefeicao[refeicao].filter(item => item.comprado);
+            const temItensSelecionados = itensSelecionados.length > 0;
 
-                  <EstatisticasRefeicao itens={itensPorRefeicao[refeicao]} />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          ))}
+            return (
+              <TabsContent key={refeicao} value={refeicao} className="space-y-4">
+                <Card className="bg-dark-bg border-white/10">
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-white flex items-center gap-2">
+                        <ShoppingCart className="w-5 h-5 text-neon-green" />
+                        {refeicao}
+                      </CardTitle>
+                      <div className="flex gap-2">
+                        <GerarListaModal
+                          refeicao={refeicao}
+                          preferenciasAlimentares={preferenciasAlimentares}
+                          restricoesAlimentares={restricoesAlimentares}
+                          onAddItens={(itens) => adicionarItensGerados(refeicao, itens)}
+                        />
+                        <SugerirItemModal
+                          refeicoes={[refeicao]}
+                          onAddIngrediente={(refeicaoSelecionada, item) => adicionarItemSugerido(refeicaoSelecionada, item)}
+                        />
+                        <Button
+                          onClick={() => toggleTodosItens(refeicao)}
+                          variant="outline"
+                          size="sm"
+                          className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
+                        >
+                          Selecionar/Desmarcar Todos
+                        </Button>
+                        {temItensSelecionados && (
+                          <Button
+                            onClick={() => removerItensSelecionados(refeicao)}
+                            variant="outline"
+                            size="sm"
+                            className="border-red-400/30 text-red-400 hover:bg-red-400/10"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-neon-green font-medium">
+                      Total estimado: R$ {calcularTotalRefeicao(refeicao).toFixed(2)}
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <TabelaItensRefeicao
+                      itens={itensPorRefeicao[refeicao]}
+                      onToggleItem={(itemId) => toggleItem(refeicao, itemId)}
+                      onRemoverItem={(itemId) => removerItem(refeicao, itemId)}
+                    />
+
+                    <EstatisticasRefeicao itens={itensPorRefeicao[refeicao]} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            );
+          })}
         </Tabs>
 
         <ResumoCompra

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -73,6 +72,29 @@ export function useListaCompras() {
     toast.success(todosComprados ? "Todos os itens desmarcados" : "Todos os itens marcados como comprados!");
   };
 
+  const removerItem = (refeicao: string, itemId: string) => {
+    setItensPorRefeicao(prev => ({
+      ...prev,
+      [refeicao]: prev[refeicao].filter(item => item.id !== itemId)
+    }));
+    toast.success("Item removido da lista!");
+  };
+
+  const removerItensSelecionados = (refeicao: string) => {
+    const itensComprados = itensPorRefeicao[refeicao].filter(item => item.comprado);
+    if (itensComprados.length === 0) {
+      toast.error("Nenhum item selecionado para remover!");
+      return;
+    }
+
+    setItensPorRefeicao(prev => ({
+      ...prev,
+      [refeicao]: prev[refeicao].filter(item => !item.comprado)
+    }));
+    
+    toast.success(`${itensComprados.length} item(ns) removido(s) da lista!`);
+  };
+
   const calcularTotalRefeicao = (refeicao: string) => {
     return itensPorRefeicao[refeicao].reduce((total, item) => total + item.preco, 0);
   };
@@ -135,6 +157,8 @@ export function useListaCompras() {
     calcularTotalGeral,
     exportarLista,
     adicionarItensGerados,
-    adicionarItemSugerido
+    adicionarItemSugerido,
+    removerItem,
+    removerItensSelecionados
   };
 }

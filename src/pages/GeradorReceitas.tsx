@@ -32,7 +32,8 @@ const GeradorReceitas = () => {
   const {
     receitasGeradas,
     toggleFavorito,
-    gerarNovasReceitas
+    gerarNovasReceitas,
+    removerReceita
   } = useReceitasGeradas();
 
   const handleGerarReceitas = (refeicao: string) => {
@@ -75,6 +76,7 @@ const GeradorReceitas = () => {
             onToggleTodos={() => toggleTodosIngredientes(refeicao)}
             onToggleFavorito={(receitaId) => toggleFavorito(refeicao, receitaId)}
             onGerarReceitas={() => handleGerarReceitas(refeicao)}
+            onRemoverReceita={(receitaId) => removerReceita(refeicao, receitaId)}
           />
         ))}
 

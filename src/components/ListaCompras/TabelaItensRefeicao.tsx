@@ -1,5 +1,7 @@
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Trash2 } from "lucide-react";
 
 interface ItemCompra {
   id: string;
@@ -12,9 +14,10 @@ interface ItemCompra {
 interface TabelaItensRefeicaoProps {
   itens: ItemCompra[];
   onToggleItem: (itemId: string) => void;
+  onRemoverItem: (itemId: string) => void;
 }
 
-export function TabelaItensRefeicao({ itens, onToggleItem }: TabelaItensRefeicaoProps) {
+export function TabelaItensRefeicao({ itens, onToggleItem, onRemoverItem }: TabelaItensRefeicaoProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
@@ -25,6 +28,7 @@ export function TabelaItensRefeicao({ itens, onToggleItem }: TabelaItensRefeicao
             <th className="text-left text-white/80 py-3">Quantidade</th>
             <th className="text-left text-white/80 py-3">Preço Estimado</th>
             <th className="text-left text-white/80 py-3">Status</th>
+            <th className="text-left text-white/80 py-3 w-16">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -55,6 +59,16 @@ export function TabelaItensRefeicao({ itens, onToggleItem }: TabelaItensRefeicao
                 ) : (
                   <span className="text-white/40 text-sm">Pendente</span>
                 )}
+              </td>
+              <td className="py-3">
+                <Button
+                  onClick={() => onRemoverItem(item.id)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </td>
             </tr>
           ))}

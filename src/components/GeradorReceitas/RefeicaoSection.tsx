@@ -14,6 +14,7 @@ interface RefeicaoSectionProps {
   onToggleTodos: () => void;
   onToggleFavorito: (receitaId: string) => void;
   onGerarReceitas: () => void;
+  onRemoverReceita: (receitaId: string) => void;
 }
 
 export function RefeicaoSection({
@@ -23,7 +24,8 @@ export function RefeicaoSection({
   onToggleIngrediente,
   onToggleTodos,
   onToggleFavorito,
-  onGerarReceitas
+  onGerarReceitas,
+  onRemoverReceita
 }: RefeicaoSectionProps) {
   return (
     <Card className="bg-dark-bg border-white/10">
@@ -56,6 +58,8 @@ export function RefeicaoSection({
                 key={receita.id}
                 receita={receita}
                 onToggleFavorito={() => onToggleFavorito(receita.id)}
+                onRemoverReceita={() => onRemoverReceita(receita.id)}
+                showDeleteButton={true}
               />
             ))}
           </div>

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Receita, Ingrediente } from "@/types/receitas";
@@ -99,6 +98,14 @@ export function useReceitasGeradas() {
     }
   };
 
+  const removerReceita = (refeicao: string, receitaId: string) => {
+    setReceitasGeradas(prev => ({
+      ...prev,
+      [refeicao]: prev[refeicao].filter(receita => receita.id !== receitaId)
+    }));
+    toast.success("Receita removida!");
+  };
+
   const gerarNovasReceitas = (refeicao: string, ingredientesSelecionados: string[]) => {
     if (ingredientesSelecionados.length === 0) {
       toast.error("Selecione pelo menos um ingrediente!");
@@ -143,6 +150,7 @@ export function useReceitasGeradas() {
   return {
     receitasGeradas,
     toggleFavorito,
-    gerarNovasReceitas
+    gerarNovasReceitas,
+    removerReceita
   };
 }
