@@ -1,6 +1,8 @@
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
 import { Home, Calendar, Scale, CheckCircle, ChefHat, ShoppingCart, Heart, BarChart3, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { EnhancedLogo } from "./EnhancedLogo";
+
 const menuItems = [{
   title: "Home",
   url: "/",
@@ -44,13 +46,13 @@ export function AppSidebar() {
       <SidebarHeader className="p-6">
         <div className="flex items-center space-x-3">
           <div className="relative">
-            <img 
-              src="/lovable-uploads/1bca3051-bc7b-4356-8960-4e12b4fd56ca.png" 
-              alt="JaroSmart Logo" 
-              className="w-10 h-10 rounded-xl object-contain" 
+            <EnhancedLogo
+              src="/lovable-uploads/1bca3051-bc7b-4356-8960-4e12b4fd56ca.png"
+              alt="JaroSmart Logo"
+              className="w-12 h-12 rounded-xl object-contain"
             />
           </div>
-          <span className="text-neon-green">JaroSmart</span>
+          <span className="text-neon-green font-semibold">JaroSmart</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
