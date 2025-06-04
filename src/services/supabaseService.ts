@@ -5,200 +5,328 @@ import { Receita, ItemCompra, PreferenciasUsuario } from '@/types/receitas';
 export class SupabaseService {
   // Serviços de Receitas
   static async salvarReceita(receita: Receita) {
-    const { data, error } = await supabase
-      .from('receitas')
-      .insert({
-        nome: receita.nome,
-        tempo: receita.tempo,
-        calorias: receita.calorias,
-        refeicao: receita.refeicao,
-        ingredientes: receita.ingredientes,
-        preparo: receita.preparo,
-        proteinas: receita.macros.proteinas,
-        carboidratos: receita.macros.carboidratos,
-        gorduras: receita.macros.gorduras,
-        favorita: receita.favorita,
-        usuario_id: (await supabase.auth.getUser()).data.user?.id
-      })
-      .select()
-      .single();
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('Usuário não autenticado');
+      }
 
-    return { data, error };
+      const { data, error } = await supabase
+        .from('receitas')
+        .insert({
+          nome: receita.nome,
+          tempo: receita.tempo,
+          calorias: receita.calorias,
+          refeicao: receita.refeicao,
+          ingredientes: receita.ingredientes,
+          preparo: receita.preparo,
+          proteinas: receita.macros.proteinas,
+          carboidratos: receita.macros.carboidratos,
+          gorduras: receita.macros.gorduras,
+          favorita: receita.favorita,
+          usuario_id: userData.user.id
+        })
+        .select()
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Erro ao salvar receita:', error);
+      return { data: null, error };
+    }
   }
 
   static async buscarReceitas(refeicao?: string) {
-    let query = supabase
-      .from('receitas')
-      .select('*')
-      .order('data_criacao', { ascending: false });
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        return { data: [], error: new Error('Usuário não autenticado') };
+      }
 
-    if (refeicao) {
-      query = query.eq('refeicao', refeicao);
+      let query = supabase
+        .from('receitas')
+        .select('*')
+        .eq('usuario_id', userData.user.id)
+        .order('data_criacao', { ascending: false });
+
+      if (refeicao) {
+        query = query.eq('refeicao', refeicao);
+      }
+
+      const { data, error } = await query;
+      
+      if (data) {
+        return {
+          data: data.map(item => ({
+            id: item.id,
+            nome: item.nome,
+            tempo: item.tempo,
+            calorias: item.calorias,
+            refeicao: item.refeicao,
+            ingredientes: item.ingredientes,
+            preparo: item.preparo,
+            macros: {
+              proteinas: item.proteinas,
+              carboidratos: item.carboidratos,
+              gorduras: item.gorduras
+            },
+            favorita: item.favorita
+          })),
+          error
+        };
+      }
+
+      return { data: [], error };
+    } catch (error) {
+      console.error('Erro ao buscar receitas:', error);
+      return { data: [], error };
     }
-
-    const { data, error } = await query;
-    
-    if (data) {
-      return {
-        data: data.map(item => ({
-          id: item.id,
-          nome: item.nome,
-          tempo: item.tempo,
-          calorias: item.calorias,
-          refeicao: item.refeicao,
-          ingredientes: item.ingredientes,
-          preparo: item.preparo,
-          macros: {
-            proteinas: item.proteinas,
-            carboidratos: item.carboidratos,
-            gorduras: item.gorduras
-          },
-          favorita: item.favorita
-        })),
-        error
-      };
-    }
-
-    return { data: [], error };
   }
 
   static async atualizarReceita(id: string, updates: Partial<Receita>) {
-    const updateData: any = { ...updates };
-    
-    if (updates.macros) {
-      updateData.proteinas = updates.macros.proteinas;
-      updateData.carboidratos = updates.macros.carboidratos;
-      updateData.gorduras = updates.macros.gorduras;
-      delete updateData.macros;
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('Usuário não autenticado');
+      }
+
+      const updateData: any = { ...updates };
+      
+      if (updates.macros) {
+        updateData.proteinas = updates.macros.proteinas;
+        updateData.carboidratos = updates.macros.carboidratos;
+        updateData.gorduras = updates.macros.gorduras;
+        delete updateData.macros;
+      }
+
+      const { data, error } = await supabase
+        .from('receitas')
+        .update(updateData)
+        .eq('id', id)
+        .eq('usuario_id', userData.user.id)
+        .select()
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Erro ao atualizar receita:', error);
+      return { data: null, error };
     }
-
-    const { data, error } = await supabase
-      .from('receitas')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    return { data, error };
   }
 
   static async deletarReceita(id: string) {
-    const { error } = await supabase
-      .from('receitas')
-      .delete()
-      .eq('id', id);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('Usuário não autenticado');
+      }
 
-    return { error };
+      const { error } = await supabase
+        .from('receitas')
+        .delete()
+        .eq('id', id)
+        .eq('usuario_id', userData.user.id);
+
+      return { error };
+    } catch (error) {
+      console.error('Erro ao deletar receita:', error);
+      return { error };
+    }
   }
 
   // Serviços de Lista de Compras
   static async salvarItemCompra(item: ItemCompra, refeicao: string) {
-    const { data, error } = await supabase
-      .from('lista_compras')
-      .insert({
-        nome: item.nome,
-        quantidade: item.quantidade,
-        preco: item.preco,
-        comprado: item.comprado,
-        refeicao: refeicao,
-        categoria: item.categoria,
-        usuario_id: (await supabase.auth.getUser()).data.user?.id
-      })
-      .select()
-      .single();
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('Usuário não autenticado');
+      }
 
-    return { data, error };
+      const { data, error } = await supabase
+        .from('lista_compras')
+        .insert({
+          nome: item.nome,
+          quantidade: item.quantidade,
+          preco: item.preco,
+          comprado: item.comprado,
+          refeicao: refeicao,
+          categoria: item.categoria,
+          usuario_id: userData.user.id
+        })
+        .select()
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Erro ao salvar item:', error);
+      return { data: null, error };
+    }
   }
 
   static async buscarItensCompra(refeicao?: string) {
-    let query = supabase
-      .from('lista_compras')
-      .select('*')
-      .order('data_criacao', { ascending: false });
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        return { data: [], error: new Error('Usuário não autenticado') };
+      }
 
-    if (refeicao) {
-      query = query.eq('refeicao', refeicao);
+      let query = supabase
+        .from('lista_compras')
+        .select('*')
+        .eq('usuario_id', userData.user.id)
+        .order('data_criacao', { ascending: false });
+
+      if (refeicao) {
+        query = query.eq('refeicao', refeicao);
+      }
+
+      const { data, error } = await query;
+      return { data: data || [], error };
+    } catch (error) {
+      console.error('Erro ao buscar itens:', error);
+      return { data: [], error };
     }
-
-    const { data, error } = await query;
-    return { data: data || [], error };
   }
 
   static async atualizarItemCompra(id: string, updates: Partial<ItemCompra>) {
-    const { data, error } = await supabase
-      .from('lista_compras')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('Usuário não autenticado');
+      }
 
-    return { data, error };
+      const { data, error } = await supabase
+        .from('lista_compras')
+        .update(updates)
+        .eq('id', id)
+        .eq('usuario_id', userData.user.id)
+        .select()
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Erro ao atualizar item:', error);
+      return { data: null, error };
+    }
   }
 
   static async deletarItemCompra(id: string) {
-    const { error } = await supabase
-      .from('lista_compras')
-      .delete()
-      .eq('id', id);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('Usuário não autenticado');
+      }
 
-    return { error };
+      const { error } = await supabase
+        .from('lista_compras')
+        .delete()
+        .eq('id', id)
+        .eq('usuario_id', userData.user.id);
+
+      return { error };
+    } catch (error) {
+      console.error('Erro ao deletar item:', error);
+      return { error };
+    }
   }
 
   // Serviços de Ingredientes
   static async salvarIngredientes(ingredientes: any[], refeicao: string) {
-    const ingredientesData = ingredientes.map(ing => ({
-      nome: ing.nome,
-      selecionado: ing.selecionado,
-      refeicao: refeicao,
-      usuario_id: null // Será preenchido pelo trigger
-    }));
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('Usuário não autenticado');
+      }
 
-    const { data, error } = await supabase
-      .from('ingredientes')
-      .upsert(ingredientesData, { 
-        onConflict: 'usuario_id,nome,refeicao',
-        ignoreDuplicates: false 
-      })
-      .select();
+      const ingredientesData = ingredientes.map(ing => ({
+        nome: ing.nome,
+        selecionado: ing.selecionado,
+        refeicao: refeicao,
+        usuario_id: userData.user.id
+      }));
 
-    return { data, error };
+      const { data, error } = await supabase
+        .from('ingredientes')
+        .upsert(ingredientesData, { 
+          onConflict: 'usuario_id,nome,refeicao',
+          ignoreDuplicates: false 
+        })
+        .select();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Erro ao salvar ingredientes:', error);
+      return { data: null, error };
+    }
   }
 
   static async buscarIngredientes(refeicao?: string) {
-    let query = supabase
-      .from('ingredientes')
-      .select('*');
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        return { data: [], error: new Error('Usuário não autenticado') };
+      }
 
-    if (refeicao) {
-      query = query.eq('refeicao', refeicao);
+      let query = supabase
+        .from('ingredientes')
+        .select('*')
+        .eq('usuario_id', userData.user.id);
+
+      if (refeicao) {
+        query = query.eq('refeicao', refeicao);
+      }
+
+      const { data, error } = await query;
+      return { data: data || [], error };
+    } catch (error) {
+      console.error('Erro ao buscar ingredientes:', error);
+      return { data: [], error };
     }
-
-    const { data, error } = await query;
-    return { data: data || [], error };
   }
 
   // Serviços de Preferências
   static async salvarPreferencias(preferencias: PreferenciasUsuario) {
-    const { data, error } = await supabase
-      .from('preferencias_usuario')
-      .upsert({
-        objetivo: preferencias.objetivo,
-        alimentares: preferencias.alimentares,
-        restricoes: preferencias.restricoes,
-        usuario_id: (await supabase.auth.getUser()).data.user?.id
-      })
-      .select()
-      .single();
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error('Usuário não autenticado');
+      }
 
-    return { data, error };
+      const { data, error } = await supabase
+        .from('preferencias_usuario')
+        .upsert({
+          objetivo: preferencias.objetivo,
+          preferencias_alimentares: preferencias.alimentares,
+          restricoes_alimentares: preferencias.restricoes,
+          usuario_id: userData.user.id
+        })
+        .select()
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Erro ao salvar preferências:', error);
+      return { data: null, error };
+    }
   }
 
   static async buscarPreferencias() {
-    const { data, error } = await supabase
-      .from('preferencias_usuario')
-      .select('*')
-      .single();
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        return { data: null, error: new Error('Usuário não autenticado') };
+      }
 
-    return { data, error };
+      const { data, error } = await supabase
+        .from('preferencias_usuario')
+        .select('*')
+        .eq('usuario_id', userData.user.id)
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Erro ao buscar preferências:', error);
+      return { data: null, error };
+    }
   }
 }

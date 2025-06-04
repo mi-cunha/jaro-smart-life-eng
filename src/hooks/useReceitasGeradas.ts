@@ -12,7 +12,8 @@ export function useReceitasGeradas() {
     receitas: receitasSupabase, 
     salvarReceita, 
     toggleFavorito: toggleFavoritoSupabase, 
-    removerReceita: removerReceitaSupabase 
+    removerReceita: removerReceitaSupabase,
+    loading 
   } = useSupabaseReceitas();
 
   const [receitasJaGeradas, setReceitasJaGeradas] = useState<Set<string>>(new Set());
@@ -61,7 +62,7 @@ export function useReceitasGeradas() {
         }
         novaReceita.refeicao = refeicao;
 
-        // Salva no Supabase
+        // Salva no Supabase - agora com as políticas RLS funcionando
         await salvarReceita(novaReceita);
 
         const tipoReceita = itensComprados && itensComprados.length > 0 
@@ -80,6 +81,7 @@ export function useReceitasGeradas() {
     receitasGeradas: receitasSupabase,
     toggleFavorito,
     gerarNovasReceitas,
-    removerReceita
+    removerReceita,
+    loading
   };
 }
