@@ -46,11 +46,14 @@ export function AppSidebar() {
   return <Sidebar className="border-r border-white/10">
       <SidebarHeader className="p-6">
         <div className="flex items-center space-x-3">
-          <EnhancedLogo
-            src="/lovable-uploads/1bca3051-bc7b-4356-8960-4e12b4fd56ca.png"
-            alt="JaroSmart Logo"
-            className="w-12 h-12 flex-shrink-0"
-          />
+          <div className="relative">
+            {/* Tenta usar o logo personalizado primeiro, com fallback para o novo logo */}
+            <EnhancedLogo
+              src="/lovable-uploads/1bca3051-bc7b-4356-8960-4e12b4fd56ca.png"
+              alt="JaroSmart Logo"
+              className="w-12 h-12"
+            />
+          </div>
           <span className="text-neon-green font-semibold">JaroSmart</span>
         </div>
         
