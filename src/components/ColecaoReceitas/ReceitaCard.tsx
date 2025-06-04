@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Clock, Zap, Eye } from "lucide-react";
+import { Heart, Clock, Zap, Eye, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { ReceitaDetalhesModal } from "@/components/GeradorReceitas/ReceitaDetalhesModal";
 
@@ -25,9 +25,16 @@ interface Receita {
 interface ReceitaCardProps {
   receita: Receita;
   onToggleFavorito: () => void;
+  onRemoverReceita?: () => void;
+  showDeleteButton?: boolean;
 }
 
-export default function ReceitaCard({ receita, onToggleFavorito }: ReceitaCardProps) {
+export default function ReceitaCard({ 
+  receita, 
+  onToggleFavorito, 
+  onRemoverReceita,
+  showDeleteButton = false 
+}: ReceitaCardProps) {
   const [showDetails, setShowDetails] = useState(false);
 
   return (
@@ -36,16 +43,28 @@ export default function ReceitaCard({ receita, onToggleFavorito }: ReceitaCardPr
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start">
             <CardTitle className="text-white text-lg">{receita.nome}</CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onToggleFavorito}
-              className="p-1 h-8 w-8"
-            >
-              <Heart 
-                className={`w-4 h-4 ${receita.favorita ? 'fill-red-500 text-red-500' : 'text-white/60'}`} 
-              />
-            </Button>
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onToggleFavorito}
+                className="p-1 h-8 w-8"
+              >
+                <Heart 
+                  className={`w-4 h-4 ${receita.favorita ? 'fill-red-500 text-red-500' : 'text-white/60'}`} 
+                />
+              </Button>
+              {showDeleteButton && onRemoverReceita && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onRemoverReceita}
+                  className="p-1 h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
