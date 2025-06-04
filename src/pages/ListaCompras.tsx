@@ -1,4 +1,3 @@
-
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { TabelaItensRefeicao } from "@/components/ListaCompras/TabelaItensRefeic
 import { EstatisticasRefeicao } from "@/components/ListaCompras/EstatisticasRefeicao";
 import { RestrictionsModal } from "@/components/RestrictionsModal";
 import { GerarListaModal } from "@/components/ListaCompras/GerarListaModal";
+import { SugerirItemModal } from "@/components/GeradorReceitas/SugerirItemModal";
 
 interface ItemCompra {
   id: string;
@@ -129,6 +129,21 @@ const ListaCompras = () => {
     }));
   };
 
+  const adicionarItemSugerido = (refeicao: string, nomeItem: string) => {
+    const novoItem = {
+      id: Date.now().toString() + Math.random().toString(36),
+      nome: nomeItem,
+      quantidade: "1 unidade",
+      preco: Math.floor(Math.random() * 20) + 5,
+      comprado: false
+    };
+
+    setItensPorRefeicao(prev => ({
+      ...prev,
+      [refeicao]: [...prev[refeicao], novoItem]
+    }));
+  };
+
   const refeicoes = ["Café da Manhã", "Almoço", "Lanche", "Jantar"];
 
   return (
@@ -204,6 +219,10 @@ const ListaCompras = () => {
                         preferenciasAlimentares={preferenciasAlimentares}
                         restricoesAlimentares={restricoesAlimentares}
                         onAddItens={(itens) => adicionarItensGerados(refeicao, itens)}
+                      />
+                      <SugerirItemModal
+                        refeicoes={[refeicao]}
+                        onAddIngrediente={(refeicaoSelecionada, item) => adicionarItemSugerido(refeicaoSelecionada, item)}
                       />
                       <Button
                         onClick={() => toggleTodosItens(refeicao)}
