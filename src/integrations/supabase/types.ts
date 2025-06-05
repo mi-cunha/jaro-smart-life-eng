@@ -81,6 +81,93 @@ export type Database = {
         }
         Relationships: []
       }
+      perfil_usuario: {
+        Row: {
+          alergias: string | null
+          apple_health: boolean | null
+          avatar_url: string | null
+          calorias_diarias: number | null
+          dados_uso: boolean | null
+          data_atualizacao: string
+          data_criacao: string
+          doses_cha: number | null
+          email: string | null
+          fitbit: boolean | null
+          google_fit: boolean | null
+          habitos_diarios: number | null
+          id: string
+          low_carb: boolean | null
+          nome: string
+          notif_atingir_meta: boolean | null
+          notif_comprar_itens: boolean | null
+          notif_gerar_receitas: boolean | null
+          notif_marcar_habito: boolean | null
+          notif_tomar_cha: boolean | null
+          notificacoes_push: boolean | null
+          peso_objetivo: number | null
+          sem_gluten: boolean | null
+          usuario_id: string
+          vegano: boolean | null
+          vegetariano: boolean | null
+        }
+        Insert: {
+          alergias?: string | null
+          apple_health?: boolean | null
+          avatar_url?: string | null
+          calorias_diarias?: number | null
+          dados_uso?: boolean | null
+          data_atualizacao?: string
+          data_criacao?: string
+          doses_cha?: number | null
+          email?: string | null
+          fitbit?: boolean | null
+          google_fit?: boolean | null
+          habitos_diarios?: number | null
+          id?: string
+          low_carb?: boolean | null
+          nome?: string
+          notif_atingir_meta?: boolean | null
+          notif_comprar_itens?: boolean | null
+          notif_gerar_receitas?: boolean | null
+          notif_marcar_habito?: boolean | null
+          notif_tomar_cha?: boolean | null
+          notificacoes_push?: boolean | null
+          peso_objetivo?: number | null
+          sem_gluten?: boolean | null
+          usuario_id?: string
+          vegano?: boolean | null
+          vegetariano?: boolean | null
+        }
+        Update: {
+          alergias?: string | null
+          apple_health?: boolean | null
+          avatar_url?: string | null
+          calorias_diarias?: number | null
+          dados_uso?: boolean | null
+          data_atualizacao?: string
+          data_criacao?: string
+          doses_cha?: number | null
+          email?: string | null
+          fitbit?: boolean | null
+          google_fit?: boolean | null
+          habitos_diarios?: number | null
+          id?: string
+          low_carb?: boolean | null
+          nome?: string
+          notif_atingir_meta?: boolean | null
+          notif_comprar_itens?: boolean | null
+          notif_gerar_receitas?: boolean | null
+          notif_marcar_habito?: boolean | null
+          notif_tomar_cha?: boolean | null
+          notificacoes_push?: boolean | null
+          peso_objetivo?: number | null
+          sem_gluten?: boolean | null
+          usuario_id?: string
+          vegano?: boolean | null
+          vegetariano?: boolean | null
+        }
+        Relationships: []
+      }
       preferencias_usuario: {
         Row: {
           calorias_max: number | null

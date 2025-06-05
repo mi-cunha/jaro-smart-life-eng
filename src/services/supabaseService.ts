@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Receita, ItemCompra, PreferenciasUsuario } from '@/types/receitas';
 
@@ -268,6 +267,38 @@ export class SupabaseService {
       return { data, error };
     } catch (error) {
       console.error('Erro ao buscar preferências:', error);
+      return { data: null, error };
+    }
+  }
+
+  // Serviços de Perfil do Usuário
+  static async buscarPerfilUsuario() {
+    try {
+      const { data, error } = await supabase
+        .from('perfil_usuario')
+        .select('*')
+        .eq('usuario_id', DEFAULT_USER_ID)
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Erro ao buscar perfil:', error);
+      return { data: null, error };
+    }
+  }
+
+  static async atualizarPerfilUsuario(updates: any) {
+    try {
+      const { data, error } = await supabase
+        .from('perfil_usuario')
+        .update(updates)
+        .eq('usuario_id', DEFAULT_USER_ID)
+        .select()
+        .single();
+
+      return { data, error };
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
       return { data: null, error };
     }
   }
