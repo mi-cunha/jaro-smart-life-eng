@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Target, TrendingUp, Coffee, ChefHat, ShoppingCart, BookOpen, BarChart3, CheckCircle, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { WelcomeModal } from "@/components/WelcomeModal";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { useState, useEffect } from "react";
 
 const Index = () => {
@@ -56,7 +55,6 @@ const Index = () => {
             </h1>
             <p className="text-white/70">Sua jornada de emagrecimento inteligente</p>
           </div>
-          <ThemeToggle />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
