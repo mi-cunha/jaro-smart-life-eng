@@ -23,21 +23,23 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <BrowserRouter>
-        <SidebarProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/cha-jaro" element={<ChaJaro />} />
-            <Route path="/progresso-peso" element={<ProgressoPeso />} />
-            <Route path="/habit-tracker" element={<HabitTracker />} />
-            <Route path="/gerador-receitas" element={<GeradorReceitas />} />
-            <Route path="/lista-compras" element={<ListaCompras />} />
-            <Route path="/colecao-receitas" element={<ColecaoReceitas />} />
-            <Route path="/dashboard" element={<DashboardGeral />} />
-            <Route path="/perfil" element={<Perfil />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <SidebarProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/cha-jaro" element={<ChaJaro />} />
+              <Route path="/progresso-peso" element={<ProgressoPeso />} />
+              <Route path="/habit-tracker" element={<HabitTracker />} />
+              <Route path="/gerador-receitas" element={<GeradorReceitas />} />
+              <Route path="/lista-compras" element={<ListaCompras />} />
+              <Route path="/colecao-receitas" element={<ColecaoReceitas />} />
+              <Route path="/dashboard" element={<DashboardGeral />} />
+              <Route path="/perfil" element={<Perfil />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </SidebarProvider>
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
