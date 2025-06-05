@@ -2,15 +2,12 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Receita, ItemCompra, PreferenciasUsuario } from '@/types/receitas';
 
+const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
+
 export class SupabaseService {
   // Serviços de Receitas
   static async salvarReceita(receita: Receita) {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error('Usuário não autenticado');
-      }
-
       const { data, error } = await supabase
         .from('receitas')
         .insert({
@@ -24,7 +21,7 @@ export class SupabaseService {
           carboidratos: receita.macros.carboidratos,
           gorduras: receita.macros.gorduras,
           favorita: receita.favorita,
-          usuario_id: userData.user.id
+          usuario_id: DEFAULT_USER_ID
         })
         .select()
         .single();
@@ -38,15 +35,10 @@ export class SupabaseService {
 
   static async buscarReceitas(refeicao?: string) {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        return { data: [], error: new Error('Usuário não autenticado') };
-      }
-
       let query = supabase
         .from('receitas')
         .select('*')
-        .eq('usuario_id', userData.user.id)
+        .eq('usuario_id', DEFAULT_USER_ID)
         .order('data_criacao', { ascending: false });
 
       if (refeicao) {
@@ -85,11 +77,6 @@ export class SupabaseService {
 
   static async atualizarReceita(id: string, updates: Partial<Receita>) {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error('Usuário não autenticado');
-      }
-
       const updateData: any = { ...updates };
       
       if (updates.macros) {
@@ -103,7 +90,7 @@ export class SupabaseService {
         .from('receitas')
         .update(updateData)
         .eq('id', id)
-        .eq('usuario_id', userData.user.id)
+        .eq('usuario_id', DEFAULT_USER_ID)
         .select()
         .single();
 
@@ -116,16 +103,11 @@ export class SupabaseService {
 
   static async deletarReceita(id: string) {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error('Usuário não autenticado');
-      }
-
       const { error } = await supabase
         .from('receitas')
         .delete()
         .eq('id', id)
-        .eq('usuario_id', userData.user.id);
+        .eq('usuario_id', DEFAULT_USER_ID);
 
       return { error };
     } catch (error) {
@@ -137,11 +119,6 @@ export class SupabaseService {
   // Serviços de Lista de Compras
   static async salvarItemCompra(item: ItemCompra, refeicao: string) {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error('Usuário não autenticado');
-      }
-
       const { data, error } = await supabase
         .from('lista_compras')
         .insert({
@@ -151,7 +128,7 @@ export class SupabaseService {
           comprado: item.comprado,
           refeicao: refeicao,
           categoria: item.categoria,
-          usuario_id: userData.user.id
+          usuario_id: DEFAULT_USER_ID
         })
         .select()
         .single();
@@ -165,15 +142,10 @@ export class SupabaseService {
 
   static async buscarItensCompra(refeicao?: string) {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        return { data: [], error: new Error('Usuário não autenticado') };
-      }
-
       let query = supabase
         .from('lista_compras')
         .select('*')
-        .eq('usuario_id', userData.user.id)
+        .eq('usuario_id', DEFAULT_USER_ID)
         .order('data_criacao', { ascending: false });
 
       if (refeicao) {
@@ -190,16 +162,11 @@ export class SupabaseService {
 
   static async atualizarItemCompra(id: string, updates: Partial<ItemCompra>) {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error('Usuário não autenticado');
-      }
-
       const { data, error } = await supabase
         .from('lista_compras')
         .update(updates)
         .eq('id', id)
-        .eq('usuario_id', userData.user.id)
+        .eq('usuario_id', DEFAULT_USER_ID)
         .select()
         .single();
 
@@ -212,16 +179,11 @@ export class SupabaseService {
 
   static async deletarItemCompra(id: string) {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error('Usuário não autenticado');
-      }
-
       const { error } = await supabase
         .from('lista_compras')
         .delete()
         .eq('id', id)
-        .eq('usuario_id', userData.user.id);
+        .eq('usuario_id', DEFAULT_USER_ID);
 
       return { error };
     } catch (error) {
@@ -233,16 +195,11 @@ export class SupabaseService {
   // Serviços de Ingredientes
   static async salvarIngredientes(ingredientes: any[], refeicao: string) {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error('Usuário não autenticado');
-      }
-
       const ingredientesData = ingredientes.map(ing => ({
         nome: ing.nome,
         selecionado: ing.selecionado,
         refeicao: refeicao,
-        usuario_id: userData.user.id
+        usuario_id: DEFAULT_USER_ID
       }));
 
       const { data, error } = await supabase
@@ -262,15 +219,10 @@ export class SupabaseService {
 
   static async buscarIngredientes(refeicao?: string) {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        return { data: [], error: new Error('Usuário não autenticado') };
-      }
-
       let query = supabase
         .from('ingredientes')
         .select('*')
-        .eq('usuario_id', userData.user.id);
+        .eq('usuario_id', DEFAULT_USER_ID);
 
       if (refeicao) {
         query = query.eq('refeicao', refeicao);
@@ -287,18 +239,13 @@ export class SupabaseService {
   // Serviços de Preferências
   static async salvarPreferencias(preferencias: PreferenciasUsuario) {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        throw new Error('Usuário não autenticado');
-      }
-
       const { data, error } = await supabase
         .from('preferencias_usuario')
         .upsert({
           objetivo: preferencias.objetivo,
           preferencias_alimentares: preferencias.alimentares,
           restricoes_alimentares: preferencias.restricoes,
-          usuario_id: userData.user.id
+          usuario_id: DEFAULT_USER_ID
         })
         .select()
         .single();
@@ -312,15 +259,10 @@ export class SupabaseService {
 
   static async buscarPreferencias() {
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData.user) {
-        return { data: null, error: new Error('Usuário não autenticado') };
-      }
-
       const { data, error } = await supabase
         .from('preferencias_usuario')
         .select('*')
-        .eq('usuario_id', userData.user.id)
+        .eq('usuario_id', DEFAULT_USER_ID)
         .single();
 
       return { data, error };

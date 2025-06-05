@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
 import { SupabaseService } from '@/services/supabaseService';
 import { Receita } from '@/types/receitas';
 import { toast } from 'sonner';
@@ -25,7 +24,6 @@ const transformSupabaseReceita = (supabaseReceita: any): Receita => {
 };
 
 export function useSupabaseReceitas() {
-  const { user } = useAuth();
   const [receitas, setReceitas] = useState<{ [key: string]: Receita[] }>({
     "Café da Manhã": [],
     "Almoço": [],
@@ -35,8 +33,6 @@ export function useSupabaseReceitas() {
   const [loading, setLoading] = useState(false);
 
   const carregarReceitas = async () => {
-    if (!user) return;
-    
     setLoading(true);
     try {
       const receitasPorRefeicao: { [key: string]: Receita[] } = {
@@ -65,8 +61,6 @@ export function useSupabaseReceitas() {
   };
 
   const salvarReceita = async (receita: Receita) => {
-    if (!user) return;
-
     try {
       const { data, error } = await SupabaseService.salvarReceita(receita);
       if (error) {
@@ -89,8 +83,6 @@ export function useSupabaseReceitas() {
   };
 
   const toggleFavorito = async (refeicao: string, receitaId: string) => {
-    if (!user) return;
-
     const receita = receitas[refeicao].find(r => r.id === receitaId);
     if (!receita) return;
 
@@ -120,8 +112,6 @@ export function useSupabaseReceitas() {
   };
 
   const removerReceita = async (refeicao: string, receitaId: string) => {
-    if (!user) return;
-
     try {
       const { error } = await SupabaseService.deletarReceita(receitaId);
       if (error) {
@@ -143,10 +133,8 @@ export function useSupabaseReceitas() {
   };
 
   useEffect(() => {
-    if (user) {
-      carregarReceitas();
-    }
-  }, [user]);
+    carregarReceitas();
+  }, []);
 
   return {
     receitas,

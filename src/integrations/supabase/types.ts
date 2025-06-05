@@ -18,7 +18,7 @@ export type Database = {
           nome: string
           refeicao: string
           selecionado: boolean | null
-          usuario_id: string
+          usuario_id: string | null
         }
         Insert: {
           categoria?: string | null
@@ -28,7 +28,7 @@ export type Database = {
           nome: string
           refeicao: string
           selecionado?: boolean | null
-          usuario_id: string
+          usuario_id?: string | null
         }
         Update: {
           categoria?: string | null
@@ -38,17 +38,9 @@ export type Database = {
           nome?: string
           refeicao?: string
           selecionado?: boolean | null
-          usuario_id?: string
+          usuario_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ingredientes_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       lista_compras: {
         Row: {
@@ -61,7 +53,7 @@ export type Database = {
           preco: number
           quantidade: string
           refeicao: string
-          usuario_id: string
+          usuario_id: string | null
         }
         Insert: {
           categoria?: string | null
@@ -73,7 +65,7 @@ export type Database = {
           preco?: number
           quantidade: string
           refeicao: string
-          usuario_id: string
+          usuario_id?: string | null
         }
         Update: {
           categoria?: string | null
@@ -85,17 +77,9 @@ export type Database = {
           preco?: number
           quantidade?: string
           refeicao?: string
-          usuario_id?: string
+          usuario_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "lista_compras_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       preferencias_usuario: {
         Row: {
@@ -106,7 +90,7 @@ export type Database = {
           objetivo: string | null
           preferencias_alimentares: string | null
           restricoes_alimentares: string[] | null
-          usuario_id: string
+          usuario_id: string | null
         }
         Insert: {
           calorias_max?: number | null
@@ -116,7 +100,7 @@ export type Database = {
           objetivo?: string | null
           preferencias_alimentares?: string | null
           restricoes_alimentares?: string[] | null
-          usuario_id: string
+          usuario_id?: string | null
         }
         Update: {
           calorias_max?: number | null
@@ -126,17 +110,9 @@ export type Database = {
           objetivo?: string | null
           preferencias_alimentares?: string | null
           restricoes_alimentares?: string[] | null
-          usuario_id?: string
+          usuario_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "preferencias_usuario_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: true
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       receitas: {
         Row: {
@@ -153,7 +129,7 @@ export type Database = {
           proteinas: number
           refeicao: string
           tempo: number
-          usuario_id: string
+          usuario_id: string | null
         }
         Insert: {
           calorias: number
@@ -169,7 +145,7 @@ export type Database = {
           proteinas?: number
           refeicao: string
           tempo: number
-          usuario_id: string
+          usuario_id?: string | null
         }
         Update: {
           calorias?: number
@@ -185,17 +161,9 @@ export type Database = {
           proteinas?: number
           refeicao?: string
           tempo?: number
-          usuario_id?: string
+          usuario_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "receitas_usuario_id_fkey"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       usuarios: {
         Row: {

@@ -1,12 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
 import { SupabaseService } from '@/services/supabaseService';
 import { ItemCompra } from '@/types/receitas';
 import { toast } from 'sonner';
 
 export function useSupabaseListaCompras() {
-  const { user } = useAuth();
   const [itensCompra, setItensCompra] = useState<{ [key: string]: ItemCompra[] }>({
     "Café da Manhã": [],
     "Almoço": [],
@@ -16,8 +14,6 @@ export function useSupabaseListaCompras() {
   const [loading, setLoading] = useState(false);
 
   const carregarItens = async () => {
-    if (!user) return;
-    
     setLoading(true);
     try {
       const itensPorRefeicao: { [key: string]: ItemCompra[] } = {
@@ -46,8 +42,6 @@ export function useSupabaseListaCompras() {
   };
 
   const adicionarItem = async (refeicao: string, item: ItemCompra) => {
-    if (!user) return;
-
     try {
       const { data, error } = await SupabaseService.salvarItemCompra(item, refeicao);
       if (error) {
@@ -69,8 +63,6 @@ export function useSupabaseListaCompras() {
   };
 
   const atualizarItem = async (refeicao: string, itemId: string, updates: Partial<ItemCompra>) => {
-    if (!user) return;
-
     try {
       const { error } = await SupabaseService.atualizarItemCompra(itemId, updates);
       if (error) {
@@ -92,8 +84,6 @@ export function useSupabaseListaCompras() {
   };
 
   const removerItem = async (refeicao: string, itemId: string) => {
-    if (!user) return;
-
     try {
       const { error } = await SupabaseService.deletarItemCompra(itemId);
       if (error) {
@@ -115,10 +105,8 @@ export function useSupabaseListaCompras() {
   };
 
   useEffect(() => {
-    if (user) {
-      carregarItens();
-    }
-  }, [user]);
+    carregarItens();
+  }, []);
 
   return {
     itensCompra,
