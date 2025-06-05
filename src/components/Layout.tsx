@@ -1,6 +1,5 @@
 
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { ReactNode } from "react";
 import { AppSidebar } from "@/components/AppSidebar";
 
@@ -34,9 +33,6 @@ export function Layout({
                 </nav>
               )}
               {title && <h1 className="text-neon-green text-base font-bold">{title}</h1>}
-            </div>
-            <div className="ml-auto">
-              <ThemeToggle />
             </div>
           </div>
         </header>
