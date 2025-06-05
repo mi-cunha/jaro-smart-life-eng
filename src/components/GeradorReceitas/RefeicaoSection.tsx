@@ -73,7 +73,7 @@ export function RefeicaoSection({
               className="bg-neon-green text-black hover:bg-neon-green/90"
             >
               <Plus className="w-4 h-4 mr-2" />
-              {temItensComprados ? 'Gerar Receita com Itens Comprados' : 'Gerar Mais Receitas'}
+              Gerar Mais Receitas
             </Button>
           </div>
 
