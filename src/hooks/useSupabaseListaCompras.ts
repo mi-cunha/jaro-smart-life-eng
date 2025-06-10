@@ -6,10 +6,10 @@ import { toast } from 'sonner';
 
 export function useSupabaseListaCompras() {
   const [itensCompra, setItensCompra] = useState<{ [key: string]: ItemCompra[] }>({
-    "Café da Manhã": [],
-    "Almoço": [],
-    "Lanche": [],
-    "Jantar": []
+    "Breakfast": [],
+    "Lunch": [],
+    "Snack": [],
+    "Dinner": []
   });
   const [loading, setLoading] = useState(false);
 
@@ -17,16 +17,16 @@ export function useSupabaseListaCompras() {
     setLoading(true);
     try {
       const itensPorRefeicao: { [key: string]: ItemCompra[] } = {
-        "Café da Manhã": [],
-        "Almoço": [],
-        "Lanche": [],
-        "Jantar": []
+        "Breakfast": [],
+        "Lunch": [],
+        "Snack": [],
+        "Dinner": []
       };
 
       for (const refeicao of Object.keys(itensPorRefeicao)) {
         const { data, error } = await SupabaseService.buscarItensCompra(refeicao);
         if (error) {
-          console.error(`Erro ao carregar itens de ${refeicao}:`, error);
+          console.error(`Error loading items for ${refeicao}:`, error);
         } else {
           itensPorRefeicao[refeicao] = data;
         }
@@ -34,8 +34,8 @@ export function useSupabaseListaCompras() {
 
       setItensCompra(itensPorRefeicao);
     } catch (error) {
-      console.error('Erro ao carregar itens:', error);
-      toast.error('Erro ao carregar lista de compras');
+      console.error('Error loading items:', error);
+      toast.error('Error loading shopping list');
     } finally {
       setLoading(false);
     }
@@ -45,20 +45,20 @@ export function useSupabaseListaCompras() {
     try {
       const { data, error } = await SupabaseService.salvarItemCompra(item, refeicao);
       if (error) {
-        toast.error('Erro ao adicionar item');
+        toast.error('Error adding item');
         return;
       }
 
-      // Atualizar estado local
+      // Update local state
       setItensCompra(prev => ({
         ...prev,
-        [refeicao]: [...prev[refeicao], data]
+        [refeicao]: [...prev[refeicao], { ...item, id: data?.id || Date.now().toString() }]
       }));
 
-      toast.success('Item adicionado!');
+      toast.success('Item added!');
     } catch (error) {
-      console.error('Erro ao adicionar item:', error);
-      toast.error('Erro ao adicionar item');
+      console.error('Error adding item:', error);
+      toast.error('Error adding item');
     }
   };
 
@@ -66,11 +66,11 @@ export function useSupabaseListaCompras() {
     try {
       const { error } = await SupabaseService.atualizarItemCompra(itemId, updates);
       if (error) {
-        toast.error('Erro ao atualizar item');
+        toast.error('Error updating item');
         return;
       }
 
-      // Atualizar estado local
+      // Update local state
       setItensCompra(prev => ({
         ...prev,
         [refeicao]: prev[refeicao].map(item => 
@@ -78,8 +78,8 @@ export function useSupabaseListaCompras() {
         )
       }));
     } catch (error) {
-      console.error('Erro ao atualizar item:', error);
-      toast.error('Erro ao atualizar item');
+      console.error('Error updating item:', error);
+      toast.error('Error updating item');
     }
   };
 
@@ -87,20 +87,20 @@ export function useSupabaseListaCompras() {
     try {
       const { error } = await SupabaseService.deletarItemCompra(itemId);
       if (error) {
-        toast.error('Erro ao remover item');
+        toast.error('Error removing item');
         return;
       }
 
-      // Atualizar estado local
+      // Update local state
       setItensCompra(prev => ({
         ...prev,
         [refeicao]: prev[refeicao].filter(item => item.id !== itemId)
       }));
 
-      toast.success('Item removido!');
+      toast.success('Item removed!');
     } catch (error) {
-      console.error('Erro ao remover item:', error);
-      toast.error('Erro ao remover item');
+      console.error('Error removing item:', error);
+      toast.error('Error removing item');
     }
   };
 

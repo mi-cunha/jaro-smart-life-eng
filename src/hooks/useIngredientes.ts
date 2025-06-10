@@ -4,38 +4,38 @@ import { Ingrediente } from "@/types/receitas";
 
 export function useIngredientes() {
   const [ingredientesPorRefeicao, setIngredientesPorRefeicao] = useState<{ [key: string]: Ingrediente[] }>({
-    "Café da Manhã": [
-      { nome: "Aveia", selecionado: true },
+    "Breakfast": [
+      { nome: "Oats", selecionado: true },
       { nome: "Banana", selecionado: true },
-      { nome: "Ovos", selecionado: false },
-      { nome: "Espinafre", selecionado: false },
-      { nome: "Iogurte Natural", selecionado: true },
-      { nome: "Chia", selecionado: false },
-      { nome: "Frutas Vermelhas", selecionado: true }
+      { nome: "Eggs", selecionado: false },
+      { nome: "Spinach", selecionado: false },
+      { nome: "Greek Yogurt", selecionado: true },
+      { nome: "Chia Seeds", selecionado: false },
+      { nome: "Berries", selecionado: true }
     ],
-    "Almoço": [
-      { nome: "Peito de Frango", selecionado: true },
+    "Lunch": [
+      { nome: "Chicken Breast", selecionado: true },
       { nome: "Quinoa", selecionado: true },
-      { nome: "Brócolis", selecionado: true },
-      { nome: "Azeite", selecionado: false },
-      { nome: "Batata Doce", selecionado: false },
-      { nome: "Salmão", selecionado: false },
-      { nome: "Couve-flor", selecionado: true }
+      { nome: "Broccoli", selecionado: true },
+      { nome: "Olive Oil", selecionado: false },
+      { nome: "Sweet Potato", selecionado: false },
+      { nome: "Salmon", selecionado: false },
+      { nome: "Cauliflower", selecionado: true }
     ],
-    "Lanche": [
-      { nome: "Iogurte Natural", selecionado: true },
-      { nome: "Oleaginosas", selecionado: true },
-      { nome: "Frutas", selecionado: true },
-      { nome: "Cottage", selecionado: false },
-      { nome: "Abacate", selecionado: false }
+    "Snack": [
+      { nome: "Greek Yogurt", selecionado: true },
+      { nome: "Nuts", selecionado: true },
+      { nome: "Fruits", selecionado: true },
+      { nome: "Cottage Cheese", selecionado: false },
+      { nome: "Avocado", selecionado: false }
     ],
-    "Jantar": [
+    "Dinner": [
       { nome: "Tofu", selecionado: true },
-      { nome: "Abobrinha", selecionado: true },
-      { nome: "Berinjela", selecionado: false },
-      { nome: "Cogumelos", selecionado: true },
-      { nome: "Peixe Branco", selecionado: false },
-      { nome: "Aspargos", selecionado: false }
+      { nome: "Zucchini", selecionado: true },
+      { nome: "Eggplant", selecionado: false },
+      { nome: "Mushrooms", selecionado: true },
+      { nome: "White Fish", selecionado: false },
+      { nome: "Asparagus", selecionado: false }
     ]
   });
 
@@ -64,7 +64,6 @@ export function useIngredientes() {
       );
       
       if (jaExiste) {
-        // Se já existe, apenas marca como selecionado
         return {
           ...prev,
           [refeicao]: ingredientesExistentes.map(item =>
@@ -74,7 +73,6 @@ export function useIngredientes() {
           )
         };
       } else {
-        // Se não existe, adiciona como novo ingrediente selecionado
         return {
           ...prev,
           [refeicao]: [
