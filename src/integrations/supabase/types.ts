@@ -11,268 +11,289 @@ export type Database = {
     Tables: {
       ingredientes: {
         Row: {
+          calorias_por_100g: number | null
           categoria: string | null
-          data_atualizacao: string
-          data_criacao: string
+          created_at: string
           id: string
           nome: string
-          refeicao: string
-          selecionado: boolean | null
-          usuario_id: string | null
+          updated_at: string
+          usuario_id: string
         }
         Insert: {
+          calorias_por_100g?: number | null
           categoria?: string | null
-          data_atualizacao?: string
-          data_criacao?: string
+          created_at?: string
           id?: string
           nome: string
-          refeicao: string
-          selecionado?: boolean | null
-          usuario_id?: string | null
+          updated_at?: string
+          usuario_id: string
         }
         Update: {
+          calorias_por_100g?: number | null
           categoria?: string | null
-          data_atualizacao?: string
-          data_criacao?: string
+          created_at?: string
           id?: string
           nome?: string
-          refeicao?: string
-          selecionado?: boolean | null
-          usuario_id?: string | null
+          updated_at?: string
+          usuario_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_ingredientes_usuario"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lista_compras: {
         Row: {
-          categoria: string | null
           comprado: boolean | null
-          data_atualizacao: string
-          data_criacao: string
+          created_at: string
           id: string
-          nome: string
-          preco: number
-          quantidade: string
-          refeicao: string
-          usuario_id: string | null
+          item: string
+          quantidade: string | null
+          updated_at: string
+          usuario_id: string
         }
         Insert: {
-          categoria?: string | null
           comprado?: boolean | null
-          data_atualizacao?: string
-          data_criacao?: string
+          created_at?: string
           id?: string
-          nome: string
-          preco?: number
-          quantidade: string
-          refeicao: string
-          usuario_id?: string | null
+          item: string
+          quantidade?: string | null
+          updated_at?: string
+          usuario_id: string
         }
         Update: {
-          categoria?: string | null
           comprado?: boolean | null
-          data_atualizacao?: string
-          data_criacao?: string
+          created_at?: string
           id?: string
-          nome?: string
-          preco?: number
-          quantidade?: string
-          refeicao?: string
-          usuario_id?: string | null
+          item?: string
+          quantidade?: string | null
+          updated_at?: string
+          usuario_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_lista_compras_usuario"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       perfil_usuario: {
         Row: {
           alergias: string | null
-          apple_health: boolean | null
-          avatar_url: string | null
           calorias_diarias: number | null
-          dados_uso: boolean | null
-          data_atualizacao: string
-          data_criacao: string
+          created_at: string
           doses_cha: number | null
           email: string | null
-          fitbit: boolean | null
-          google_fit: boolean | null
           habitos_diarios: number | null
           id: string
           low_carb: boolean | null
-          nome: string
-          notif_atingir_meta: boolean | null
-          notif_comprar_itens: boolean | null
-          notif_gerar_receitas: boolean | null
-          notif_marcar_habito: boolean | null
-          notif_tomar_cha: boolean | null
-          notificacoes_push: boolean | null
+          nome: string | null
           peso_objetivo: number | null
           sem_gluten: boolean | null
+          updated_at: string
           usuario_id: string
           vegano: boolean | null
           vegetariano: boolean | null
         }
         Insert: {
           alergias?: string | null
-          apple_health?: boolean | null
-          avatar_url?: string | null
           calorias_diarias?: number | null
-          dados_uso?: boolean | null
-          data_atualizacao?: string
-          data_criacao?: string
+          created_at?: string
           doses_cha?: number | null
           email?: string | null
-          fitbit?: boolean | null
-          google_fit?: boolean | null
           habitos_diarios?: number | null
           id?: string
           low_carb?: boolean | null
-          nome?: string
-          notif_atingir_meta?: boolean | null
-          notif_comprar_itens?: boolean | null
-          notif_gerar_receitas?: boolean | null
-          notif_marcar_habito?: boolean | null
-          notif_tomar_cha?: boolean | null
-          notificacoes_push?: boolean | null
+          nome?: string | null
           peso_objetivo?: number | null
           sem_gluten?: boolean | null
-          usuario_id?: string
+          updated_at?: string
+          usuario_id: string
           vegano?: boolean | null
           vegetariano?: boolean | null
         }
         Update: {
           alergias?: string | null
-          apple_health?: boolean | null
-          avatar_url?: string | null
           calorias_diarias?: number | null
-          dados_uso?: boolean | null
-          data_atualizacao?: string
-          data_criacao?: string
+          created_at?: string
           doses_cha?: number | null
           email?: string | null
-          fitbit?: boolean | null
-          google_fit?: boolean | null
           habitos_diarios?: number | null
           id?: string
           low_carb?: boolean | null
-          nome?: string
-          notif_atingir_meta?: boolean | null
-          notif_comprar_itens?: boolean | null
-          notif_gerar_receitas?: boolean | null
-          notif_marcar_habito?: boolean | null
-          notif_tomar_cha?: boolean | null
-          notificacoes_push?: boolean | null
+          nome?: string | null
           peso_objetivo?: number | null
           sem_gluten?: boolean | null
+          updated_at?: string
           usuario_id?: string
           vegano?: boolean | null
           vegetariano?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_perfil_usuario_usuario"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       preferencias_usuario: {
         Row: {
-          calorias_max: number | null
-          data_atualizacao: string
-          data_criacao: string
+          created_at: string
           id: string
           objetivo: string | null
-          preferencias_alimentares: string | null
+          preferencias_alimentares: Json | null
           restricoes_alimentares: string[] | null
-          usuario_id: string | null
+          updated_at: string
+          usuario_id: string
         }
         Insert: {
-          calorias_max?: number | null
-          data_atualizacao?: string
-          data_criacao?: string
+          created_at?: string
           id?: string
           objetivo?: string | null
-          preferencias_alimentares?: string | null
+          preferencias_alimentares?: Json | null
           restricoes_alimentares?: string[] | null
-          usuario_id?: string | null
+          updated_at?: string
+          usuario_id: string
         }
         Update: {
-          calorias_max?: number | null
-          data_atualizacao?: string
-          data_criacao?: string
+          created_at?: string
           id?: string
           objetivo?: string | null
-          preferencias_alimentares?: string | null
+          preferencias_alimentares?: Json | null
           restricoes_alimentares?: string[] | null
-          usuario_id?: string | null
+          updated_at?: string
+          usuario_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_preferencias_usuario_usuario"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       receitas: {
         Row: {
-          calorias: number
-          carboidratos: number
-          data_atualizacao: string
-          data_criacao: string
-          favorita: boolean | null
-          gorduras: number
+          calorias: number | null
+          created_at: string
           id: string
-          ingredientes: string[]
+          ingredientes: Json | null
+          instrucoes: string | null
           nome: string
-          preparo: string[]
-          proteinas: number
-          refeicao: string
-          tempo: number
-          usuario_id: string | null
+          tempo_preparo: number | null
+          updated_at: string
+          usuario_id: string
         }
         Insert: {
-          calorias: number
-          carboidratos?: number
-          data_atualizacao?: string
-          data_criacao?: string
-          favorita?: boolean | null
-          gorduras?: number
+          calorias?: number | null
+          created_at?: string
           id?: string
-          ingredientes?: string[]
+          ingredientes?: Json | null
+          instrucoes?: string | null
           nome: string
-          preparo?: string[]
-          proteinas?: number
-          refeicao: string
-          tempo: number
-          usuario_id?: string | null
+          tempo_preparo?: number | null
+          updated_at?: string
+          usuario_id: string
         }
         Update: {
-          calorias?: number
-          carboidratos?: number
-          data_atualizacao?: string
-          data_criacao?: string
-          favorita?: boolean | null
-          gorduras?: number
+          calorias?: number | null
+          created_at?: string
           id?: string
-          ingredientes?: string[]
+          ingredientes?: Json | null
+          instrucoes?: string | null
           nome?: string
-          preparo?: string[]
-          proteinas?: number
-          refeicao?: string
-          tempo?: number
-          usuario_id?: string | null
+          tempo_preparo?: number | null
+          updated_at?: string
+          usuario_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_receitas_usuario"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscribers: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          stripe_customer_id: string | null
+          subscribed: boolean | null
+          subscription_end: string | null
+          subscription_tier: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean | null
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          stripe_customer_id?: string | null
+          subscribed?: boolean | null
+          subscription_end?: string | null
+          subscription_tier?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_subscribers_usuario"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       usuarios: {
         Row: {
-          data_atualizacao: string
-          data_criacao: string
-          email: string | null
+          created_at: string
+          email: string
           id: string
           nome: string | null
+          updated_at: string
         }
         Insert: {
-          data_atualizacao?: string
-          data_criacao?: string
-          email?: string | null
-          id: string
-          nome?: string | null
-        }
-        Update: {
-          data_atualizacao?: string
-          data_criacao?: string
-          email?: string | null
+          created_at?: string
+          email: string
           id?: string
           nome?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
