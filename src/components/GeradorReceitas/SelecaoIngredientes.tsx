@@ -20,17 +20,25 @@ export function SelecaoIngredientes({
   onToggleIngrediente,
   onToggleTodos
 }: SelecaoIngredientesProps) {
+  if (!ingredientes || ingredientes.length === 0) {
+    return (
+      <div className="text-white/60 text-center py-4">
+        No ingredients available for {refeicao}
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="flex justify-between items-center mb-3">
-        <h4 className="text-white/80 font-medium">Ingredientes Disponíveis:</h4>
+        <h4 className="text-white/80 font-medium">Available Ingredients:</h4>
         <Button
           onClick={onToggleTodos}
           variant="outline"
           size="sm"
           className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
         >
-          Selecionar/Desmarcar Todos
+          Select/Unselect All
         </Button>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

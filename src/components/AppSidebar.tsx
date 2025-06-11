@@ -10,11 +10,11 @@ const menuItems = [{
   url: "/",
   icon: Home
 }, {
-  title: "Chá Jaro",
+  title: "Jaro Tea",
   url: "/cha-jaro",
   icon: Calendar
 }, {
-  title: "Progresso de Peso",
+  title: "Weight Progress",
   url: "/progresso-peso",
   icon: Scale
 }, {
@@ -22,23 +22,23 @@ const menuItems = [{
   url: "/habit-tracker",
   icon: CheckCircle
 }, {
-  title: "Gerador de Receitas",
+  title: "Recipe Generator",
   url: "/gerador-receitas",
   icon: ChefHat
 }, {
-  title: "Lista de Compras",
+  title: "Shopping List",
   url: "/lista-compras",
   icon: ShoppingCart
 }, {
-  title: "Coleção de Receitas",
+  title: "Recipe Collection",
   url: "/colecao-receitas",
   icon: Heart
 }, {
-  title: "Dashboard Geral",
+  title: "General Dashboard",
   url: "/dashboard",
   icon: BarChart3
 }, {
-  title: "Perfil",
+  title: "Profile",
   url: "/perfil",
   icon: User
 }];
@@ -48,7 +48,7 @@ export function AppSidebar() {
   const { setOpenMobile, isMobile } = useSidebar();
 
   const handleMenuClick = () => {
-    // Fecha a sidebar no mobile após selecionar um item
+    // Close sidebar on mobile after selecting an item
     if (isMobile) {
       setOpenMobile(false);
     }
@@ -63,7 +63,7 @@ export function AppSidebar() {
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-white/70">Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-white/70">Main Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map(item => <SidebarMenuItem key={item.title}>

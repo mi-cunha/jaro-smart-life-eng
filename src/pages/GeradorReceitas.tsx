@@ -1,3 +1,4 @@
+
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ const GeradorReceitas = () => {
   const navigate = useNavigate();
   
   const [filtros, setFiltros] = useState<Filtros>({
-    objetivo: "Perda de peso",
+    objetivo: "Weight loss",
     preferencias: "",
     caloriesMax: [400]
   });
@@ -51,14 +52,14 @@ const GeradorReceitas = () => {
     const ingredientesSelecionados = getIngredientesSelecionados(refeicao);
     const itensComprados = getItensCompradosPorRefeicao(refeicao);
     
-    // Prioriza itens comprados da lista de compras
+    // Prioritize purchased items from shopping list
     gerarNovasReceitas(
       refeicao, 
       ingredientesSelecionados, 
       itensComprados,
-      preferencias?.alimentares || "nenhuma",
+      preferencias?.alimentares || "none",
       preferencias?.restricoes || [],
-      preferencias?.objetivo || "alimentação saudável"
+      preferencias?.objetivo || "healthy eating"
     );
   };
 
@@ -66,22 +67,22 @@ const GeradorReceitas = () => {
     adicionarIngrediente(refeicao, ingrediente);
   };
 
-  const refeicoes = ["Café da Manhã", "Almoço", "Lanche", "Jantar"];
+  const refeicoes = ["Breakfast", "Lunch", "Snack", "Dinner"];
 
   return (
-    <Layout title="Gerador de Receitas Saudáveis" breadcrumb={["Home", "Gerador de Receitas"]}>
+    <Layout title="Healthy Recipe Generator" breadcrumb={["Home", "Recipe Generator"]}>
       <div className="space-y-8">
         <Card className="bg-gradient-to-r from-neon-green/10 to-transparent border-neon-green/30">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-white/80 mb-2">
-                  As receitas são geradas com base nos ingredientes selecionados e nos itens comprados da sua Lista de Compras. 
-                  Cada receita é balanceada nutricionalmente e recomendada por profissionais da área.
+                  Recipes are generated based on selected ingredients and purchased items from your Shopping List. 
+                  Each recipe is nutritionally balanced and recommended by health professionals.
                 </p>
                 {useAI && (
                   <p className="text-neon-green text-sm">
-                    🤖 Modo ChatGPT ativo - Receitas personalizadas com IA
+                    🤖 ChatGPT mode active - AI-powered personalized recipes
                   </p>
                 )}
               </div>
@@ -108,8 +109,8 @@ const GeradorReceitas = () => {
             <RefeicaoSection
               key={refeicao}
               refeicao={refeicao}
-              ingredientes={ingredientesPorRefeicao[refeicao]}
-              receitas={receitasGeradas[refeicao]}
+              ingredientes={ingredientesPorRefeicao[refeicao] || []}
+              receitas={receitasGeradas[refeicao] || []}
               onToggleIngrediente={(index) => toggleIngrediente(refeicao, index)}
               onToggleTodos={() => toggleTodosIngredientes(refeicao)}
               onToggleFavorito={(receitaId) => toggleFavorito(refeicao, receitaId)}
@@ -128,7 +129,7 @@ const GeradorReceitas = () => {
             className="border-neon-green/30 text-neon-green hover:bg-neon-green/10 flex-1"
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
-            Ver Lista de Compras
+            View Shopping List
           </Button>
 
           <SugerirItemModal 

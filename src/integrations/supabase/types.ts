@@ -235,39 +235,42 @@ export type Database = {
           email: string
           id: string
           stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           subscribed: boolean | null
           subscription_end: string | null
           subscription_tier: string | null
           updated_at: string
-          user_id: string | null
+          usuario_id: string | null
         }
         Insert: {
           created_at?: string
           email: string
           id?: string
           stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           subscribed?: boolean | null
           subscription_end?: string | null
           subscription_tier?: string | null
           updated_at?: string
-          user_id?: string | null
+          usuario_id?: string | null
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
           stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           subscribed?: boolean | null
           subscription_end?: string | null
           subscription_tier?: string | null
           updated_at?: string
-          user_id?: string | null
+          usuario_id?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "fk_subscribers_usuario"
-            columns: ["user_id"]
-            isOneToOne: false
+            columns: ["usuario_id"]
+            isOneToOne: true
             referencedRelation: "usuarios"
             referencedColumns: ["id"]
           },

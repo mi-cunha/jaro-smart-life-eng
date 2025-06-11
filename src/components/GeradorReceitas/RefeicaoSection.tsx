@@ -41,7 +41,7 @@ export function RefeicaoSection({
             <div className="flex items-center gap-2 mb-2">
               <ShoppingCart className="w-4 h-4 text-neon-green" />
               <span className="text-neon-green text-sm font-medium">
-                Itens Comprados Disponíveis:
+                Available Purchased Items:
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -67,13 +67,13 @@ export function RefeicaoSection({
 
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h4 className="text-white/80 font-medium">Receitas:</h4>
+            <h4 className="text-white/80 font-medium">Recipes:</h4>
             <Button
               onClick={onGerarReceitas}
               className="bg-neon-green text-black hover:bg-neon-green/90"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Gerar Mais Receitas
+              Generate More Recipes
             </Button>
           </div>
 

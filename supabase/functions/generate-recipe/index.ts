@@ -25,57 +25,57 @@ serve(async (req) => {
   try {
     const { ingredientes, preferenciasAlimentares, restricoesAlimentares, tipoRefeicao, objetivo, tempoDisponivel, itensComprados } = await req.json() as RecipeRequest
 
-    // Buscar a chave da API do Supabase Secrets
-    const openaiApiKey = Deno.env.get('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')
+    // Get OpenAI API key from Supabase Secrets
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY')
 
     if (!openaiApiKey) {
-      throw new Error('Chave da API OpenAI não configurada')
+      throw new Error('OpenAI API key not configured')
     }
 
     const todosIngredientes = [...(itensComprados || []), ...ingredientes].filter((item, index, arr) => arr.indexOf(item) === index)
 
-    const prompt = `Você é um chef especialista em nutrição e culinária saudável. Crie uma receita COMPLETA e DETALHADA seguindo EXATAMENTE estas especificações:
+    const prompt = `You are a chef specialized in nutrition and healthy cooking. Create a COMPLETE and DETAILED recipe following EXACTLY these specifications:
 
-INGREDIENTES DISPONÍVEIS: ${todosIngredientes.join(', ')}
-TIPO DE REFEIÇÃO: ${tipoRefeicao}
-OBJETIVO NUTRICIONAL: ${objetivo}
-PREFERÊNCIAS ALIMENTARES: ${preferenciasAlimentares}
-RESTRIÇÕES ALIMENTARES: ${restricoesAlimentares.join(', ')}
-TEMPO DISPONÍVEL: ${tempoDisponivel} minutos
+AVAILABLE INGREDIENTS: ${todosIngredientes.join(', ')}
+MEAL TYPE: ${tipoRefeicao}
+NUTRITIONAL GOAL: ${objetivo}
+DIETARY PREFERENCES: ${preferenciasAlimentares}
+DIETARY RESTRICTIONS: ${restricoesAlimentares.join(', ')}
+AVAILABLE TIME: ${tempoDisponivel} minutes
 
-INSTRUÇÕES OBRIGATÓRIAS:
-1. Use PRIORITARIAMENTE os ingredientes disponíveis listados
-2. A receita deve ser adequada para ${tipoRefeicao.toLowerCase()}
-3. Considere o objetivo nutricional: ${objetivo}
-4. Respeite RIGOROSAMENTE as restrições alimentares
-5. O tempo de preparo deve ser realista (máximo ${tempoDisponivel} minutos)
-6. Forneça valores nutricionais precisos
+MANDATORY INSTRUCTIONS:
+1. Use PRIMARILY the available ingredients listed
+2. The recipe must be suitable for ${tipoRefeicao.toLowerCase()}
+3. Consider the nutritional goal: ${objetivo}
+4. STRICTLY respect the dietary restrictions
+5. Preparation time should be realistic (maximum ${tempoDisponivel} minutes)
+6. Provide accurate nutritional values
 
-FORMATO DE RESPOSTA (JSON válido):
+RESPONSE FORMAT (valid JSON):
 {
-  "nome": "Nome criativo e apetitoso da receita",
-  "tempo": número_em_minutos,
-  "calorias": número_total_calorias,
+  "nome": "Creative and appetizing recipe name",
+  "tempo": number_in_minutes,
+  "calorias": total_calories_number,
   "ingredientes": [
-    "quantidade + unidade + ingrediente (ex: 2 xícaras de arroz integral)",
-    "1 colher de sopa de azeite extra virgem"
+    "quantity + unit + ingredient (ex: 2 cups of brown rice)",
+    "1 tablespoon of extra virgin olive oil"
   ],
   "preparo": [
-    "Passo 1: Instrução detalhada do primeiro passo",
-    "Passo 2: Instrução detalhada do segundo passo",
-    "Passo 3: Continue até finalizar a receita"
+    "Step 1: Detailed instruction for the first step",
+    "Step 2: Detailed instruction for the second step",
+    "Step 3: Continue until recipe is complete"
   ],
-  "proteinas": gramas_de_proteina,
-  "carboidratos": gramas_de_carboidratos,
-  "gorduras": gramas_de_gorduras
+  "proteinas": grams_of_protein,
+  "carboidratos": grams_of_carbohydrates,
+  "gorduras": grams_of_fats
 }
 
-IMPORTANTE: 
-- Responda APENAS com o JSON válido, sem explicações adicionais
-- Seja específico nas quantidades e instruções
-- A receita deve ser saborosa, nutritiva e fácil de fazer
-- Use técnicas culinárias que preservem os nutrientes
-- Considere combinações de sabores harmoniosas`
+IMPORTANT: 
+- Respond ONLY with valid JSON, without additional explanations
+- Be specific with quantities and instructions
+- The recipe should be tasty, nutritious and easy to make
+- Use cooking techniques that preserve nutrients
+- Consider harmonious flavor combinations`
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -88,7 +88,7 @@ IMPORTANTE:
         messages: [
           {
             role: 'system',
-            content: 'Você é um chef especialista em nutrição que cria receitas saudáveis e balanceadas. Sempre responda apenas com JSON válido.'
+            content: 'You are a chef specialized in nutrition who creates healthy and balanced recipes. Always respond with valid JSON only.'
           },
           {
             role: 'user',
@@ -101,7 +101,7 @@ IMPORTANTE:
     })
 
     if (!response.ok) {
-      throw new Error(`Erro na API OpenAI: ${response.status}`)
+      throw new Error(`OpenAI API error: ${response.status}`)
     }
 
     const data = await response.json()
@@ -110,9 +110,9 @@ IMPORTANTE:
     try {
       const recipe = JSON.parse(recipeText)
       
-      // Validar a estrutura da resposta
+      // Validate response structure
       if (!recipe.nome || !recipe.ingredientes || !recipe.preparo) {
-        throw new Error('Resposta da API incompleta')
+        throw new Error('Incomplete API response')
       }
 
       return new Response(
@@ -125,12 +125,12 @@ IMPORTANTE:
         }
       )
     } catch (parseError) {
-      console.error('Erro ao fazer parse da resposta:', recipeText)
-      throw new Error('Formato de resposta inválido da API')
+      console.error('Error parsing response:', recipeText)
+      throw new Error('Invalid response format from API')
     }
 
   } catch (error) {
-    console.error('Erro:', error)
+    console.error('Error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

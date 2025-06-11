@@ -17,15 +17,15 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
   const [hasApiKey, setHasApiKey] = useState(false);
 
   useEffect(() => {
-    // Verificar se a chave da API está configurada no Supabase
+    // Check if API key is configured in Supabase
     const checkApiKey = async () => {
       try {
-        // Fazer uma chamada simples para verificar se a função existe e está configurada
+        // Make a simple call to check if the function exists and is configured
         const response = await fetch('/api/check-openai-key');
         setHasApiKey(response.ok);
       } catch (error) {
-        // Se a função não existe ou há erro, assumir que a chave está configurada
-        // (já que foi inserida manualmente no Supabase)
+        // If function doesn't exist or there's an error, assume key is configured
+        // (since it was manually inserted into Supabase)
         setHasApiKey(true);
       }
     };
@@ -35,7 +35,7 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
 
   const handleToggleAI = (checked: boolean) => {
     if (checked && !hasApiKey) {
-      return; // Não permite ativar se não tem API key
+      return; // Don't allow activation if no API key
     }
     onToggleAI(checked);
   };
@@ -49,24 +49,24 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
           className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
         >
           <Settings className="w-4 h-4 mr-2" />
-          Configurações
+          Settings
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-dark-bg border-white/10 max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-white">Configurações do Gerador</DialogTitle>
+          <DialogTitle className="text-white">Generator Settings</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Configuração da IA */}
+          {/* AI Configuration */}
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Bot className="w-5 h-5 text-neon-green" />
-                <span className="text-white font-medium">Usar ChatGPT</span>
+                <span className="text-white font-medium">Use ChatGPT</span>
                 {useAI && (
                   <Badge className="bg-neon-green/20 text-neon-green border-neon-green/30">
-                    Ativo
+                    Active
                   </Badge>
                 )}
               </div>
@@ -83,9 +83,9 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-orange-400 mt-0.5" />
                   <div className="text-sm">
-                    <p className="text-orange-400 font-medium">Chave da API OpenAI não configurada</p>
+                    <p className="text-orange-400 font-medium">OpenAI API key not configured</p>
                     <p className="text-orange-300 mt-1">
-                      Configure a chave da API OpenAI no Supabase para usar o ChatGPT na geração de receitas.
+                      Configure the OpenAI API key in Supabase Secrets to use ChatGPT for recipe generation.
                     </p>
                   </div>
                 </div>
@@ -95,34 +95,34 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
             {hasApiKey && (
               <div className="text-sm text-white/60 space-y-2">
                 <p>
-                  <strong>Desativado:</strong> Usa o gerador interno baseado em regras e variações pré-definidas.
+                  <strong>Disabled:</strong> Uses internal generator based on rules and predefined variations.
                 </p>
                 <p>
-                  <strong>Ativado:</strong> Usa ChatGPT para criar receitas completamente personalizadas com base no prompt especializado.
+                  <strong>Enabled:</strong> Uses ChatGPT to create completely personalized recipes with specialized prompts.
                 </p>
               </div>
             )}
           </div>
 
-          {/* Preferências Alimentares */}
+          {/* Food Preferences */}
           <div className="space-y-3">
-            <h4 className="text-white font-medium">Suas Preferências</h4>
+            <h4 className="text-white font-medium">Your Preferences</h4>
             <div className="space-y-2 text-sm">
               <div className="flex gap-2">
-                <span className="text-white/60">Objetivo:</span>
+                <span className="text-white/60">Goal:</span>
                 <Badge variant="outline" className="border-blue-400/30 text-blue-400">
-                  {preferencias?.objetivo || 'Perda de peso'}
+                  {preferencias?.objetivo || 'Weight loss'}
                 </Badge>
               </div>
               <div className="flex gap-2">
-                <span className="text-white/60">Preferências:</span>
+                <span className="text-white/60">Preferences:</span>
                 <Badge variant="outline" className="border-green-400/30 text-green-400">
-                  {preferencias?.alimentares || 'Nenhuma'}
+                  {preferencias?.alimentares || 'None'}
                 </Badge>
               </div>
               {preferencias?.restricoes && preferencias.restricoes.length > 0 && (
                 <div className="flex gap-2 flex-wrap">
-                  <span className="text-white/60">Restrições:</span>
+                  <span className="text-white/60">Restrictions:</span>
                   {preferencias.restricoes.map((restricao, index) => (
                     <Badge key={index} variant="outline" className="border-orange-400/30 text-orange-400">
                       {restricao}
@@ -132,7 +132,7 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
               )}
             </div>
             <p className="text-xs text-white/50">
-              Configure suas preferências na página de Perfil para receitas mais personalizadas.
+              Configure your preferences in the Profile page for more personalized recipes.
             </p>
           </div>
         </div>
