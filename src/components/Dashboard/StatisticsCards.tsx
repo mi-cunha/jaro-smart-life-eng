@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Target, TrendingUp, CheckCircle, BarChart3 } from "lucide-react";
+import { Scale, Target, CheckCircle2, TrendingUp } from "lucide-react";
 
 interface StatisticsCardsProps {
   pesoAtual: number;
@@ -17,40 +17,30 @@ export function StatisticsCards({
   totalHabitos,
   progressoPeso
 }: StatisticsCardsProps) {
+  const percentualHabitos = totalHabitos > 0 ? (habitosConcluidos / totalHabitos) * 100 : 0;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <Card className="bg-gradient-to-br from-neon-green/20 to-neon-green/5 border-neon-green/30">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-neon-green/80 text-sm font-medium">Peso Atual</p>
-              <h3 className="text-2xl font-bold text-neon-green">{pesoAtual}kg</h3>
+              <p className="text-white/70 text-sm">Current Weight</p>
+              <p className="text-2xl font-bold text-white">{pesoAtual} kg</p>
             </div>
-            <Target className="h-8 w-8 text-neon-green" />
+            <Scale className="w-8 h-8 text-neon-green" />
           </div>
         </CardContent>
       </Card>
 
-      <Card className="bg-dark-bg border-white/10">
+      <Card className="bg-gradient-to-br from-blue-500/20 to-blue-500/5 border-blue-500/30">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white/70 text-sm font-medium">Meta</p>
-              <h3 className="text-2xl font-bold text-white">{pesoMeta}kg</h3>
+              <p className="text-white/70 text-sm">Goal Weight</p>
+              <p className="text-2xl font-bold text-white">{pesoMeta} kg</p>
             </div>
-            <TrendingUp className="h-8 w-8 text-white/70" />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-dark-bg border-white/10">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-white/70 text-sm font-medium">Hábitos Hoje</p>
-              <h3 className="text-2xl font-bold text-white">{habitosConcluidos}/{totalHabitos}</h3>
-            </div>
-            <CheckCircle className="h-8 w-8 text-white/70" />
+            <Target className="w-8 h-8 text-blue-400" />
           </div>
         </CardContent>
       </Card>
@@ -59,10 +49,24 @@ export function StatisticsCards({
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-400/80 text-sm font-medium">Progresso</p>
-              <h3 className="text-2xl font-bold text-purple-400">{progressoPeso.toFixed(0)}%</h3>
+              <p className="text-white/70 text-sm">Today's Habits</p>
+              <p className="text-2xl font-bold text-white">{habitosConcluidos}/{totalHabitos}</p>
+              <p className="text-sm text-white/60">{percentualHabitos.toFixed(0)}% completed</p>
             </div>
-            <BarChart3 className="h-8 w-8 text-purple-400" />
+            <CheckCircle2 className="w-8 h-8 text-purple-400" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-gradient-to-br from-orange-500/20 to-orange-500/5 border-orange-500/30">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white/70 text-sm">Weight Progress</p>
+              <p className="text-2xl font-bold text-white">{progressoPeso.toFixed(1)}%</p>
+              <p className="text-sm text-white/60">towards goal</p>
+            </div>
+            <TrendingUp className="w-8 h-8 text-orange-400" />
           </div>
         </CardContent>
       </Card>

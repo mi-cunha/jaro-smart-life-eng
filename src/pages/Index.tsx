@@ -9,9 +9,13 @@ import { TodayHabits } from "@/components/Dashboard/TodayHabits";
 import { UpcomingMeals } from "@/components/Dashboard/UpcomingMeals";
 import { CallToAction } from "@/components/Dashboard/CallToAction";
 import { useState, useEffect } from "react";
+import { useHabitos } from "@/hooks/useHabitos";
+import { usePeso } from "@/hooks/usePeso";
 
 const Index = () => {
   const [showWelcome, setShowWelcome] = useState(false);
+  const { getHabitosHoje, getProgressoHabitos, loading: habitosLoading } = useHabitos();
+  const { pesoAtual, pesoMeta, getProgressoPeso, loading: pesoLoading } = usePeso();
 
   useEffect(() => {
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
@@ -25,50 +29,48 @@ const Index = () => {
     localStorage.setItem('hasSeenWelcome', 'true');
   };
 
-  const pesoAtual = 78;
-  const pesoMeta = 70;
-  const progressoPeso = ((85 - pesoAtual) / (85 - pesoMeta)) * 100;
+  // Get real data
+  const habitosHoje = getHabitosHoje();
+  const progressoHabitos = getProgressoHabitos();
+  const progressoPeso = getProgressoPeso();
 
-  const habitosHoje = [
-    { nome: "Tomar Chá Jaro", concluido: true },
-    { nome: "8 copos de água", concluido: true },
-    { nome: "30min exercício", concluido: false },
-    { nome: "Meditar 10min", concluido: true },
-  ];
-
-  const habitosConcluidos = habitosHoje.filter(h => h.concluido).length;
+  // Transform habits data for TodayHabits component
+  const habitosFormatados = habitosHoje.map(habito => ({
+    nome: habito.nome,
+    concluido: habito.concluido
+  }));
 
   const proximasRefeicoes = [
-    { nome: "Lanche da Tarde", horario: "15:30", calorias: 150 },
-    { nome: "Jantar", horario: "19:00", calorias: 400 },
+    { nome: "Afternoon Snack", horario: "3:30 PM", calorias: 150 },
+    { nome: "Dinner", horario: "7:00 PM", calorias: 400 },
   ];
 
   return (
-    <Layout title="Dashboard JaroSmart" breadcrumb={["Home"]}>
+    <Layout title="JaroSmart Dashboard" breadcrumb={["Home"]}>
       <WelcomeModal isOpen={showWelcome} onClose={handleCloseWelcome} />
       
       <div className="space-y-8">
         <DashboardHeader />
 
         <StatisticsCards
-          pesoAtual={pesoAtual}
-          pesoMeta={pesoMeta}
-          habitosConcluidos={habitosConcluidos}
-          totalHabitos={habitosHoje.length}
+          pesoAtual={pesoAtual || 78}
+          pesoMeta={pesoMeta || 70}
+          habitosConcluidos={progressoHabitos.concluidos}
+          totalHabitos={progressoHabitos.total}
           progressoPeso={progressoPeso}
         />
 
         <ProgressSection
           progressoPeso={progressoPeso}
-          pesoAtual={pesoAtual}
-          pesoMeta={pesoMeta}
-          habitosConcluidos={habitosConcluidos}
-          totalHabitos={habitosHoje.length}
+          pesoAtual={pesoAtual || 78}
+          pesoMeta={pesoMeta || 70}
+          habitosConcluidos={progressoHabitos.concluidos}
+          totalHabitos={progressoHabitos.total}
         />
 
         <QuickActions />
 
-        <TodayHabits habitos={habitosHoje} />
+        <TodayHabits habitos={habitosFormatados} />
 
         <UpcomingMeals refeicoes={proximasRefeicoes} />
 

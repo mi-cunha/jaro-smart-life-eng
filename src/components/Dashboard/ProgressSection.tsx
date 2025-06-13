@@ -1,7 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Target } from "lucide-react";
+import { Scale, CheckCircle2 } from "lucide-react";
 
 interface ProgressSectionProps {
   progressoPeso: number;
@@ -18,36 +18,57 @@ export function ProgressSection({
   habitosConcluidos,
   totalHabitos
 }: ProgressSectionProps) {
-  return (
-    <Card className="bg-dark-bg border-white/10">
-      <CardHeader>
-        <CardTitle className="text-white flex items-center gap-2">
-          <Target className="w-5 h-5 text-neon-green" />
-          Resumo do Progresso
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-white/80">Progresso do Peso</span>
-            <span className="text-neon-green font-semibold">{progressoPeso.toFixed(1)}%</span>
-          </div>
-          <Progress value={progressoPeso} className="h-2" />
-          <p className="text-sm text-white/60 mt-1">
-            Faltam apenas {(pesoAtual - pesoMeta).toFixed(1)}kg para sua meta!
-          </p>
-        </div>
+  const percentualHabitos = totalHabitos > 0 ? (habitosConcluidos / totalHabitos) * 100 : 0;
 
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-white/80">Hábitos Diários</span>
-            <span className="text-neon-green font-semibold">
-              {((habitosConcluidos / totalHabitos) * 100).toFixed(0)}%
-            </span>
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Card className="bg-dark-bg border-white/10">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <Scale className="w-5 h-5 text-neon-green" />
+            Weight Progress
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex justify-between text-sm text-white/70">
+            <span>Current: {pesoAtual} kg</span>
+            <span>Goal: {pesoMeta} kg</span>
           </div>
-          <Progress value={(habitosConcluidos / totalHabitos) * 100} className="h-2" />
-        </div>
-      </CardContent>
-    </Card>
+          <Progress value={progressoPeso} className="h-3" />
+          <div className="text-center">
+            <span className="text-neon-green font-semibold text-lg">
+              {progressoPeso.toFixed(1)}%
+            </span>
+            <p className="text-white/60 text-sm">
+              {(pesoAtual - pesoMeta).toFixed(1)} kg remaining
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-dark-bg border-white/10">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-purple-400" />
+            Today's Habits Progress
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex justify-between text-sm text-white/70">
+            <span>Completed: {habitosConcluidos}</span>
+            <span>Total: {totalHabitos}</span>
+          </div>
+          <Progress value={percentualHabitos} className="h-3" />
+          <div className="text-center">
+            <span className="text-purple-400 font-semibold text-lg">
+              {percentualHabitos.toFixed(0)}%
+            </span>
+            <p className="text-white/60 text-sm">
+              {totalHabitos - habitosConcluidos} habits remaining
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

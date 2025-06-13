@@ -9,6 +9,110 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      habitos: {
+        Row: {
+          ativo: boolean | null
+          created_at: string
+          descricao: string | null
+          id: string
+          meta_diaria: number | null
+          nome: string
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          meta_diaria?: number | null
+          nome: string
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          meta_diaria?: number | null
+          nome?: string
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
+      historico_habitos: {
+        Row: {
+          concluido: boolean | null
+          created_at: string
+          data: string
+          habito_id: string
+          id: string
+          observacoes: string | null
+          quantidade: number | null
+          updated_at: string
+          usuario_id: string
+        }
+        Insert: {
+          concluido?: boolean | null
+          created_at?: string
+          data?: string
+          habito_id: string
+          id?: string
+          observacoes?: string | null
+          quantidade?: number | null
+          updated_at?: string
+          usuario_id: string
+        }
+        Update: {
+          concluido?: boolean | null
+          created_at?: string
+          data?: string
+          habito_id?: string
+          id?: string
+          observacoes?: string | null
+          quantidade?: number | null
+          updated_at?: string
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_habitos_habito_id_fkey"
+            columns: ["habito_id"]
+            isOneToOne: false
+            referencedRelation: "habitos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historico_peso: {
+        Row: {
+          created_at: string
+          data: string
+          id: string
+          observacoes: string | null
+          peso: number
+          usuario_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          id?: string
+          observacoes?: string | null
+          peso: number
+          usuario_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          id?: string
+          observacoes?: string | null
+          peso?: number
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       ingredientes: {
         Row: {
           calorias_por_100g: number | null
@@ -88,14 +192,27 @@ export type Database = {
       perfil_usuario: {
         Row: {
           alergias: string | null
+          apple_health: boolean | null
+          avatar_url: string | null
           calorias_diarias: number | null
           created_at: string
+          dados_uso: boolean | null
           doses_cha: number | null
           email: string | null
+          fitbit: boolean | null
+          google_fit: boolean | null
           habitos_diarios: number | null
           id: string
           low_carb: boolean | null
+          meta_peso: number | null
           nome: string | null
+          notif_atingir_meta: boolean | null
+          notif_comprar_itens: boolean | null
+          notif_gerar_receitas: boolean | null
+          notif_marcar_habito: boolean | null
+          notif_tomar_cha: boolean | null
+          notificacoes_push: boolean | null
+          peso_atual: number | null
           peso_objetivo: number | null
           sem_gluten: boolean | null
           updated_at: string
@@ -105,14 +222,27 @@ export type Database = {
         }
         Insert: {
           alergias?: string | null
+          apple_health?: boolean | null
+          avatar_url?: string | null
           calorias_diarias?: number | null
           created_at?: string
+          dados_uso?: boolean | null
           doses_cha?: number | null
           email?: string | null
+          fitbit?: boolean | null
+          google_fit?: boolean | null
           habitos_diarios?: number | null
           id?: string
           low_carb?: boolean | null
+          meta_peso?: number | null
           nome?: string | null
+          notif_atingir_meta?: boolean | null
+          notif_comprar_itens?: boolean | null
+          notif_gerar_receitas?: boolean | null
+          notif_marcar_habito?: boolean | null
+          notif_tomar_cha?: boolean | null
+          notificacoes_push?: boolean | null
+          peso_atual?: number | null
           peso_objetivo?: number | null
           sem_gluten?: boolean | null
           updated_at?: string
@@ -122,14 +252,27 @@ export type Database = {
         }
         Update: {
           alergias?: string | null
+          apple_health?: boolean | null
+          avatar_url?: string | null
           calorias_diarias?: number | null
           created_at?: string
+          dados_uso?: boolean | null
           doses_cha?: number | null
           email?: string | null
+          fitbit?: boolean | null
+          google_fit?: boolean | null
           habitos_diarios?: number | null
           id?: string
           low_carb?: boolean | null
+          meta_peso?: number | null
           nome?: string | null
+          notif_atingir_meta?: boolean | null
+          notif_comprar_itens?: boolean | null
+          notif_gerar_receitas?: boolean | null
+          notif_marcar_habito?: boolean | null
+          notif_tomar_cha?: boolean | null
+          notificacoes_push?: boolean | null
+          peso_atual?: number | null
           peso_objetivo?: number | null
           sem_gluten?: boolean | null
           updated_at?: string
