@@ -17,31 +17,36 @@ export function ResumoCompra({
   return (
     <Card className="bg-dark-bg border-white/10">
       <CardHeader>
-        <CardTitle className="text-white">Resumo da Compra</CardTitle>
+        <CardTitle className="text-white">Purchase Summary</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {refeicoes.map((refeicao) => (
-            <div key={refeicao} className="text-center">
-              <div className="text-lg font-bold text-neon-green">
-                R$ {calcularTotalRefeicao(refeicao).toFixed(2)}
+          {refeicoes.map((refeicao) => {
+            const itensRefeicao = itensPorRefeicao[refeicao] || [];
+            const itensComprados = itensRefeicao.filter(item => item.comprado);
+            
+            return (
+              <div key={refeicao} className="text-center">
+                <div className="text-lg font-bold text-neon-green">
+                  ${calcularTotalRefeicao(refeicao).toFixed(2)}
+                </div>
+                <div className="text-sm text-white/70">{refeicao}</div>
+                <div className="text-xs text-white/50 mt-1">
+                  {itensComprados.length}/{itensRefeicao.length} items
+                </div>
               </div>
-              <div className="text-sm text-white/70">{refeicao}</div>
-              <div className="text-xs text-white/50 mt-1">
-                {itensPorRefeicao[refeicao].filter(item => item.comprado).length}/{itensPorRefeicao[refeicao].length} itens
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="mt-6 pt-6 border-t border-white/10 text-center">
           <div className="text-3xl font-bold text-neon-green mb-2">
-            R$ {calcularTotalGeral().toFixed(2)}
+            ${calcularTotalGeral().toFixed(2)}
           </div>
-          <div className="text-white/70">Total estimado da compra completa</div>
+          <div className="text-white/70">Complete shopping total estimate</div>
           <div className="text-sm text-white/50 mt-1">
             {Object.values(itensPorRefeicao).flat().filter(item => item.comprado).length}/
-            {Object.values(itensPorRefeicao).flat().length} itens comprados
+            {Object.values(itensPorRefeicao).flat().length} items purchased
           </div>
         </div>
       </CardContent>
