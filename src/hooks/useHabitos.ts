@@ -65,11 +65,55 @@ export function useHabitos() {
     });
   };
 
+  const getHistoricoSemanal = async () => {
+    try {
+      const { data, error } = await HabitosService.buscarProgressoSemanal();
+      
+      if (error) {
+        console.error('Erro ao buscar histórico semanal:', error);
+        return [];
+      }
+
+      // Group by date and calculate completion percentage
+      const groupedByDate = data.reduce((acc: any, item: any) => {
+        if (!acc[item.data]) {
+          acc[item.data] = { total: 0, completed: 0 };
+        }
+        acc[item.data].total++;
+        if (item.concluido) {
+          acc[item.data].completed++;
+        }
+        return acc;
+      }, {});
+
+      // Convert to array format for chart
+      return Object.entries(groupedByDate).map(([date, stats]: [string, any]) => ({
+        date,
+        percentual: stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
+      }));
+    } catch (error) {
+      console.error('Erro ao buscar histórico semanal:', error);
+      return [];
+    }
+  };
+
   const getProgressoHabitos = () => {
     const habitosHoje = getHabitosHoje();
     const concluidos = habitosHoje.filter(h => h.concluido).length;
     const total = habitosHoje.length;
-    return { concluidos, total, percentual: total > 0 ? (concluidos / total) * 100 : 0 };
+    const percentual = total > 0 ? (concluidos / total) * 100 : 0;
+    
+    // Calculate streaks (simplified calculation)
+    const streakAtual = percentual === 100 ? 1 : 0; // This is a simplified version
+    const melhorStreak = 1; // This would need historical data to calculate properly
+    
+    return { 
+      concluidos, 
+      total, 
+      percentual,
+      streakAtual,
+      melhorStreak
+    };
   };
 
   useEffect(() => {
@@ -83,6 +127,7 @@ export function useHabitos() {
     carregarHabitos,
     marcarHabito,
     getHabitosHoje,
-    getProgressoHabitos
+    getProgressoHabitos,
+    getHistoricoSemanal
   };
 }

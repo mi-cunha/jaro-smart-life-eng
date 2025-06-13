@@ -19,20 +19,22 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useHabitos } from "@/hooks/useHabitos";
+import { useState, useEffect } from "react";
 
 const HabitTracker = () => {
   const navigate = useNavigate();
   const { 
     getHabitosHoje, 
     getProgressoHabitos, 
-    toggleHabito, 
+    marcarHabito,
     getHistoricoSemanal,
     loading 
   } = useHabitos();
 
+  const [historicoSemanal, setHistoricoSemanal] = useState<any[]>([]);
+
   const habitosHoje = getHabitosHoje();
   const progresso = getProgressoHabitos();
-  const historicoSemanal = getHistoricoSemanal();
 
   const completedHabits = progresso.concluidos;
   const totalHabits = progresso.total;
@@ -45,9 +47,21 @@ const HabitTracker = () => {
     thisWeek: completionPercentage
   };
 
-  const handleToggleHabit = async (habitoId: string) => {
-    await toggleHabito(habitoId);
+  const handleToggleHabito = async (habitoId: string) => {
+    const habito = habitosHoje.find(h => h.id === habitoId);
+    if (habito) {
+      await marcarHabito(habitoId, !habito.concluido);
+    }
   };
+
+  // Load weekly history data
+  useEffect(() => {
+    const loadWeeklyData = async () => {
+      const data = await getHistoricoSemanal();
+      setHistoricoSemanal(data);
+    };
+    loadWeeklyData();
+  }, []);
 
   // Transform weekly data for chart
   const weeklyData = historicoSemanal.map((item, index) => ({
@@ -144,7 +158,7 @@ const HabitTracker = () => {
                   <div className="flex items-center gap-4">
                     <Checkbox
                       checked={habit.concluido}
-                      onCheckedChange={() => handleToggleHabit(habit.id)}
+                      onCheckedChange={() => handleToggleHabito(habit.id)}
                       className="data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green"
                     />
                     
@@ -156,7 +170,6 @@ const HabitTracker = () => {
                       <h3 className={`font-medium ${habit.concluido ? 'text-neon-green' : 'text-white'}`}>
                         {habit.nome}
                       </h3>
-                      <p className="text-sm text-white/60">{habit.descricao}</p>
                     </div>
                     
                     {habit.concluido && (
