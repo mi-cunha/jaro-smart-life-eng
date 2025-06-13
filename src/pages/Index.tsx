@@ -11,13 +11,13 @@ import { CallToAction } from "@/components/Dashboard/CallToAction";
 import { useState, useEffect } from "react";
 import { useHabitos } from "@/hooks/useHabitos";
 import { usePeso } from "@/hooks/usePeso";
-import { useAuth } from "@/hooks/useAuth";
+import { useSupabasePerfil } from "@/hooks/useSupabasePerfil";
 
 const Index = () => {
   const [showWelcome, setShowWelcome] = useState(false);
   const { getHabitosHoje, getProgressoHabitos, loading: habitosLoading } = useHabitos();
-  const { pesoAtual, pesoMeta, getProgressoPeso, loading: pesoLoading } = usePeso();
-  const { userProfile } = useAuth();
+  const { pesoAtual, getProgressoPeso, loading: pesoLoading } = usePeso();
+  const { perfil } = useSupabasePerfil();
 
   useEffect(() => {
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
@@ -36,9 +36,9 @@ const Index = () => {
   const progressoHabitos = getProgressoHabitos();
   const progressoPeso = getProgressoPeso();
 
-  // Use real weight data from user profile
-  const currentWeight = pesoAtual || userProfile?.peso_atual || 70;
-  const targetWeight = pesoMeta || userProfile?.peso_objetivo || 65;
+  // Use real weight data from Supabase or default values
+  const currentWeight = pesoAtual || 0;
+  const targetWeight = perfil?.peso_objetivo || 0;
 
   // Transform habits data for TodayHabits component
   const habitosFormatados = habitosHoje.map(habito => ({
@@ -77,7 +77,7 @@ const Index = () => {
 
   if (habitosLoading || pesoLoading) {
     return (
-      <Layout title="JaroSmart Dashboard" breadcrumb={["Home"]}>
+      <Layout title="JaroSmart Dashboard" breadcr>
         <div className="flex items-center justify-center min-h-64">
           <div className="text-white">Loading dashboard...</div>
         </div>

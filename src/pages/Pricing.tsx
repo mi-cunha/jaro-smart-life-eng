@@ -68,21 +68,29 @@ const Pricing = () => {
     }
 
     setIsLoading(true);
+    console.log('Creating checkout for plan:', planName);
+    
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         body: { plan: planName }
       });
 
       if (error) {
+        console.error('Checkout error:', error);
         throw new Error(error.message);
       }
 
+      console.log('Checkout response:', data);
+
       if (data?.url) {
+        console.log('Redirecting to Stripe checkout:', data.url);
         window.open(data.url, '_blank');
+      } else {
+        throw new Error('No checkout URL received');
       }
     } catch (error) {
       console.error('Error creating checkout:', error);
-      toast.error('Error creating checkout session');
+      toast.error('Error creating checkout session. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -169,7 +177,7 @@ const Pricing = () => {
                     disabled={isLoading}
                     className="w-full bg-neon-green text-black hover:bg-neon-green/90 font-medium py-3"
                   >
-                    Choose Plan
+                    {isLoading ? 'Creating checkout...' : 'Choose Plan'}
                   </Button>
                 </CardContent>
               </Card>
@@ -177,7 +185,7 @@ const Pricing = () => {
           </div>
 
           <p className="text-white/50 text-sm">
-            All plans include 7 days free trial. Cancel anytime during the trial period.
+            All plans include 14 days free trial. Cancel anytime during the trial period.
           </p>
         </div>
       </div>
