@@ -67,7 +67,8 @@ const ListaCompras = () => {
           </TabsList>
 
           {refeicoes.map((refeicao) => {
-            const itensSelecionados = itensPorRefeicao[refeicao].filter(item => item.comprado);
+            const itensRefeicao = itensPorRefeicao[refeicao] || [];
+            const itensSelecionados = itensRefeicao.filter(item => item.comprado);
             const temItensSelecionados = itensSelecionados.length > 0;
 
             return (
@@ -116,12 +117,12 @@ const ListaCompras = () => {
                   </CardHeader>
                   <CardContent>
                     <TabelaItensRefeicao
-                      itens={itensPorRefeicao[refeicao]}
+                      itens={itensRefeicao}
                       onToggleItem={(itemId) => toggleItem(refeicao, itemId)}
                       onRemoverItem={(itemId) => removerItem(refeicao, itemId)}
                     />
 
-                    <EstatisticasRefeicao itens={itensPorRefeicao[refeicao]} />
+                    <EstatisticasRefeicao itens={itensRefeicao} />
                   </CardContent>
                 </Card>
               </TabsContent>

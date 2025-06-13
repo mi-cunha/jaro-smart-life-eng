@@ -6,10 +6,10 @@ import { toast } from 'sonner';
 
 export function useSupabaseListaCompras() {
   const [itensCompra, setItensCompra] = useState<{ [key: string]: ItemCompra[] }>({
-    "Breakfast": [],
-    "Lunch": [],
-    "Snack": [],
-    "Dinner": []
+    "Café da Manhã": [],
+    "Almoço": [],
+    "Lanche": [],
+    "Jantar": []
   });
   const [loading, setLoading] = useState(false);
 
@@ -17,10 +17,10 @@ export function useSupabaseListaCompras() {
     setLoading(true);
     try {
       const itensPorRefeicao: { [key: string]: ItemCompra[] } = {
-        "Breakfast": [],
-        "Lunch": [],
-        "Snack": [],
-        "Dinner": []
+        "Café da Manhã": [],
+        "Almoço": [],
+        "Lanche": [],
+        "Jantar": []
       };
 
       for (const refeicao of Object.keys(itensPorRefeicao)) {
@@ -52,7 +52,7 @@ export function useSupabaseListaCompras() {
       // Update local state
       setItensCompra(prev => ({
         ...prev,
-        [refeicao]: [...prev[refeicao], { ...item, id: data?.id || Date.now().toString() }]
+        [refeicao]: [...(prev[refeicao] || []), { ...item, id: data?.id || Date.now().toString() }]
       }));
 
       toast.success('Item added!');
@@ -73,7 +73,7 @@ export function useSupabaseListaCompras() {
       // Update local state
       setItensCompra(prev => ({
         ...prev,
-        [refeicao]: prev[refeicao].map(item => 
+        [refeicao]: (prev[refeicao] || []).map(item => 
           item.id === itemId ? { ...item, ...updates } : item
         )
       }));
@@ -94,7 +94,7 @@ export function useSupabaseListaCompras() {
       // Update local state
       setItensCompra(prev => ({
         ...prev,
-        [refeicao]: prev[refeicao].filter(item => item.id !== itemId)
+        [refeicao]: (prev[refeicao] || []).filter(item => item.id !== itemId)
       }));
 
       toast.success('Item removed!');
