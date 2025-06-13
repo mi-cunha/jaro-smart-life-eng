@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { HabitosService, Habito } from '@/services/habitosService';
 import { toast } from 'sonner';
@@ -75,7 +74,7 @@ export function useHabitos() {
       }
 
       // Group by date and calculate completion percentage
-      const groupedByDate = data.reduce<Record<string, { total: number; completed: number }>>((acc, item) => {
+      const groupedByDate = data.reduce((acc, item) => {
         if (!acc[item.data]) {
           acc[item.data] = { total: 0, completed: 0 };
         }
@@ -84,7 +83,7 @@ export function useHabitos() {
           acc[item.data].completed++;
         }
         return acc;
-      }, {});
+      }, {} as Record<string, { total: number; completed: number }>);
 
       // Convert to array format for chart
       return Object.entries(groupedByDate).map(([date, stats]) => ({
