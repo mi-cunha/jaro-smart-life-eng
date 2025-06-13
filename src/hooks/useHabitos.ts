@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { HabitosService, Habito } from '@/services/habitosService';
 import { toast } from 'sonner';
@@ -86,7 +87,7 @@ export function useHabitos() {
       }, {} as Record<string, { total: number; completed: number }>);
 
       // Convert to array format for chart
-      return Object.entries(groupedByDate).map(([date, stats]) => ({
+      return Object.entries(groupedByDate).map(([date, stats]: [string, { total: number; completed: number }]) => ({
         date,
         percentual: stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
       }));
