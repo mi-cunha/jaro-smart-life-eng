@@ -90,7 +90,7 @@ export function useHabitos() {
       );
 
       // Convert to array format for chart
-      return Object.entries(groupedByDate).map(([date, stats]: [string, { total: number; completed: number }]) => ({
+      return Object.entries(groupedByDate).map(([date, stats]) => ({
         date,
         percentual: stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
       }));
