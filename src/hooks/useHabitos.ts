@@ -84,7 +84,7 @@ export function useHabitos() {
           acc[item.data].completed++;
         }
         return acc;
-      }, {});
+      }, {} as Record<string, { total: number; completed: number }>);
 
       // Convert to array format for chart
       return Object.entries(groupedByDate).map(([date, stats]) => ({
