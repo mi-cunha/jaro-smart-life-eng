@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -62,7 +63,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4">
-      <div className="w-full max-w-md mx-auto">
+      <div className="w-full max-w-md">
         <Card className="bg-dark-bg border-white/10 shadow-xl">
           <CardHeader className="text-center space-y-4 pb-6">
             <div className="flex justify-center">
