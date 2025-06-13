@@ -15,7 +15,7 @@ const Auth = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    nome: ''
+    name: ''
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -26,7 +26,7 @@ const Auth = () => {
     const { error } = await signIn(formData.email, formData.password);
     
     if (!error) {
-      navigate('/');
+      navigate('/dashboard');
     }
     setIsLoading(false);
   };
@@ -35,11 +35,10 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signUp(formData.email, formData.password, formData.nome);
+    const { error } = await signUp(formData.email, formData.password, formData.name);
     
     if (!error) {
-      // Usuário criado, mas precisa confirmar email
-      setFormData({ email: '', password: '', nome: '' });
+      setFormData({ email: '', password: '', name: '' });
     }
     setIsLoading(false);
   };
@@ -64,7 +63,7 @@ const Auth = () => {
             🥗 NutriGen
           </CardTitle>
           <p className="text-center text-white/60">
-            Sua plataforma de receitas saudáveis
+            Your healthy recipes platform
           </p>
         </CardHeader>
         <CardContent>
@@ -74,13 +73,13 @@ const Auth = () => {
                 value="login"
                 className="data-[state=active]:bg-neon-green data-[state=active]:text-black text-white"
               >
-                Login
+                Sign In
               </TabsTrigger>
               <TabsTrigger 
                 value="signup"
                 className="data-[state=active]:bg-neon-green data-[state=active]:text-black text-white"
               >
-                Cadastro
+                Sign Up
               </TabsTrigger>
             </TabsList>
 
@@ -98,7 +97,7 @@ const Auth = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-white">Senha</Label>
+                  <Label htmlFor="password" className="text-white">Password</Label>
                   <Input
                     id="password"
                     type="password"
@@ -116,7 +115,7 @@ const Auth = () => {
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
                   ) : null}
-                  Entrar
+                  Sign In
                 </Button>
               </form>
             </TabsContent>
@@ -124,12 +123,12 @@ const Auth = () => {
             <TabsContent value="signup" className="space-y-4">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="nome" className="text-white">Nome</Label>
+                  <Label htmlFor="name" className="text-white">Name</Label>
                   <Input
-                    id="nome"
+                    id="name"
                     type="text"
-                    value={formData.nome}
-                    onChange={(e) => handleInputChange('nome', e.target.value)}
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
                     className="bg-dark-bg border-white/20 text-white"
                     required
                   />
@@ -146,7 +145,7 @@ const Auth = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="text-white">Senha</Label>
+                  <Label htmlFor="signup-password" className="text-white">Password</Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -165,7 +164,7 @@ const Auth = () => {
                   {isLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin mr-2" />
                   ) : null}
-                  Criar Conta
+                  Create Account
                 </Button>
               </form>
             </TabsContent>
@@ -177,7 +176,7 @@ const Auth = () => {
               onClick={() => navigate('/')}
               className="text-white/60 hover:text-white"
             >
-              Voltar ao início
+              Back to Home
             </Button>
           </div>
         </CardContent>

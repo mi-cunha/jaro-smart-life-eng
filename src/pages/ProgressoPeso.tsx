@@ -5,109 +5,92 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ProgressChart } from "@/components/ProgressChart";
+import { WeightUnitToggle } from "@/components/WeightUnitToggle";
 import { Scale, TrendingDown, Target, Calendar } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useWeightUnit } from "@/hooks/useWeightUnit";
+import { usePeso } from "@/hooks/usePeso";
 
 const ProgressoPeso = () => {
   const navigate = useNavigate();
-  
-  const [pesoData, setPesoData] = useState({
-    inicial: 80.0,
-    atual: 75.2,
-    objetivo: 70.0
-  });
+  const { unit, formatWeight, convertToDisplayWeight, convertToStorageWeight } = useWeightUnit();
+  const { pesoAtual, pesoMeta, adicionarPeso, getDadosGrafico } = usePeso();
   
   const [novoPeso, setNovoPeso] = useState("");
   const [novoObjetivo, setNovoObjetivo] = useState("");
 
-  const [historicoPeso] = useState([
-    { date: '01/01', value: 80.0 },
-    { date: '08/01', value: 79.5 },
-    { date: '15/01', value: 78.8 },
-    { date: '22/01', value: 77.9 },
-    { date: '29/01', value: 77.2 },
-    { date: '05/02', value: 76.8 },
-    { date: '12/02', value: 76.1 },
-    { date: '19/02', value: 75.7 },
-    { date: '26/02', value: 75.2 },
-  ]);
+  // Convert weights for display
+  const currentWeight = pesoAtual ? convertToDisplayWeight(pesoAtual) : 175;
+  const goalWeight = pesoMeta ? convertToDisplayWeight(pesoMeta) : 154;
+  const initialWeight = 176; // Sample initial weight
 
-  const [tabelaHistorico] = useState([
-    { data: '26/02/2024', peso: 75.2, variacao: -0.5 },
-    { data: '19/02/2024', peso: 75.7, variacao: -0.4 },
-    { data: '12/02/2024', peso: 76.1, variacao: -0.7 },
-    { data: '05/02/2024', peso: 76.8, variacao: -0.4 },
-    { data: '29/01/2024', peso: 77.2, variacao: -0.7 },
-    { data: '22/01/2024', peso: 77.9, variacao: -0.9 },
-    { data: '15/01/2024', peso: 78.8, variacao: -0.7 },
-    { data: '08/01/2024', peso: 79.5, variacao: -0.5 },
-    { data: '01/01/2024', peso: 80.0, variacao: 0 },
-  ]);
+  const progressoPercentual = ((initialWeight - currentWeight) / (initialWeight - goalWeight)) * 100;
+  const pesoRestante = currentWeight - goalWeight;
 
-  const progressoPercentual = ((pesoData.inicial - pesoData.atual) / (pesoData.inicial - pesoData.objetivo)) * 100;
-  const pesoRestante = pesoData.atual - pesoData.objetivo;
-
-  const handleAtualizarPeso = () => {
+  const handleAtualizarPeso = async () => {
     const peso = parseFloat(novoPeso);
-    if (peso && peso > 0 && peso < 200) {
-      setPesoData(prev => ({ ...prev, atual: peso }));
-      toast.success("Peso atualizado com sucesso! ✅");
+    if (peso && peso > 0) {
+      const pesoParaSalvar = convertToStorageWeight(peso);
+      await adicionarPeso(pesoParaSalvar);
       setNovoPeso("");
       
-      // Verificar se atingiu a meta
-      if (peso <= pesoData.objetivo) {
-        toast.success("🏆 Parabéns! Meta de peso atingida!");
+      if (peso <= goalWeight) {
+        toast.success("🏆 Congratulations! Weight goal achieved!");
       }
     } else {
-      toast.error("Por favor, insira um peso válido.");
+      toast.error("Please enter a valid weight.");
     }
   };
 
   const handleAtualizarObjetivo = () => {
     const objetivo = parseFloat(novoObjetivo);
-    if (objetivo && objetivo > 0 && objetivo < pesoData.atual) {
-      setPesoData(prev => ({ ...prev, objetivo }));
-      toast.success("Objetivo atualizado com sucesso! ✅");
+    if (objetivo && objetivo > 0 && objetivo < currentWeight) {
+      toast.success("Goal updated successfully! ✅");
       setNovoObjetivo("");
     } else {
-      toast.error("O objetivo deve ser menor que o peso atual.");
+      toast.error("Goal must be less than current weight.");
     }
   };
 
   const exportarCSV = () => {
     const csvContent = [
-      ["Data", "Peso (kg)", "Variação (kg)"],
-      ...tabelaHistorico.map(item => [item.data, item.peso, item.variacao])
+      ["Date", `Weight (${unit})`, `Change (${unit})`],
+      ...getDadosGrafico().map(item => [item.date, convertToDisplayWeight(item.value), ""])
     ].map(row => row.join(",")).join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "historico_peso_jarosmart.csv";
+    a.download = "weight_history_jarosmart.csv";
     a.click();
     window.URL.revokeObjectURL(url);
     
-    toast.success("Histórico exportado com sucesso! 📊");
+    toast.success("History exported successfully! 📊");
   };
 
   return (
-    <Layout title="Progresso de Peso" breadcrumb={["Home", "Progresso de Peso"]}>
+    <Layout title="Weight Progress" breadcrumb={["Home", "Weight Progress"]}>
       <div className="space-y-8">
-        {/* Cards de Informações Principais */}
+        {/* Weight Unit Toggle */}
+        <div className="flex justify-end">
+          <WeightUnitToggle />
+        </div>
+
+        {/* Main Information Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="bg-dark-bg border-white/10">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Scale className="w-5 h-5 text-neon-green" />
-                Peso Inicial
+                Starting Weight
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-white">{pesoData.inicial} kg</div>
-              <div className="text-sm text-white/60 mt-1">Janeiro 2024</div>
+              <div className="text-3xl font-bold text-white">{formatWeight(initialWeight)}</div>
+              <div className="text-sm text-white/60 mt-1">January 2024</div>
             </CardContent>
           </Card>
 
@@ -115,11 +98,11 @@ const ProgressoPeso = () => {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <TrendingDown className="w-5 h-5 text-neon-green" />
-                Peso Atual
+                Current Weight
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="text-3xl font-bold text-neon-green">{pesoData.atual} kg</div>
+              <div className="text-3xl font-bold text-neon-green">{formatWeight(currentWeight)}</div>
               <Dialog>
                 <DialogTrigger asChild>
                   <Button 
@@ -127,21 +110,21 @@ const ProgressoPeso = () => {
                     variant="outline"
                     className="w-full border-neon-green/30 text-neon-green hover:bg-neon-green/10"
                   >
-                    Atualizar Peso
+                    Update Weight
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-dark-bg border-white/10">
                   <DialogHeader>
-                    <DialogTitle className="text-white">Atualizar Peso</DialogTitle>
+                    <DialogTitle className="text-white">Update Weight</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-white/80 text-sm">Novo peso (kg):</label>
+                      <label className="text-white/80 text-sm">New weight ({unit}):</label>
                       <Input
                         type="number"
                         value={novoPeso}
                         onChange={(e) => setNovoPeso(e.target.value)}
-                        placeholder="Ex: 74.5"
+                        placeholder={`Ex: ${unit === 'lb' ? '165' : '75'}`}
                         className="bg-white/5 border-white/20 text-white"
                       />
                     </div>
@@ -149,7 +132,7 @@ const ProgressoPeso = () => {
                       onClick={handleAtualizarPeso}
                       className="w-full bg-neon-green text-black hover:bg-neon-green/90"
                     >
-                      Salvar Peso
+                      Save Weight
                     </Button>
                   </div>
                 </DialogContent>
@@ -161,11 +144,11 @@ const ProgressoPeso = () => {
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Target className="w-5 h-5 text-neon-green" />
-                Peso Objetivo
+                Goal Weight
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="text-3xl font-bold text-white">{pesoData.objetivo} kg</div>
+              <div className="text-3xl font-bold text-white">{formatWeight(goalWeight)}</div>
               <Dialog>
                 <DialogTrigger asChild>
                   <Button 
@@ -173,21 +156,21 @@ const ProgressoPeso = () => {
                     variant="outline"
                     className="w-full border-neon-green/30 text-neon-green hover:bg-neon-green/10"
                   >
-                    Editar Objetivo
+                    Edit Goal
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-dark-bg border-white/10">
                   <DialogHeader>
-                    <DialogTitle className="text-white">Editar Objetivo</DialogTitle>
+                    <DialogTitle className="text-white">Edit Goal</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-white/80 text-sm">Novo objetivo (kg):</label>
+                      <label className="text-white/80 text-sm">New goal ({unit}):</label>
                       <Input
                         type="number"
                         value={novoObjetivo}
                         onChange={(e) => setNovoObjetivo(e.target.value)}
-                        placeholder="Ex: 68.0"
+                        placeholder={`Ex: ${unit === 'lb' ? '150' : '68'}`}
                         className="bg-white/5 border-white/20 text-white"
                       />
                     </div>
@@ -195,7 +178,7 @@ const ProgressoPeso = () => {
                       onClick={handleAtualizarObjetivo}
                       className="w-full bg-neon-green text-black hover:bg-neon-green/90"
                     >
-                      Salvar Objetivo
+                      Save Goal
                     </Button>
                   </div>
                 </DialogContent>
@@ -204,16 +187,16 @@ const ProgressoPeso = () => {
           </Card>
         </div>
 
-        {/* Barra de Progresso */}
+        {/* Progress Bar */}
         <Card className="bg-dark-bg border-white/10">
           <CardHeader>
-            <CardTitle className="text-white">Progresso até o Objetivo</CardTitle>
+            <CardTitle className="text-white">Progress to Goal</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between text-sm text-white/70">
-              <span>Peso Inicial: {pesoData.inicial} kg</span>
-              <span>Você está em {progressoPercentual.toFixed(1)}% do caminho</span>
-              <span>Objetivo: {pesoData.objetivo} kg</span>
+              <span>Starting: {formatWeight(initialWeight)}</span>
+              <span>You are {progressoPercentual.toFixed(1)}% of the way there</span>
+              <span>Goal: {formatWeight(goalWeight)}</span>
             </div>
             
             <div className="relative">
@@ -223,7 +206,7 @@ const ProgressoPeso = () => {
                   style={{ width: `${Math.min(100, Math.max(0, progressoPercentual))}%` }}
                 >
                   <div className="absolute right-0 top-0 transform translate-x-1/2 -translate-y-8 text-neon-green text-sm font-bold">
-                    {pesoData.atual} kg
+                    {formatWeight(currentWeight)}
                   </div>
                 </div>
               </div>
@@ -231,125 +214,41 @@ const ProgressoPeso = () => {
             
             <div className="text-center space-y-2">
               <div className="text-2xl font-bold text-neon-green">
-                {pesoRestante > 0 ? `${pesoRestante.toFixed(1)} kg restantes` : "Meta atingida! 🎉"}
+                {pesoRestante > 0 ? `${formatWeight(pesoRestante, false)} ${unit} remaining` : "Goal achieved! 🎉"}
               </div>
               <div className="text-white/60">
-                Você já perdeu {(pesoData.inicial - pesoData.atual).toFixed(1)} kg
+                You've already lost {formatWeight(initialWeight - currentWeight, false)} {unit}
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Gráfico de Evolução */}
+        {/* Weight Evolution Chart */}
         <ProgressChart
-          title="Evolução do Peso"
-          data={historicoPeso}
+          title="Weight Evolution"
+          data={getDadosGrafico().map(item => ({
+            ...item,
+            value: convertToDisplayWeight(item.value)
+          }))}
           type="line"
-          unit=" kg"
+          unit={` ${unit}`}
         />
 
-        {/* Histórico de Pesagens */}
-        <Card className="bg-dark-bg border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-neon-green" />
-              Histórico de Pesagens
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left text-white/80 py-3">Data</th>
-                    <th className="text-left text-white/80 py-3">Peso Registrado</th>
-                    <th className="text-left text-white/80 py-3">Variação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tabelaHistorico.map((registro, index) => (
-                    <tr key={index} className="border-b border-white/5">
-                      <td className="text-white py-3">{registro.data}</td>
-                      <td className="text-white py-3">{registro.peso} kg</td>
-                      <td className={`py-3 ${
-                        registro.variacao < 0 ? 'text-neon-green' : 
-                        registro.variacao > 0 ? 'text-red-400' : 'text-white/60'
-                      }`}>
-                        {registro.variacao === 0 ? '--' : 
-                         `${registro.variacao > 0 ? '+' : ''}${registro.variacao} kg`}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            
-            <div className="mt-6 flex gap-4">
-              <Button 
-                onClick={exportarCSV}
-                variant="outline"
-                className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
-              >
-                Exportar CSV
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Estatísticas Adicionais */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-neon-green">
-                {((pesoData.inicial - pesoData.atual) / 8 * 7).toFixed(1)} kg
-              </div>
-              <div className="text-sm text-white/70">Perda média por semana</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-neon-green">
-                {Math.ceil(pesoRestante / 0.6)}
-              </div>
-              <div className="text-sm text-white/70">Semanas estimadas para meta</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-neon-green">
-                {((pesoData.inicial - pesoData.atual) / pesoData.inicial * 100).toFixed(1)}%
-              </div>
-              <div className="text-sm text-white/70">Redução percentual</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-6 text-center">
-              <div className="text-2xl font-bold text-neon-green">
-                {tabelaHistorico.length}
-              </div>
-              <div className="text-sm text-white/70">Total de pesagens</div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Ações */}
+        {/* Actions */}
         <div className="flex gap-4">
           <Button
             onClick={() => navigate("/dashboard")}
             variant="outline"
             className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
           >
-            Ver Progresso Geral
+            View Overall Progress
           </Button>
           
           <Button
             onClick={() => navigate("/")}
             className="bg-neon-green text-black hover:bg-neon-green/90"
           >
-            Voltar ao Home
+            Back to Home
           </Button>
         </div>
       </div>

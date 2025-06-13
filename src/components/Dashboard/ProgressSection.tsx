@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Scale, CheckCircle2 } from "lucide-react";
+import { useWeightUnit } from "@/hooks/useWeightUnit";
 
 interface ProgressSectionProps {
   progressoPeso: number;
@@ -18,7 +19,11 @@ export function ProgressSection({
   habitosConcluidos,
   totalHabitos
 }: ProgressSectionProps) {
+  const { formatWeight, convertToDisplayWeight } = useWeightUnit();
   const percentualHabitos = totalHabitos > 0 ? (habitosConcluidos / totalHabitos) * 100 : 0;
+  
+  const currentWeight = convertToDisplayWeight(pesoAtual);
+  const goalWeight = convertToDisplayWeight(pesoMeta);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -31,8 +36,8 @@ export function ProgressSection({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-between text-sm text-white/70">
-            <span>Current: {pesoAtual} kg</span>
-            <span>Goal: {pesoMeta} kg</span>
+            <span>Current: {formatWeight(currentWeight)}</span>
+            <span>Goal: {formatWeight(goalWeight)}</span>
           </div>
           <Progress value={progressoPeso} className="h-3" />
           <div className="text-center">
@@ -40,7 +45,7 @@ export function ProgressSection({
               {progressoPeso.toFixed(1)}%
             </span>
             <p className="text-white/60 text-sm">
-              {(pesoAtual - pesoMeta).toFixed(1)} kg remaining
+              {formatWeight(currentWeight - goalWeight, false)} remaining
             </p>
           </div>
         </CardContent>

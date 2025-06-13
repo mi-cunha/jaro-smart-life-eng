@@ -1,6 +1,7 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Scale, Target, CheckCircle2, TrendingUp } from "lucide-react";
+import { useWeightUnit } from "@/hooks/useWeightUnit";
 
 interface StatisticsCardsProps {
   pesoAtual: number;
@@ -17,6 +18,7 @@ export function StatisticsCards({
   totalHabitos,
   progressoPeso
 }: StatisticsCardsProps) {
+  const { formatWeight, convertToDisplayWeight } = useWeightUnit();
   const percentualHabitos = totalHabitos > 0 ? (habitosConcluidos / totalHabitos) * 100 : 0;
 
   return (
@@ -26,7 +28,7 @@ export function StatisticsCards({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/70 text-sm">Current Weight</p>
-              <p className="text-2xl font-bold text-white">{pesoAtual} kg</p>
+              <p className="text-2xl font-bold text-white">{formatWeight(convertToDisplayWeight(pesoAtual))}</p>
             </div>
             <Scale className="w-8 h-8 text-neon-green" />
           </div>
@@ -38,7 +40,7 @@ export function StatisticsCards({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-white/70 text-sm">Goal Weight</p>
-              <p className="text-2xl font-bold text-white">{pesoMeta} kg</p>
+              <p className="text-2xl font-bold text-white">{formatWeight(convertToDisplayWeight(pesoMeta))}</p>
             </div>
             <Target className="w-8 h-8 text-blue-400" />
           </div>

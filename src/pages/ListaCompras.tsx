@@ -19,7 +19,7 @@ import { useListaCompras } from "@/hooks/useListaCompras";
 const ListaCompras = () => {
   const navigate = useNavigate();
   
-  const [preferenciasAlimentares, setPreferenciasAlimentares] = useState("nenhuma");
+  const [preferenciasAlimentares, setPreferenciasAlimentares] = useState("none");
   const [restricoesAlimentares, setRestricoesAlimentares] = useState<string[]>([]);
   
   const {
@@ -35,10 +35,10 @@ const ListaCompras = () => {
     removerItensSelecionados
   } = useListaCompras();
 
-  const refeicoes = ["Café da Manhã", "Almoço", "Lanche", "Jantar"];
+  const refeicoes = ["Breakfast", "Lunch", "Snack", "Dinner"];
 
   return (
-    <Layout title="Lista de Compras Inteligente" breadcrumb={["Home", "Lista de Compras"]}>
+    <Layout title="Smart Shopping List" breadcrumb={["Home", "Shopping List"]}>
       <div className="space-y-8">
         <ConfiguracoesPessoais
           preferenciasAlimentares={preferenciasAlimentares}
@@ -53,7 +53,7 @@ const ListaCompras = () => {
           onVoltarReceitas={() => navigate("/gerador-receitas")}
         />
 
-        <Tabs defaultValue="Café da Manhã" className="w-full">
+        <Tabs defaultValue="Breakfast" className="w-full">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-dark-bg border border-white/10">
             {refeicoes.map((refeicao) => (
               <TabsTrigger
@@ -97,7 +97,7 @@ const ListaCompras = () => {
                           size="sm"
                           className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
                         >
-                          Selecionar/Desmarcar Todos
+                          Select/Unselect All
                         </Button>
                         {temItensSelecionados && (
                           <Button
@@ -112,7 +112,7 @@ const ListaCompras = () => {
                       </div>
                     </div>
                     <div className="text-neon-green font-medium">
-                      Total estimado: R$ {calcularTotalRefeicao(refeicao).toFixed(2)}
+                      Estimated total: ${calcularTotalRefeicao(refeicao).toFixed(2)}
                     </div>
                   </CardHeader>
                   <CardContent>

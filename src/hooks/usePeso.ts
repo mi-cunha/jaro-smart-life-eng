@@ -30,8 +30,13 @@ export function usePeso() {
 
       if (perfilRes.error) {
         console.error('Erro ao carregar perfil:', perfilRes.error);
+        // Set default values when profile doesn't exist
+        setPesoMeta(70.0);
+        if (historicoRes.data.length === 0) {
+          setPesoAtual(78.0);
+        }
       } else if (perfilRes.data) {
-        setPesoMeta(perfilRes.data.meta_peso);
+        setPesoMeta(perfilRes.data.meta_peso || 70.0);
         // Se não há histórico, usar peso_atual do perfil
         if (historicoRes.data.length === 0 && perfilRes.data.peso_atual) {
           setPesoAtual(perfilRes.data.peso_atual);
@@ -40,6 +45,9 @@ export function usePeso() {
     } catch (error) {
       console.error('Erro ao carregar dados de peso:', error);
       toast.error('Error loading weight data');
+      // Set default values on error
+      setPesoAtual(78.0);
+      setPesoMeta(70.0);
     } finally {
       setLoading(false);
     }
