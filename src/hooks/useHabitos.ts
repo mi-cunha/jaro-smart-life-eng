@@ -75,8 +75,8 @@ export function useHabitos() {
       }
 
       // Group by date and calculate completion percentage
-      const groupedByDate = data.reduce<Record<string, { total: number; completed: number }>>(
-        (acc, item: any) => {
+      const groupedByDate = data.reduce(
+        (acc: Record<string, { total: number; completed: number }>, item: any) => {
           if (!acc[item.data]) {
             acc[item.data] = { total: 0, completed: 0 };
           }

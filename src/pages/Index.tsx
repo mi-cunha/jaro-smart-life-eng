@@ -16,7 +16,7 @@ import { useSupabasePerfil } from "@/hooks/useSupabasePerfil";
 const Index = () => {
   const [showWelcome, setShowWelcome] = useState(false);
   const { getHabitosHoje, getProgressoHabitos, loading: habitosLoading } = useHabitos();
-  const { pesoAtual, getProgressoPeso, loading: pesoLoading } = usePeso();
+  const { pesoAtual, pesoMeta, getProgressoPeso, loading: pesoLoading } = usePeso();
   const { perfil } = useSupabasePerfil();
 
   useEffect(() => {
@@ -36,15 +36,15 @@ const Index = () => {
   const progressoHabitos = getProgressoHabitos();
   const progressoPeso = getProgressoPeso();
 
-  // Use real weight data from Supabase or default values
+  // Use real weight data from hooks - pesoMeta comes from usePeso hook
   const currentWeight = pesoAtual || 0;
-  const targetWeight = perfil?.peso_objetivo || 0;
+  const targetWeight = pesoMeta || 0;
 
-  // Transform habits data for TodayHabits component
-  const habitosFormatados = habitosHoje.map(habito => ({
+  // Transform habits data for TodayHabits component - show empty state if no habits
+  const habitosFormatados = habitosHoje.length > 0 ? habitosHoje.map(habito => ({
     nome: habito.nome,
     concluido: habito.concluido
-  }));
+  })) : [];
 
   // Generate upcoming meals based on time of day
   const generateUpcomingMeals = () => {
@@ -77,7 +77,7 @@ const Index = () => {
 
   if (habitosLoading || pesoLoading) {
     return (
-      <Layout title="JaroSmart Dashboard" breadcr>
+      <Layout title="JaroSmart Dashboard" breadcrumb={["Home"]}>
         <div className="flex items-center justify-center min-h-64">
           <div className="text-white">Loading dashboard...</div>
         </div>
