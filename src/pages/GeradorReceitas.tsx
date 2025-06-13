@@ -70,7 +70,7 @@ const GeradorReceitas = () => {
   const refeicoes = ["Breakfast", "Lunch", "Snack", "Dinner"];
 
   return (
-    <Layout title="Healthy Recipe Generator" breadcrumb={["Home", "Recipe Generator"]}>
+    <Layout title="Smart Recipe Generator" breadcrumb={["Home", "Recipe Generator"]}>
       <div className="space-y-8">
         <Card className="bg-gradient-to-r from-neon-green/10 to-transparent border-neon-green/30">
           <CardContent className="p-6">
@@ -82,7 +82,7 @@ const GeradorReceitas = () => {
                 </p>
                 {useAI && (
                   <p className="text-neon-green text-sm">
-                    🤖 ChatGPT mode active - AI-powered personalized recipes
+                    🤖 AI mode active - OpenAI-powered personalized recipes
                   </p>
                 )}
               </div>

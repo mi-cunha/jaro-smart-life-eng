@@ -20,20 +20,20 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
     itensComprados?: string[]
   ) => {
     if (ingredientesSelecionados.length === 0 && (!itensComprados || itensComprados.length === 0)) {
-      toast.error("Selecione pelo menos um ingrediente ou tenha itens comprados na lista!");
+      toast.error("Please select at least one ingredient or have purchased items in your list!");
       return;
     }
 
     setIsGenerating(true);
-    toast.loading("Gerando receita personalizada com ChatGPT...", { duration: 5000 });
+    toast.loading("Generating personalized recipe with AI...", { duration: 5000 });
 
     try {
       const recipeData = await OpenAIService.generateRecipe({
         ingredientes: ingredientesSelecionados,
-        preferenciasAlimentares: preferenciasAlimentares || 'nenhuma',
+        preferenciasAlimentares: preferenciasAlimentares || 'none',
         restricoesAlimentares: restricoesAlimentares || [],
         tipoRefeicao: refeicao,
-        objetivo: objetivo || 'alimentação saudável',
+        objetivo: objetivo || 'healthy eating',
         tempoDisponivel: 45,
         itensComprados
       });
@@ -57,21 +57,21 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
       await onRecipeGenerated(novaReceita);
 
       const tipoReceita = itensComprados && itensComprados.length > 0 
-        ? "baseada nos seus itens comprados" 
-        : "personalizada com seus ingredientes";
+        ? "based on your purchased items" 
+        : "personalized with your ingredients";
         
-      toast.success(`Receita ${tipoReceita} gerada com ChatGPT! 🤖🍽️`);
+      toast.success(`AI recipe ${tipoReceita} generated successfully! 🤖🍽️`);
     } catch (error) {
-      console.error("Erro ao gerar receita com IA:", error);
+      console.error("Error generating AI recipe:", error);
       
       if (error instanceof Error) {
         if (error.message.includes('API') || error.message.includes('OpenAI')) {
-          toast.error("Erro na API do ChatGPT. Verifique a configuração da chave.");
+          toast.error("OpenAI API Error. Please check your API key configuration.");
         } else {
-          toast.error(`Erro ao gerar receita: ${error.message}`);
+          toast.error(`Recipe generation failed: ${error.message}`);
         }
       } else {
-        toast.error("Erro desconhecido ao gerar receita. Tente novamente.");
+        toast.error("Unknown error during recipe generation. Please try again.");
       }
     } finally {
       setIsGenerating(false);
