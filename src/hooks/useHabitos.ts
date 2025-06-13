@@ -75,16 +75,19 @@ export function useHabitos() {
       }
 
       // Group by date and calculate completion percentage
-      const groupedByDate = data.reduce((acc, item) => {
-        if (!acc[item.data]) {
-          acc[item.data] = { total: 0, completed: 0 };
-        }
-        acc[item.data].total++;
-        if (item.concluido) {
-          acc[item.data].completed++;
-        }
-        return acc;
-      }, {} as Record<string, { total: number; completed: number }>);
+      const groupedByDate = data.reduce<Record<string, { total: number; completed: number }>>(
+        (acc, item) => {
+          if (!acc[item.data]) {
+            acc[item.data] = { total: 0, completed: 0 };
+          }
+          acc[item.data].total++;
+          if (item.concluido) {
+            acc[item.data].completed++;
+          }
+          return acc;
+        }, 
+        {}
+      );
 
       // Convert to array format for chart
       return Object.entries(groupedByDate).map(([date, stats]: [string, { total: number; completed: number }]) => ({
