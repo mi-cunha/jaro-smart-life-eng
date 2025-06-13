@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,10 +23,15 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await signIn(formData.email, formData.password);
+    const result = await signIn(formData.email, formData.password);
     
-    if (!error) {
-      navigate('/dashboard');
+    if (!result.error) {
+      // Verificar se o usuário tem assinatura ativa
+      if (result.subscribed) {
+        navigate('/dashboard');
+      } else {
+        navigate('/pricing');
+      }
     }
     setIsLoading(false);
   };
@@ -96,7 +100,7 @@ const Auth = () => {
                       id="email"
                       type="email"
                       value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                       className="bg-dark-bg border-white/20 text-white h-11 text-base focus:border-neon-green"
                       placeholder="Enter your email"
                       required
@@ -108,7 +112,7 @@ const Auth = () => {
                       id="password"
                       type="password"
                       value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
+                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                       className="bg-dark-bg border-white/20 text-white h-11 text-base focus:border-neon-green"
                       placeholder="Enter your password"
                       required

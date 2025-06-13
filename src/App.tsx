@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Pricing from "./pages/Pricing";
 import ChaJaro from "./pages/ChaJaro";
 import ProgressoPeso from "./pages/ProgressoPeso";
 import HabitTracker from "./pages/HabitTracker";
@@ -28,6 +29,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/pricing" element={<Pricing />} />
               <Route path="/cha-jaro" element={<ChaJaro />} />
               <Route path="/progresso-peso" element={<ProgressoPeso />} />
               <Route path="/habit-tracker" element={<HabitTracker />} />
