@@ -38,6 +38,8 @@ export function useAuth() {
 
   const checkSubscription = async (email: string) => {
     try {
+      console.log('Checking subscription for email:', email);
+      
       // Buscar na tabela subscribers
       const { data: subscriber, error: subError } = await supabase
         .from('subscribers')
@@ -52,9 +54,11 @@ export function useAuth() {
 
       if (!subscriber) {
         console.log('Subscriber não encontrado para email:', email);
+        setIsSubscribed(false);
         return false;
       }
 
+      console.log('Subscriber encontrado:', subscriber);
       setIsSubscribed(subscriber.subscribed);
 
       if (subscriber.subscribed && subscriber.usuario_id) {
@@ -65,6 +69,7 @@ export function useAuth() {
       return subscriber.subscribed;
     } catch (error) {
       console.error('Erro ao verificar assinatura:', error);
+      setIsSubscribed(false);
       return false;
     }
   };

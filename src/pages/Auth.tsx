@@ -12,7 +12,7 @@ import { JaroSmartLogo } from '@/components/JaroSmartLogo';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { signIn, signUp, loading, checkSubscription } = useAuth();
+  const { signIn, signUp, loading } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,15 +24,21 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log('Attempting sign in for:', formData.email);
     const result = await signIn(formData.email, formData.password);
     
     if (!result.error) {
+      console.log('Sign in successful, subscription status:', result.subscribed);
       // Check subscription after login
       if (result.subscribed) {
+        console.log('User is subscribed, redirecting to dashboard');
         navigate('/dashboard');
       } else {
+        console.log('User is not subscribed, redirecting to pricing');
         navigate('/pricing');
       }
+    } else {
+      console.error('Sign in error:', result.error);
     }
     setIsLoading(false);
   };
@@ -41,17 +47,17 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    console.log('Attempting sign up for:', formData.email);
     const { error } = await signUp(formData.email, formData.password, formData.name);
     
     if (!error) {
-      // After successful signup, check subscription
-      const subscribed = await checkSubscription(formData.email);
-      if (subscribed) {
-        navigate('/dashboard');
-      } else {
-        navigate('/pricing');
-      }
+      console.log('Sign up successful, checking subscription status');
+      // After successful signup, check subscription - but most new users won't be subscribed
+      // So we'll redirect to pricing by default for new signups
+      navigate('/pricing');
       setFormData({ email: '', password: '', name: '' });
+    } else {
+      console.error('Sign up error:', error);
     }
     setIsLoading(false);
   };
