@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Receita } from "@/types/receitas";
@@ -36,72 +35,77 @@ export function useReceitasGeradas() {
     refeicao: string, 
     ingredientesSelecionados: string[], 
     itensComprados?: string[],
-    preferenciasAlimentares: string = "nenhuma",
+    preferenciasAlimentares: string = "none",
     restricoesAlimentares: string[] = [],
-    objetivo: string = "alimentação saudável"
+    objetivo: string = "healthy eating"
   ) => {
     if (ingredientesSelecionados.length === 0 && (!itensComprados || itensComprados.length === 0)) {
-      toast.error("Selecione pelo menos um ingrediente ou tenha itens comprados na lista!");
+      toast.error("Please select at least one ingredient or have purchased items in your list!");
       return;
     }
 
-    // Se o usuário ativou IA e tem chave configurada, usa ChatGPT
-    if (useAI) {
-      await generateRecipeWithAI(
-        refeicao,
-        ingredientesSelecionados,
-        preferenciasAlimentares,
-        restricoesAlimentares,
-        objetivo,
-        itensComprados
-      );
-      return;
-    }
-
-    // Caso contrário, usa a lógica original
-    toast.loading("Analisando ingredientes e gerando receita personalizada...", { duration: 2500 });
-    
-    setTimeout(async () => {
-      try {
-        // Prioriza itens comprados, mas combina com ingredientes selecionados
-        const todosIngredientes = [
-          ...(itensComprados || []),
-          ...ingredientesSelecionados
-        ].filter((item, index, arr) => arr.indexOf(item) === index); // Remove duplicatas
-        
-        let novaReceita;
-        
-        // Tenta selecionar receita da base primeiro
-        const receitaSelecionada = selecionarReceitaInteligente(refeicao, todosIngredientes, receitasBase, receitasJaGeradas);
-        
-        if (receitaSelecionada && receitaSelecionada.compatibilidade?.score > 0.3) {
-          // Usa receita da base com possível variação
-          novaReceita = criarVariacaoReceita(receitaSelecionada, todosIngredientes);
-          setReceitasJaGeradas(prev => new Set(prev).add(`${refeicao}-${receitaSelecionada.nome}`));
-        } else {
-          // Cria receita completamente adaptativa
-          novaReceita = gerarReceitaAdaptativa(refeicao, todosIngredientes);
-        }
-        
-        // Garante ID único e adiciona refeicao
-        if (!novaReceita.id) {
-          novaReceita.id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        }
-        novaReceita.refeicao = refeicao;
-
-        // Salva no Supabase - agora com as políticas RLS funcionando
-        await salvarReceita(novaReceita);
-
-        const tipoReceita = itensComprados && itensComprados.length > 0 
-          ? "baseada nos seus itens comprados" 
-          : "personalizada com seus ingredientes";
-          
-        toast.success(`Nova receita ${tipoReceita} gerada com sucesso! 🍽️`);
-      } catch (error) {
-        console.error("Erro ao gerar receita:", error);
-        toast.error("Erro ao gerar receita. Tente novamente.");
+    try {
+      // If AI mode is enabled, use OpenAI
+      if (useAI) {
+        await generateRecipeWithAI(
+          refeicao,
+          ingredientesSelecionados,
+          preferenciasAlimentares,
+          restricoesAlimentares,
+          objetivo,
+          itensComprados
+        );
+        return;
       }
-    }, 2500);
+
+      // Otherwise, use the original logic
+      toast.loading("Analyzing ingredients and generating personalized recipe...", { duration: 2500 });
+      
+      setTimeout(async () => {
+        try {
+          // Prioritize purchased items, but combine with selected ingredients
+          const todosIngredientes = [
+            ...(itensComprados || []),
+            ...ingredientesSelecionados
+          ].filter((item, index, arr) => arr.indexOf(item) === index); // Remove duplicates
+          
+          let novaReceita;
+          
+          // Try to select recipe from base first
+          const receitaSelecionada = selecionarReceitaInteligente(refeicao, todosIngredientes, receitasBase, receitasJaGeradas);
+          
+          if (receitaSelecionada && receitaSelecionada.compatibilidade?.score > 0.3) {
+            // Use base recipe with possible variation
+            novaReceita = criarVariacaoReceita(receitaSelecionada, todosIngredientes);
+            setReceitasJaGeradas(prev => new Set(prev).add(`${refeicao}-${receitaSelecionada.nome}`));
+          } else {
+            // Create completely adaptive recipe
+            novaReceita = gerarReceitaAdaptativa(refeicao, todosIngredientes);
+          }
+          
+          // Ensure unique ID and add meal type
+          if (!novaReceita.id) {
+            novaReceita.id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          }
+          novaReceita.refeicao = refeicao;
+
+          // Save to Supabase
+          await salvarReceita(novaReceita);
+
+          const tipoReceita = itensComprados && itensComprados.length > 0 
+            ? "based on your purchased items" 
+            : "personalized with your ingredients";
+            
+          toast.success(`New recipe ${tipoReceita} generated successfully! 🍽️`);
+        } catch (error) {
+          console.error("Error generating recipe:", error);
+          toast.error("Error generating recipe. Please try again.");
+        }
+      }, 2500);
+    } catch (error) {
+      console.error("Error in recipe generation:", error);
+      toast.error("Error generating recipe. Please try again.");
+    }
   };
 
   return {

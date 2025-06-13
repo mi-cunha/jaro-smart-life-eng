@@ -10,34 +10,34 @@ export interface PerfilUsuario {
   email?: string;
   avatar_url?: string;
   
-  // Preferências alimentares
+  // Dietary preferences
   vegano: boolean;
   vegetariano: boolean;
   low_carb: boolean;
   sem_gluten: boolean;
   
-  // Alergias e restrições
+  // Allergies and restrictions
   alergias?: string;
   
-  // Objetivos e metas
+  // Goals and targets
   peso_objetivo?: number;
   habitos_diarios: number;
   doses_cha: number;
   calorias_diarias: number;
   
-  // Configurações de notificações
+  // Notification settings
   notif_tomar_cha: boolean;
   notif_marcar_habito: boolean;
   notif_gerar_receitas: boolean;
   notif_comprar_itens: boolean;
   notif_atingir_meta: boolean;
   
-  // Integrações
+  // Integrations
   google_fit: boolean;
   apple_health: boolean;
   fitbit: boolean;
   
-  // Configurações de privacidade
+  // Privacy settings
   dados_uso: boolean;
   notificacoes_push: boolean;
 }
@@ -49,16 +49,55 @@ export class PerfilService {
         .from('perfil_usuario')
         .select('*')
         .eq('usuario_id', DEFAULT_USER_ID)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        console.error('Erro ao buscar perfil:', error);
+        console.error('Error fetching profile:', error);
         return { data: null, error };
+      }
+
+      // If no profile exists, create a default one
+      if (!data) {
+        const defaultProfile = {
+          usuario_id: DEFAULT_USER_ID,
+          nome: 'User',
+          email: 'user@jarosmart.com',
+          vegano: false,
+          vegetariano: false,
+          low_carb: false,
+          sem_gluten: false,
+          habitos_diarios: 8,
+          doses_cha: 2,
+          calorias_diarias: 2000,
+          notif_tomar_cha: true,
+          notif_marcar_habito: true,
+          notif_gerar_receitas: true,
+          notif_comprar_itens: true,
+          notif_atingir_meta: true,
+          google_fit: false,
+          apple_health: false,
+          fitbit: false,
+          dados_uso: true,
+          notificacoes_push: true
+        };
+
+        const { data: newProfile, error: createError } = await supabase
+          .from('perfil_usuario')
+          .insert(defaultProfile)
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating default profile:', createError);
+          return { data: null, error: createError };
+        }
+
+        return { data: newProfile, error: null };
       }
 
       return { data, error: null };
     } catch (error) {
-      console.error('Erro ao buscar perfil:', error);
+      console.error('Error in buscarPerfil:', error);
       return { data: null, error };
     }
   }
@@ -73,13 +112,13 @@ export class PerfilService {
         .single();
 
       if (error) {
-        console.error('Erro ao atualizar perfil:', error);
+        console.error('Error updating profile:', error);
         return { data: null, error };
       }
 
       return { data, error: null };
     } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
+      console.error('Error in atualizarPerfil:', error);
       return { data: null, error };
     }
   }
@@ -88,8 +127,8 @@ export class PerfilService {
     try {
       const fileName = `avatar-${Date.now()}-${file.name}`;
       
-      // Por enquanto, vamos apenas simular o upload e retornar uma URL
-      // Em uma implementação real, você faria upload para o Supabase Storage
+      // For now, simulate upload and return a URL
+      // In a real implementation, you would upload to Supabase Storage
       const avatarUrl = URL.createObjectURL(file);
       
       const { data, error } = await this.atualizarPerfil({
@@ -98,7 +137,7 @@ export class PerfilService {
 
       return { data, error };
     } catch (error) {
-      console.error('Erro ao salvar avatar:', error);
+      console.error('Error saving avatar:', error);
       return { data: null, error };
     }
   }

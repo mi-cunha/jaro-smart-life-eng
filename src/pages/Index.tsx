@@ -11,11 +11,13 @@ import { CallToAction } from "@/components/Dashboard/CallToAction";
 import { useState, useEffect } from "react";
 import { useHabitos } from "@/hooks/useHabitos";
 import { usePeso } from "@/hooks/usePeso";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
   const [showWelcome, setShowWelcome] = useState(false);
   const { getHabitosHoje, getProgressoHabitos, loading: habitosLoading } = useHabitos();
   const { pesoAtual, pesoMeta, getProgressoPeso, loading: pesoLoading } = usePeso();
+  const { userProfile } = useAuth();
 
   useEffect(() => {
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
@@ -29,10 +31,14 @@ const Index = () => {
     localStorage.setItem('hasSeenWelcome', 'true');
   };
 
-  // Get real data
+  // Get real data from Supabase
   const habitosHoje = getHabitosHoje();
   const progressoHabitos = getProgressoHabitos();
   const progressoPeso = getProgressoPeso();
+
+  // Use real weight data from user profile
+  const currentWeight = pesoAtual || userProfile?.peso_atual || 70;
+  const targetWeight = pesoMeta || userProfile?.peso_objetivo || 65;
 
   // Transform habits data for TodayHabits component
   const habitosFormatados = habitosHoje.map(habito => ({
@@ -40,10 +46,44 @@ const Index = () => {
     concluido: habito.concluido
   }));
 
-  const proximasRefeicoes = [
-    { nome: "Afternoon Snack", horario: "3:30 PM", calorias: 150 },
-    { nome: "Dinner", horario: "7:00 PM", calorias: 400 },
-  ];
+  // Generate upcoming meals based on time of day
+  const generateUpcomingMeals = () => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    const meals = [
+      { nome: "Breakfast", horario: "7:00 AM", calorias: 350 },
+      { nome: "Morning Snack", horario: "10:00 AM", calorias: 150 },
+      { nome: "Lunch", horario: "12:30 PM", calorias: 450 },
+      { nome: "Afternoon Snack", horario: "3:30 PM", calorias: 150 },
+      { nome: "Dinner", horario: "7:00 PM", calorias: 400 },
+    ];
+
+    // Return next 2 meals based on current time
+    const upcomingMeals = meals.filter((meal) => {
+      const mealHour = parseInt(meal.horario.split(':')[0]);
+      const isPM = meal.horario.includes('PM');
+      const adjustedHour = isPM && mealHour !== 12 ? mealHour + 12 : mealHour;
+      return adjustedHour > currentHour;
+    }).slice(0, 2);
+
+    return upcomingMeals.length > 0 ? upcomingMeals : [
+      { nome: "Breakfast", horario: "7:00 AM", calorias: 350 },
+      { nome: "Lunch", horario: "12:30 PM", calorias: 450 }
+    ];
+  };
+
+  const proximasRefeicoes = generateUpcomingMeals();
+
+  if (habitosLoading || pesoLoading) {
+    return (
+      <Layout title="JaroSmart Dashboard" breadcrumb={["Home"]}>
+        <div className="flex items-center justify-center min-h-64">
+          <div className="text-white">Loading dashboard...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout title="JaroSmart Dashboard" breadcrumb={["Home"]}>
@@ -53,8 +93,8 @@ const Index = () => {
         <DashboardHeader />
 
         <StatisticsCards
-          pesoAtual={pesoAtual || 78}
-          pesoMeta={pesoMeta || 70}
+          pesoAtual={currentWeight}
+          pesoMeta={targetWeight}
           habitosConcluidos={progressoHabitos.concluidos}
           totalHabitos={progressoHabitos.total}
           progressoPeso={progressoPeso}
@@ -62,8 +102,8 @@ const Index = () => {
 
         <ProgressSection
           progressoPeso={progressoPeso}
-          pesoAtual={pesoAtual || 78}
-          pesoMeta={pesoMeta || 70}
+          pesoAtual={currentWeight}
+          pesoMeta={targetWeight}
           habitosConcluidos={progressoHabitos.concluidos}
           totalHabitos={progressoHabitos.total}
         />

@@ -12,7 +12,7 @@ import { JaroSmartLogo } from '@/components/JaroSmartLogo';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { signIn, signUp, loading } = useAuth();
+  const { signIn, signUp, loading, checkSubscription } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -27,7 +27,7 @@ const Auth = () => {
     const result = await signIn(formData.email, formData.password);
     
     if (!result.error) {
-      // Verificar se o usuário tem assinatura ativa
+      // Check subscription after login
       if (result.subscribed) {
         navigate('/dashboard');
       } else {
@@ -44,6 +44,13 @@ const Auth = () => {
     const { error } = await signUp(formData.email, formData.password, formData.name);
     
     if (!error) {
+      // After successful signup, check subscription
+      const subscribed = await checkSubscription(formData.email);
+      if (subscribed) {
+        navigate('/dashboard');
+      } else {
+        navigate('/pricing');
+      }
       setFormData({ email: '', password: '', name: '' });
     }
     setIsLoading(false);
@@ -77,7 +84,7 @@ const Auth = () => {
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Tabs defaultValue="login" className="w-full">
+            <Tabs defaultValue="signup" className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-dark-bg border border-white/10 h-11">
                 <TabsTrigger 
                   value="login"
@@ -92,6 +99,58 @@ const Auth = () => {
                   Sign Up
                 </TabsTrigger>
               </TabsList>
+
+              <TabsContent value="signup" className="space-y-4 mt-6">
+                <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-white text-sm">Full Name</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                      className="bg-dark-bg border-white/20 text-white h-11 text-base focus:border-neon-green"
+                      placeholder="Enter your full name"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email" className="text-white text-sm">Email</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      className="bg-dark-bg border-white/20 text-white h-11 text-base focus:border-neon-green"
+                      placeholder="Enter your email"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password" className="text-white text-sm">Password</Label>
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      value={formData.password}
+                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                      className="bg-dark-bg border-white/20 text-white h-11 text-base focus:border-neon-green"
+                      placeholder="Create a password (min. 6 characters)"
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-neon-green text-black hover:bg-neon-green/90 h-11 text-base font-medium"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    ) : null}
+                    Create Account
+                  </Button>
+                </form>
+              </TabsContent>
 
               <TabsContent value="login" className="space-y-4 mt-6">
                 <form onSubmit={handleSignIn} className="space-y-4">
@@ -128,58 +187,6 @@ const Auth = () => {
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
                     ) : null}
                     Sign In
-                  </Button>
-                </form>
-              </TabsContent>
-
-              <TabsContent value="signup" className="space-y-4 mt-6">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-white text-sm">Full Name</Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      className="bg-dark-bg border-white/20 text-white h-11 text-base focus:border-neon-green"
-                      placeholder="Enter your full name"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="text-white text-sm">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      className="bg-dark-bg border-white/20 text-white h-11 text-base focus:border-neon-green"
-                      placeholder="Enter your email"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-white text-sm">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      className="bg-dark-bg border-white/20 text-white h-11 text-base focus:border-neon-green"
-                      placeholder="Create a password (min. 6 characters)"
-                      required
-                      minLength={6}
-                    />
-                  </div>
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-neon-green text-black hover:bg-neon-green/90 h-11 text-base font-medium"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    ) : null}
-                    Create Account
                   </Button>
                 </form>
               </TabsContent>
