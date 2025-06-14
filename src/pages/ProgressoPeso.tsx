@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ProgressChart } from "@/components/ProgressChart";
 import { WeightUnitToggle } from "@/components/WeightUnitToggle";
 import { Scale, TrendingDown, Target, Calendar } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
