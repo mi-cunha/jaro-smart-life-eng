@@ -1,8 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
-
 export interface HistoricoPeso {
   id: string;
   usuario_id: string;
@@ -14,10 +12,15 @@ export interface HistoricoPeso {
 export class PesoService {
   static async buscarHistoricoPeso(limite?: number) {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { data: [], error: new Error('User not authenticated') };
+      }
+
       let query = supabase
         .from('historico_peso')
         .select('*')
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .eq('usuario_id', user.id)
         .order('data', { ascending: false });
 
       if (limite) {
@@ -34,12 +37,17 @@ export class PesoService {
 
   static async adicionarPeso(peso: number, observacoes?: string) {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { data: null, error: new Error('User not authenticated') };
+      }
+
       const hoje = new Date().toISOString().split('T')[0];
       
       const { data, error } = await supabase
         .from('historico_peso')
         .upsert({
-          usuario_id: DEFAULT_USER_ID,
+          usuario_id: user.id,
           peso,
           data: hoje,
           observacoes
@@ -56,10 +64,15 @@ export class PesoService {
 
   static async buscarPesoAtual() {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { data: null, error: new Error('User not authenticated') };
+      }
+
       const { data, error } = await supabase
         .from('historico_peso')
         .select('peso')
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .eq('usuario_id', user.id)
         .order('data', { ascending: false })
         .limit(1)
         .single();

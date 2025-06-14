@@ -1,8 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
-
 export interface PerfilUsuario {
   id?: string;
   usuario_id?: string;
@@ -45,10 +43,15 @@ export interface PerfilUsuario {
 export class PerfilService {
   static async buscarPerfil() {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { data: null, error: new Error('User not authenticated') };
+      }
+
       const { data, error } = await supabase
         .from('perfil_usuario')
         .select('*')
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .eq('usuario_id', user.id)
         .maybeSingle();
 
       if (error) {
@@ -59,9 +62,9 @@ export class PerfilService {
       // If no profile exists, create a default one
       if (!data) {
         const defaultProfile = {
-          usuario_id: DEFAULT_USER_ID,
-          nome: 'User',
-          email: 'user@jarosmart.com',
+          usuario_id: user.id,
+          nome: user.user_metadata?.nome || user.email?.split('@')[0] || 'User',
+          email: user.email || 'user@jarosmart.com',
           vegano: false,
           vegetariano: false,
           low_carb: false,
@@ -104,10 +107,15 @@ export class PerfilService {
 
   static async atualizarPerfil(updates: Partial<PerfilUsuario>) {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { data: null, error: new Error('User not authenticated') };
+      }
+
       const { data, error } = await supabase
         .from('perfil_usuario')
         .update(updates)
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .eq('usuario_id', user.id)
         .select()
         .single();
 

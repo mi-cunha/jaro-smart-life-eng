@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,17 +35,22 @@ export function useAuth() {
 
     getSessionAndUser();
 
-    // Optionally listen to auth changes
+    // Listen to auth changes
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(session.user);
         setSession(session);
-        checkSubscription(session.user.email);
+        // Defer Supabase calls to avoid recursion
+        setTimeout(() => {
+          checkSubscription(session.user.email);
+        }, 0);
       } else {
         setUser(null);
         setSession(null);
         setUserProfile(null);
+        setIsSubscribed(null);
       }
+      setLoading(false);
     });
 
     return () => {
@@ -74,7 +80,9 @@ export function useAuth() {
       setIsSubscribed(subscriber.subscribed);
 
       if (subscriber.subscribed && subscriber.usuario_id) {
-        await loadUserProfile(subscriber.usuario_id);
+        setTimeout(() => {
+          loadUserProfile(subscriber.usuario_id);
+        }, 0);
       }
 
       return subscriber.subscribed;
