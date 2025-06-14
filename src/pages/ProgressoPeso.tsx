@@ -13,8 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
 import { usePeso } from "@/hooks/usePeso";
 import { useSupabasePerfil } from "@/hooks/useSupabasePerfil";
-import { supabase } from '@/lib/supabaseClient';
-
 
 const ProgressoPeso = () => {
   const navigate = useNavigate();
@@ -84,28 +82,23 @@ const ProgressoPeso = () => {
     toast.success("History exported successfully! 📊");
   };
 
+import { useUser } from '@/context/UserContext'; // ou seu caminho
+import { useEffect } from 'react';
+
+const { user } = useUser();
+
 useEffect(() => {
   const fetchPerfil = async () => {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      console.error("Usuário não autenticado", userError);
-      return;
-    }
-
     const { data, error } = await supabase
       .from('perfil_usuario')
       .select('*')
-      .eq('usuario_id', user.id); // ou o nome correto da coluna
+      .eq('usuario_id', user.id);
 
-    console.log("Perfil do usuário:", data, error);
+    console.log("Perfil:", data, error);
   };
 
-  fetchPerfil();
-}, []);
+  if (user?.id) fetchPerfil();
+}, [user]);
 
 
 
