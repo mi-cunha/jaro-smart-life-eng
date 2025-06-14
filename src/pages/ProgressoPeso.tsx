@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ProgressChart } from "@/components/ProgressChart";
 import { WeightUnitToggle } from "@/components/WeightUnitToggle";
 import { Scale, TrendingDown, Target, Calendar } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
@@ -81,6 +81,20 @@ const ProgressoPeso = () => {
     
     toast.success("History exported successfully! 📊");
   };
+
+  useEffect(() => {
+  const fetchPerfil = async () => {
+    const { data, error } = await supabase
+      .from('perfil_usuario')
+      .select('*')
+      .eq('usuario_id', auth.uid()); // ou auth.uid() se estiver usando diretamente
+
+    console.log("Perfil do usuário:", data, error);
+  };
+
+  if (user?.id) fetchPerfil();
+}, [user]);
+
 
   // Show empty state if no weight data
   if (!currentWeight && historicoPeso.length === 0) {
