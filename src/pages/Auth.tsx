@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { JaroSmartLogo } from '@/components/JaroSmartLogo';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { signIn, signUp, loading } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
@@ -18,6 +19,35 @@ const Auth = () => {
     name: ''
   });
   const [isLoading, setIsLoading] = useState(false);
+
+  // Get plan from URL if present
+  const planFromUrl = searchParams.get('plan');
+
+  useEffect(() => {
+    // Store plan from URL if present
+    if (planFromUrl) {
+      localStorage.setItem('selectedPlan', planFromUrl);
+    }
+  }, [planFromUrl]);
+
+  const getRedirectPath = (subscribed: boolean) => {
+    const storedPlan = localStorage.getItem('selectedPlan');
+    
+    if (storedPlan) {
+      // User had selected a plan, redirect back to pricing to complete the flow
+      console.log('User has stored plan, redirecting to pricing:', storedPlan);
+      return `/pricing?plan=${encodeURIComponent(storedPlan)}`;
+    }
+    
+    // Standard redirect logic
+    if (subscribed === true) {
+      console.log('✅ User is subscribed, redirecting to dashboard');
+      return '/dashboard';
+    } else {
+      console.log('❌ User is not subscribed, redirecting to pricing');
+      return '/pricing';
+    }
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,15 +58,8 @@ const Auth = () => {
     
     if (!result.error) {
       console.log('🎯 Sign in result:', { subscribed: result.subscribed });
-      
-      // Navigate based on subscription status
-      if (result.subscribed === true) {
-        console.log('✅ User is subscribed, redirecting to dashboard');
-        navigate('/dashboard');
-      } else {
-        console.log('❌ User is not subscribed, redirecting to pricing');
-        navigate('/pricing');
-      }
+      const redirectPath = getRedirectPath(result.subscribed);
+      navigate(redirectPath);
     } else {
       console.error('❌ Sign in failed:', result.error);
     }
@@ -51,9 +74,17 @@ const Auth = () => {
     const { error } = await signUp(formData.email, formData.password, formData.name);
     
     if (!error) {
-      console.log('Sign up successful, redirecting to pricing for new users');
-      // After successful signup, redirect to pricing for new signups
-      navigate('/pricing');
+      console.log('Sign up successful');
+      const storedPlan = localStorage.getItem('selectedPlan');
+      
+      if (storedPlan) {
+        console.log('New user with selected plan, redirecting to pricing:', storedPlan);
+        navigate(`/pricing?plan=${encodeURIComponent(storedPlan)}`);
+      } else {
+        console.log('New user without plan, redirecting to pricing');
+        navigate('/pricing');
+      }
+      
       setFormData({ email: '', password: '', name: '' });
     } else {
       console.error('Sign up error:', error);
@@ -87,6 +118,11 @@ const Auth = () => {
             <p className="text-white/60 text-sm sm:text-base">
               Your intelligent nutrition and wellness platform
             </p>
+            {planFromUrl && (
+              <div className="bg-neon-green/20 text-neon-green px-3 py-2 rounded-lg text-sm">
+                Selected Plan: <strong>{planFromUrl}</strong>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="space-y-6">
             <Tabs defaultValue="signup" className="w-full">

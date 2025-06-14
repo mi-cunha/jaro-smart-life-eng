@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,8 +11,27 @@ import { toast } from 'sonner';
 
 const Pricing = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { user, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+
+  // Check for plan from URL params or localStorage on component mount
+  useEffect(() => {
+    const planFromUrl = searchParams.get('plan');
+    if (planFromUrl) {
+      localStorage.setItem('selectedPlan', planFromUrl);
+    }
+
+    // If user is logged in and there's a stored plan, proceed to checkout
+    if (user && !loading) {
+      const storedPlan = localStorage.getItem('selectedPlan');
+      if (storedPlan) {
+        console.log('User is logged in with stored plan:', storedPlan);
+        localStorage.removeItem('selectedPlan');
+        handleChoosePlan(storedPlan);
+      }
+    }
+  }, [user, loading, searchParams]);
 
   const plans = [
     {
@@ -61,9 +80,17 @@ const Pricing = () => {
   ];
 
   const handleChoosePlan = async (planName: string) => {
+    // Don't proceed if auth is still loading
+    if (loading) {
+      toast.error('Loading authentication status...');
+      return;
+    }
+
     if (!user) {
-      toast.error('Please log in to choose a plan');
-      navigate('/auth');
+      console.log('User not logged in, storing plan and redirecting to auth:', planName);
+      localStorage.setItem('selectedPlan', planName);
+      toast.error('Please create an account to choose a plan');
+      navigate(`/auth?plan=${encodeURIComponent(planName)}`);
       return;
     }
 
@@ -84,6 +111,8 @@ const Pricing = () => {
 
       if (data?.url) {
         console.log('Redirecting to Stripe checkout:', data.url);
+        // Clear stored plan since we're proceeding to checkout
+        localStorage.removeItem('selectedPlan');
         window.open(data.url, '_blank');
       } else {
         throw new Error('No checkout URL received');
@@ -174,10 +203,10 @@ const Pricing = () => {
 
                   <Button
                     onClick={() => handleChoosePlan(plan.name)}
-                    disabled={isLoading}
+                    disabled={isLoading || loading}
                     className="w-full bg-neon-green text-black hover:bg-neon-green/90 font-medium py-3"
                   >
-                    {isLoading ? 'Creating checkout...' : 'Choose Plan'}
+                    {loading ? 'Loading...' : isLoading ? 'Creating checkout...' : 'Choose Plan'}
                   </Button>
                 </CardContent>
               </Card>
