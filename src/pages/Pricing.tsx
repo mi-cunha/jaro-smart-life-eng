@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -170,7 +169,7 @@ const Pricing = () => {
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                    <span className="bg-gradient-to-r from-neon-green to-green-400 text-black px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                    <span className="bg-gradient-to-r from-neon-green to-green-400 text-black px-4 py-2 rounded-full text-sm font-bold shadow-lg whitespace-nowrap">
                       ⭐ Most Popular
                     </span>
                   </div>
