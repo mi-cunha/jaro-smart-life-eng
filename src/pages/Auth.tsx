@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,7 +29,8 @@ const Auth = () => {
     
     if (!result.error) {
       console.log('Sign in successful, subscription status:', result.subscribed);
-      // Check subscription after login - use the returned subscribed value
+      
+      // Check if user is subscribed - need to check for boolean true explicitly
       if (result.subscribed === true) {
         console.log('User is subscribed, redirecting to dashboard');
         navigate('/dashboard');

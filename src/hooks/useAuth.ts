@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -80,15 +79,20 @@ export function useAuth() {
       }
 
       console.log('Subscriber found:', subscriber);
-      setIsSubscribed(subscriber.subscribed);
+      console.log('Subscriber.subscribed value:', subscriber.subscribed, 'Type:', typeof subscriber.subscribed);
+      
+      // Ensure we're setting a proper boolean
+      const isSubbed = subscriber.subscribed === true;
+      setIsSubscribed(isSubbed);
 
-      if (subscriber.subscribed && subscriber.usuario_id) {
+      if (isSubbed && subscriber.usuario_id) {
         setTimeout(() => {
           loadUserProfile(subscriber.usuario_id);
         }, 0);
       }
 
-      return subscriber.subscribed;
+      console.log('Final subscription status being returned:', isSubbed);
+      return isSubbed;
     } catch (error) {
       console.error('Erro ao verificar assinatura:', error);
       setIsSubscribed(false);
