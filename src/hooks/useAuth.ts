@@ -159,7 +159,7 @@ export function useAuth() {
 
       await checkSubscription(email);
       toast.success('Login realizado com sucesso!');
-      return { data };
+      return { data, subscribed };
     } catch (error) {
       toast.error('Erro inesperado ao fazer login');
       return { error };
