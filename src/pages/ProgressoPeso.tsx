@@ -87,7 +87,7 @@ const ProgressoPeso = () => {
     const { data, error } = await supabase
       .from('perfil_usuario')
       .select('*')
-      .eq('usuario_id', auth.uid()); // ou auth.uid() se estiver usando diretamente
+      .eq('usuario_id', user.id); // ou auth.uid() se estiver usando diretamente
 
     console.log("Perfil do usuário:", data, error);
   };
