@@ -82,26 +82,6 @@ const ProgressoPeso = () => {
     toast.success("History exported successfully! 📊");
   };
 
-import { useUser } from '@/context/UserContext'; // ou seu caminho
-import { useEffect } from 'react';
-
-const { user } = useUser();
-
-useEffect(() => {
-  const fetchPerfil = async () => {
-    const { data, error } = await supabase
-      .from('perfil_usuario')
-      .select('*')
-      .eq('usuario_id', user.id);
-
-    console.log("Perfil:", data, error);
-  };
-
-  if (user?.id) fetchPerfil();
-}, [user]);
-
-
-
   // Show empty state if no weight data
   if (!currentWeight && historicoPeso.length === 0) {
     return (
