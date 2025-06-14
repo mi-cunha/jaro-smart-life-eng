@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -59,7 +60,8 @@ export function useAuth() {
 
   const checkSubscription = async (email: string) => {
     try {
-      console.log('Checking subscription for email:', email);
+      console.log('🔍 Checking subscription for email:', email);
+      
       const { data: subscriber, error: subError } = await supabase
         .from('subscribers')
         .select('*')
@@ -67,22 +69,27 @@ export function useAuth() {
         .single();
 
       if (subError && subError.code !== 'PGRST116') {
-        console.error('Erro ao buscar subscriber:', subError);
+        console.error('❌ Error fetching subscriber:', subError);
         setIsSubscribed(false);
         return false;
       }
 
       if (!subscriber) {
-        console.log('No subscriber found for email:', email);
+        console.log('❌ No subscriber found for email:', email);
         setIsSubscribed(false);
         return false;
       }
 
-      console.log('Subscriber found:', subscriber);
-      console.log('Subscriber.subscribed value:', subscriber.subscribed, 'Type:', typeof subscriber.subscribed);
+      console.log('✅ Subscriber found:', subscriber);
+      console.log('📊 Raw subscribed value:', subscriber.subscribed, 'Type:', typeof subscriber.subscribed);
       
-      // Ensure we're setting a proper boolean
-      const isSubbed = subscriber.subscribed === true;
+      // Handle different possible boolean representations
+      let isSubbed = false;
+      if (subscriber.subscribed === true || subscriber.subscribed === 'true' || subscriber.subscribed === 1) {
+        isSubbed = true;
+      }
+      
+      console.log('✅ Final subscription status:', isSubbed);
       setIsSubscribed(isSubbed);
 
       if (isSubbed && subscriber.usuario_id) {
@@ -91,10 +98,9 @@ export function useAuth() {
         }, 0);
       }
 
-      console.log('Final subscription status being returned:', isSubbed);
       return isSubbed;
     } catch (error) {
-      console.error('Erro ao verificar assinatura:', error);
+      console.error('❌ Unexpected error checking subscription:', error);
       setIsSubscribed(false);
       return false;
     }
@@ -162,24 +168,31 @@ export function useAuth() {
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('🔑 Attempting sign in for:', email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (error) {
+        console.error('❌ Sign in error:', error);
         toast.error(error.message);
         return { error };
       }
 
-      // Wait a bit for the subscription check to complete
+      console.log('✅ Sign in successful, checking subscription...');
+      
+      // Wait a bit and then check subscription
       await new Promise(resolve => setTimeout(resolve, 1000));
       const subscribed = await checkSubscription(email);
       
-      console.log('Login successful, final subscription status:', subscribed);
+      console.log('🎯 Final login result - subscribed:', subscribed);
       toast.success('Login realizado com sucesso!');
+      
       return { data, subscribed };
     } catch (error) {
+      console.error('❌ Unexpected sign in error:', error);
       toast.error('Erro inesperado ao fazer login');
       return { error };
     }

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,22 +23,22 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    console.log('Attempting sign in for:', formData.email);
+    console.log('🚀 Starting sign in process for:', formData.email);
     const result = await signIn(formData.email, formData.password);
     
     if (!result.error) {
-      console.log('Sign in successful, subscription status:', result.subscribed);
+      console.log('🎯 Sign in result:', { subscribed: result.subscribed });
       
-      // Check if user is subscribed - need to check for boolean true explicitly
+      // Navigate based on subscription status
       if (result.subscribed === true) {
-        console.log('User is subscribed, redirecting to dashboard');
+        console.log('✅ User is subscribed, redirecting to dashboard');
         navigate('/dashboard');
       } else {
-        console.log('User is not subscribed, redirecting to pricing');
+        console.log('❌ User is not subscribed, redirecting to pricing');
         navigate('/pricing');
       }
     } else {
-      console.error('Sign in error:', result.error);
+      console.error('❌ Sign in failed:', result.error);
     }
     setIsLoading(false);
   };
