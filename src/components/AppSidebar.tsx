@@ -1,9 +1,10 @@
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
-import { Home, Calendar, Scale, CheckCircle, ChefHat, ShoppingCart, Heart, BarChart3, User } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Home, Calendar, Scale, CheckCircle, ChefHat, ShoppingCart, Heart, BarChart3, User, LogOut } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { EnhancedLogo } from "./EnhancedLogo";
 import { useSidebar } from "@/components/ui/sidebar";
+import { useAuth } from "@/hooks/useAuth";
 
 const menuItems = [{
   title: "Home",
@@ -45,10 +46,20 @@ const menuItems = [{
 
 export function AppSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { setOpenMobile, isMobile } = useSidebar();
+  const { signOut } = useAuth();
 
   const handleMenuClick = () => {
     // Close sidebar on mobile after selecting an item
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/auth');
     if (isMobile) {
       setOpenMobile(false);
     }
@@ -78,6 +89,16 @@ export function AppSidebar() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>)}
+              
+              <SidebarMenuItem>
+                <SidebarMenuButton 
+                  onClick={handleLogout}
+                  className="text-white hover:bg-red-500/20 hover:text-red-400 cursor-pointer"
+                >
+                  <LogOut className="w-5 h-5" />
+                  <span>Logout</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
