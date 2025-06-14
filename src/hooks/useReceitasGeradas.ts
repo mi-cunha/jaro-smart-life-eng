@@ -13,7 +13,7 @@ export function useReceitasGeradas() {
     salvarReceita, 
     toggleFavorito: toggleFavoritoSupabase, 
     removerReceita: removerReceitaSupabase,
-    loading 
+    loading: loadingSupabase
   } = useSupabaseReceitas();
 
   const [receitasJaGeradas, setReceitasJaGeradas] = useState<Set<string>>(new Set());
@@ -44,9 +44,20 @@ export function useReceitasGeradas() {
       return;
     }
 
+    console.log('gerarNovasReceitas called with:', {
+      refeicao,
+      ingredientesSelecionados,
+      itensComprados,
+      useAI,
+      preferenciasAlimentares,
+      restricoesAlimentares,
+      objetivo
+    });
+
     try {
       // If AI mode is enabled, use OpenAI
       if (useAI) {
+        console.log('Using AI mode - calling generateRecipeWithAI');
         await generateRecipeWithAI(
           refeicao,
           ingredientesSelecionados,
@@ -59,6 +70,7 @@ export function useReceitasGeradas() {
       }
 
       // Otherwise, use the original logic
+      console.log('Using traditional recipe generation');
       toast.loading("Analyzing ingredients and generating personalized recipe...", { duration: 2500 });
       
       setTimeout(async () => {
@@ -113,7 +125,7 @@ export function useReceitasGeradas() {
     toggleFavorito,
     gerarNovasReceitas,
     removerReceita,
-    loading: loading || isGenerating,
+    loading: loadingSupabase || isGenerating,
     useAI,
     setUseAI
   };

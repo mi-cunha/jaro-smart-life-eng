@@ -20,7 +20,7 @@ const Pricing = () => {
       price: "$9.99",
       period: "/week",
       features: [
-        "14-day free trial",
+        "7-day free trial",
         "Personalized meal plans",
         "Custom workout routines",
         "Progress tracking",
@@ -34,7 +34,7 @@ const Pricing = () => {
       price: "$19.99",
       period: "/month",
       features: [
-        "14-day free trial",
+        "7-day free trial",
         "Personalized meal plans",
         "Custom workout routines",
         "Progress tracking",
@@ -48,7 +48,7 @@ const Pricing = () => {
       price: "$35",
       period: "/3 months",
       features: [
-        "14-day free trial",
+        "7-day free trial",
         "Personalized meal plans",
         "Custom workout routines",
         "Progress tracking",
@@ -121,7 +121,7 @@ const Pricing = () => {
           
           <div className="inline-flex items-center gap-2 bg-neon-green/20 text-neon-green px-4 py-2 rounded-full mb-6">
             <Star className="w-4 h-4" />
-            <span className="font-medium">14 Days Free Trial Included!</span>
+            <span className="font-medium">7 Days Free Trial Included!</span>
           </div>
 
           <p className="text-white/70 text-lg mb-12">
@@ -140,8 +140,8 @@ const Pricing = () => {
                 }`}
               >
                 {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-neon-green text-black px-4 py-1 rounded-full text-sm font-medium">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <span className="bg-gradient-to-r from-neon-green to-green-400 text-black px-6 py-2 rounded-full text-sm font-bold shadow-lg">
                       ⭐ Most Popular
                     </span>
                   </div>
@@ -155,7 +155,7 @@ const Pricing = () => {
                   </div>
                 )}
 
-                <CardContent className="p-8">
+                <CardContent className="p-8 pt-10">
                   <h3 className="text-xl font-bold text-white mb-4">{plan.name}</h3>
                   
                   <div className="mb-6">
@@ -185,7 +185,7 @@ const Pricing = () => {
           </div>
 
           <p className="text-white/50 text-sm">
-            All plans include 14 days free trial. Cancel anytime during the trial period.
+            All plans include 7 days free trial. Cancel anytime during the trial period.
           </p>
         </div>
       </div>
