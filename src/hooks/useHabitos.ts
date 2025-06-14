@@ -1,12 +1,7 @@
+
 import { useState, useEffect } from 'react';
 import { HabitosService, Habito } from '@/services/habitosService';
 import { toast } from 'sonner';
-
-interface HistoricoSemanalItem {
-  data: string;
-  concluido: boolean;
-  // adicione outras propriedades se existirem
-}
 
 export function useHabitos() {
   const [habitos, setHabitos] = useState<Habito[]>([]);
@@ -43,12 +38,13 @@ export function useHabitos() {
   const marcarHabito = async (habitoId: string, concluido: boolean) => {
     try {
       const { error } = await HabitosService.marcarHabitoCompleto(habitoId, concluido);
-
+      
       if (error) {
         toast.error('Error updating habit');
         return;
       }
 
+      // Recarregar dados
       await carregarHabitos();
       toast.success(concluido ? 'Habit completed!' : 'Habit marked as pending');
     } catch (error) {
@@ -72,51 +68,48 @@ export function useHabitos() {
   const getHistoricoSemanal = async () => {
     try {
       const { data, error } = await HabitosService.buscarProgressoSemanal();
-
-      if (error || !data) {
+      
+      if (error) {
         console.error('Erro ao buscar histórico semanal:', error);
         return [];
       }
 
-      // ✅ Tipagem explícita no reduce
-      const groupedByDate = data.reduce<Record<string, { total: number; completed: number }>>(
-        (acc, item: HistoricoSemanalItem) => {
-          const dataStr = item.data;
-          if (!acc[dataStr]) {
-            acc[dataStr] = { total: 0, completed: 0 };
-          }
-          acc[dataStr].total += 1;
-          if (item.concluido) {
-            acc[dataStr].completed += 1;
-          }
-          return acc;
-        },
-        {}
-      );
+      // Group by date and calculate completion percentage
+      const groupedByDate: Record<string, { total: number; completed: number }> = data.reduce(
+  (acc, item: HistoricoSemanalItem) => {
+    const dataStr = item.data;
+    if (!acc[dataStr]) acc[dataStr] = { total: 0, completed: 0 };
+    acc[dataStr].total += 1;
+    if (item.concluido) acc[dataStr].completed += 1;
+    return acc;
+  },
+  {} as Record<string, { total: number; completed: number }>
+);
 
-      // ✅ Conversão para formato de gráfico
-      return Object.entries(groupedByDate).map(([date, stats]) => ({
-        date,
-        percentual: stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
-      }));
-    } catch (error) {
-      console.error('Erro ao buscar histórico semanal:', error);
-      return [];
-    }
+
+      // Convert to array format for chart
+      return Object.entries(groupedByDate).map(([date, stats]) => {
+  const { total, completed } = stats as { total: number; completed: number };
+  return {
+    date,
+    percentual: total > 0 ? (completed / total) * 100 : 0
   };
+});
+
 
   const getProgressoHabitos = () => {
     const habitosHoje = getHabitosHoje();
     const concluidos = habitosHoje.filter(h => h.concluido).length;
     const total = habitosHoje.length;
     const percentual = total > 0 ? (concluidos / total) * 100 : 0;
-
-    const streakAtual = percentual === 100 ? 1 : 0;
-    const melhorStreak = 1; // Placeholder — depende de histórico real
-
-    return {
-      concluidos,
-      total,
+    
+    // Calculate streaks (simplified calculation)
+    const streakAtual = percentual === 100 ? 1 : 0; // This is a simplified version
+    const melhorStreak = 1; // This would need historical data to calculate properly
+    
+    return { 
+      concluidos, 
+      total, 
       percentual,
       streakAtual,
       melhorStreak
