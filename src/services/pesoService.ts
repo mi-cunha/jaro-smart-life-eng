@@ -7,30 +7,32 @@ export interface HistoricoPeso {
   peso: number;
   data: string;
   observacoes?: string;
+  created_at: string;
 }
 
 export class PesoService {
-  static async buscarHistoricoPeso(limite?: number) {
+  static async buscarHistoricoPeso(limite: number = 30) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         return { data: [], error: new Error('User not authenticated') };
       }
 
-      let query = supabase
+      const { data, error } = await supabase
         .from('historico_peso')
         .select('*')
         .eq('usuario_id', user.id)
-        .order('data', { ascending: false });
+        .order('data', { ascending: false })
+        .limit(limite);
 
-      if (limite) {
-        query = query.limit(limite);
+      if (error) {
+        console.error('Error fetching weight history:', error);
+        return { data: [], error };
       }
 
-      const { data, error } = await query;
-      return { data: data || [], error };
+      return { data: data || [], error: null };
     } catch (error) {
-      console.error('Erro ao buscar histórico de peso:', error);
+      console.error('Error in buscarHistoricoPeso:', error);
       return { data: [], error };
     }
   }
@@ -42,27 +44,30 @@ export class PesoService {
         return { data: null, error: new Error('User not authenticated') };
       }
 
-      const hoje = new Date().toISOString().split('T')[0];
-      
       const { data, error } = await supabase
         .from('historico_peso')
-        .upsert({
+        .insert({
           usuario_id: user.id,
           peso,
-          data: hoje,
-          observacoes
+          observacoes,
+          data: new Date().toISOString().split('T')[0]
         })
         .select()
         .single();
 
-      return { data, error };
+      if (error) {
+        console.error('Error adding weight record:', error);
+        return { data: null, error };
+      }
+
+      return { data, error: null };
     } catch (error) {
-      console.error('Erro ao adicionar peso:', error);
+      console.error('Error in adicionarPeso:', error);
       return { data: null, error };
     }
   }
 
-  static async buscarPesoAtual() {
+  static async atualizarPeso(id: string, peso: number, observacoes?: string) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -71,16 +76,46 @@ export class PesoService {
 
       const { data, error } = await supabase
         .from('historico_peso')
-        .select('peso')
+        .update({ peso, observacoes })
+        .eq('id', id)
         .eq('usuario_id', user.id)
-        .order('data', { ascending: false })
-        .limit(1)
+        .select()
         .single();
 
-      return { data: data?.peso || null, error };
+      if (error) {
+        console.error('Error updating weight record:', error);
+        return { data: null, error };
+      }
+
+      return { data, error: null };
     } catch (error) {
-      console.error('Erro ao buscar peso atual:', error);
+      console.error('Error in atualizarPeso:', error);
       return { data: null, error };
+    }
+  }
+
+  static async deletarPeso(id: string) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { error: new Error('User not authenticated') };
+      }
+
+      const { error } = await supabase
+        .from('historico_peso')
+        .delete()
+        .eq('id', id)
+        .eq('usuario_id', user.id);
+
+      if (error) {
+        console.error('Error deleting weight record:', error);
+        return { error };
+      }
+
+      return { error: null };
+    } catch (error) {
+      console.error('Error in deletarPeso:', error);
+      return { error };
     }
   }
 }

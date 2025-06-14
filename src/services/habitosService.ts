@@ -1,8 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
-
 export interface Habito {
   id: string;
   usuario_id: string;
@@ -22,84 +20,172 @@ export interface HistoricoHabito {
   concluido: boolean;
   quantidade: number;
   observacoes?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export class HabitosService {
   static async buscarHabitos() {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { data: [], error: new Error('User not authenticated') };
+      }
+
       const { data, error } = await supabase
         .from('habitos')
         .select('*')
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .eq('usuario_id', user.id)
         .eq('ativo', true)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false });
 
-      return { data: data || [], error };
+      if (error) {
+        console.error('Error fetching habits:', error);
+        return { data: [], error };
+      }
+
+      return { data: data || [], error: null };
     } catch (error) {
-      console.error('Erro ao buscar hábitos:', error);
+      console.error('Error in buscarHabitos:', error);
       return { data: [], error };
     }
   }
 
   static async buscarHistoricoHoje() {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { data: [], error: new Error('User not authenticated') };
+      }
+
       const hoje = new Date().toISOString().split('T')[0];
-      
+
       const { data, error } = await supabase
         .from('historico_habitos')
-        .select(`
-          *,
-          habitos!inner(nome, meta_diaria)
-        `)
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .select('*')
+        .eq('usuario_id', user.id)
         .eq('data', hoje);
 
-      return { data: data || [], error };
+      if (error) {
+        console.error('Error fetching today\'s habit history:', error);
+        return { data: [], error };
+      }
+
+      return { data: data || [], error: null };
     } catch (error) {
-      console.error('Erro ao buscar histórico de hoje:', error);
+      console.error('Error in buscarHistoricoHoje:', error);
+      return { data: [], error };
+    }
+  }
+
+  static async buscarProgressoSemanal() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { data: [], error: new Error('User not authenticated') };
+      }
+
+      const hoje = new Date();
+      const seteDiasAtras = new Date(hoje.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      const { data, error } = await supabase
+        .from('historico_habitos')
+        .select('data, concluido')
+        .eq('usuario_id', user.id)
+        .gte('data', seteDiasAtras.toISOString().split('T')[0])
+        .lte('data', hoje.toISOString().split('T')[0])
+        .order('data', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching weekly progress:', error);
+        return { data: [], error };
+      }
+
+      return { data: data || [], error: null };
+    } catch (error) {
+      console.error('Error in buscarProgressoSemanal:', error);
       return { data: [], error };
     }
   }
 
   static async marcarHabitoCompleto(habitoId: string, concluido: boolean) {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { data: null, error: new Error('User not authenticated') };
+      }
+
       const hoje = new Date().toISOString().split('T')[0];
-      
-      const { data, error } = await supabase
+
+      // First, try to update existing record
+      const { data: existing } = await supabase
         .from('historico_habitos')
-        .upsert({
-          usuario_id: DEFAULT_USER_ID,
-          habito_id: habitoId,
-          data: hoje,
-          concluido,
-          quantidade: concluido ? 1 : 0
-        })
-        .select()
+        .select('id')
+        .eq('usuario_id', user.id)
+        .eq('habito_id', habitoId)
+        .eq('data', hoje)
         .single();
 
-      return { data, error };
+      if (existing) {
+        // Update existing record
+        const { data, error } = await supabase
+          .from('historico_habitos')
+          .update({ concluido, quantidade: concluido ? 1 : 0 })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        return { data, error };
+      } else {
+        // Create new record
+        const { data, error } = await supabase
+          .from('historico_habitos')
+          .insert({
+            usuario_id: user.id,
+            habito_id: habitoId,
+            data: hoje,
+            concluido,
+            quantidade: concluido ? 1 : 0
+          })
+          .select()
+          .single();
+
+        return { data, error };
+      }
     } catch (error) {
-      console.error('Erro ao marcar hábito:', error);
+      console.error('Error in marcarHabitoCompleto:', error);
       return { data: null, error };
     }
   }
 
-  static async buscarProgressoSemanal() {
+  static async criarHabito(nome: string, descricao?: string, metaDiaria: number = 1) {
     try {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
-      const { data, error } = await supabase
-        .from('historico_habitos')
-        .select('*')
-        .eq('usuario_id', DEFAULT_USER_ID)
-        .gte('data', sevenDaysAgo.toISOString().split('T')[0])
-        .order('data', { ascending: true });
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        return { data: null, error: new Error('User not authenticated') };
+      }
 
-      return { data: data || [], error };
+      const { data, error } = await supabase
+        .from('habitos')
+        .insert({
+          usuario_id: user.id,
+          nome,
+          descricao,
+          meta_diaria: metaDiaria,
+          ativo: true
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating habit:', error);
+        return { data: null, error };
+      }
+
+      return { data, error: null };
     } catch (error) {
-      console.error('Erro ao buscar progresso semanal:', error);
-      return { data: [], error };
+      console.error('Error in criarHabito:', error);
+      return { data: null, error };
     }
   }
 }
