@@ -145,26 +145,30 @@ export function useAuth() {
     }
   };
 
-  const signIn = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+  const signIn = async (email: string, password: string): Promise<
+  | { data: any; subscribed: boolean }
+  | { error: any }
+> => {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
 
-      if (error) {
-        toast.error(error.message);
-        return { error };
-      }
-
-      await checkSubscription(email);
-      toast.success('Login realizado com sucesso!');
-      return { data, subscribed };
-    } catch (error) {
-      toast.error('Erro inesperado ao fazer login');
+    if (error) {
+      toast.error(error.message);
       return { error };
     }
-  };
+
+    const subscribed = await checkSubscription(email);
+    toast.success('Login realizado com sucesso!');
+    return { data, subscribed };
+  } catch (error) {
+    toast.error('Erro inesperado ao fazer login');
+    return { error };
+  }
+};
+
 
   const signOut = async () => {
     try {
