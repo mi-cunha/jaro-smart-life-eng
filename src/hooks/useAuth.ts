@@ -85,7 +85,13 @@ export function useAuth() {
       
       // Handle different possible boolean representations
       let isSubbed = false;
-      if (subscriber.subscribed === true || subscriber.subscribed === 'true' || subscriber.subscribed === 1) {
+      const subscribedValue = subscriber.subscribed;
+      
+      if (subscribedValue === true) {
+        isSubbed = true;
+      } else if (typeof subscribedValue === 'string' && subscribedValue === 'true') {
+        isSubbed = true;
+      } else if (typeof subscribedValue === 'number' && subscribedValue === 1) {
         isSubbed = true;
       }
       
