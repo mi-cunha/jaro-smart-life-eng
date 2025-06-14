@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,8 +28,8 @@ const Auth = () => {
     
     if (!result.error) {
       console.log('Sign in successful, subscription status:', result.subscribed);
-      // Check subscription after login
-      if (result.subscribed) {
+      // Check subscription after login - use the returned subscribed value
+      if (result.subscribed === true) {
         console.log('User is subscribed, redirecting to dashboard');
         navigate('/dashboard');
       } else {
@@ -51,9 +50,8 @@ const Auth = () => {
     const { error } = await signUp(formData.email, formData.password, formData.name);
     
     if (!error) {
-      console.log('Sign up successful, checking subscription status');
-      // After successful signup, check subscription - but most new users won't be subscribed
-      // So we'll redirect to pricing by default for new signups
+      console.log('Sign up successful, redirecting to pricing for new users');
+      // After successful signup, redirect to pricing for new signups
       navigate('/pricing');
       setFormData({ email: '', password: '', name: '' });
     } else {

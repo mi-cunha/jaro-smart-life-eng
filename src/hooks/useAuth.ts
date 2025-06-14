@@ -60,6 +60,7 @@ export function useAuth() {
 
   const checkSubscription = async (email: string) => {
     try {
+      console.log('Checking subscription for email:', email);
       const { data: subscriber, error: subError } = await supabase
         .from('subscribers')
         .select('*')
@@ -73,10 +74,12 @@ export function useAuth() {
       }
 
       if (!subscriber) {
+        console.log('No subscriber found for email:', email);
         setIsSubscribed(false);
         return false;
       }
 
+      console.log('Subscriber found:', subscriber);
       setIsSubscribed(subscriber.subscribed);
 
       if (subscriber.subscribed && subscriber.usuario_id) {
@@ -165,7 +168,11 @@ export function useAuth() {
         return { error };
       }
 
+      // Wait a bit for the subscription check to complete
+      await new Promise(resolve => setTimeout(resolve, 1000));
       const subscribed = await checkSubscription(email);
+      
+      console.log('Login successful, final subscription status:', subscribed);
       toast.success('Login realizado com sucesso!');
       return { data, subscribed };
     } catch (error) {
