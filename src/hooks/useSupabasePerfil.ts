@@ -2,14 +2,25 @@
 import { useState, useEffect } from 'react';
 import { PerfilService, PerfilUsuario } from '@/services/perfilService';
 import { UserProfileService } from '@/services/userProfileService';
+import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 
 export function useSupabasePerfil() {
+  const { user } = useAuth();
   const [perfil, setPerfil] = useState<PerfilUsuario | null>(null);
   const [loading, setLoading] = useState(true);
 
   const carregarPerfil = async () => {
+    if (!user) {
+      console.log('🔍 useSupabasePerfil - No user available, skipping profile load');
+      setPerfil(null);
+      setLoading(false);
+      return;
+    }
+
+    console.log('🔍 useSupabasePerfil - Loading profile for user:', user.email);
     setLoading(true);
+    
     try {
       // Try to use the existing PerfilService first, then fallback to UserProfileService
       let data, error;
@@ -17,24 +28,29 @@ export function useSupabasePerfil() {
         const result = await PerfilService.buscarPerfil();
         data = result.data;
         error = result.error;
-      } catch {
+        console.log('✅ PerfilService result:', { data: !!data, error: !!error });
+      } catch (serviceError) {
+        console.log('❌ PerfilService failed, trying UserProfileService:', serviceError);
         // Fallback to UserProfileService if PerfilService fails
         const result = await UserProfileService.buscarPerfilUsuario();
         data = result.data;
         error = result.error;
+        console.log('✅ UserProfileService result:', { data: !!data, error: !!error });
       }
 
       if (error) {
+        console.error('❌ Error loading profile:', error);
         toast.error('Erro ao carregar perfil');
-        console.error('Erro ao carregar perfil:', error);
-        setPerfil(null); // limpar perfil em caso de erro
+        setPerfil(null);
       } else if (data) {
+        console.log('✅ Profile loaded successfully:', data);
         setPerfil(data);
       } else {
-        setPerfil(null); // garantir estado
+        console.log('❌ No profile data returned');
+        setPerfil(null);
       }
     } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
+      console.error('❌ Exception loading profile:', error);
       toast.error('Erro ao carregar perfil');
       setPerfil(null);
     } finally {
@@ -43,6 +59,12 @@ export function useSupabasePerfil() {
   };
 
   const atualizarPerfil = async (updates: Partial<PerfilUsuario>) => {
+    if (!user) {
+      console.log('❌ No user available for profile update');
+      toast.error('User not authenticated');
+      return false;
+    }
+
     try {
       // Try to use the existing PerfilService first, then fallback to UserProfileService
       let data, error;
@@ -74,6 +96,11 @@ export function useSupabasePerfil() {
   };
 
   const salvarAvatar = async (file: File) => {
+    if (!user) {
+      toast.error('User not authenticated');
+      return false;
+    }
+
     try {
       const { data, error } = await PerfilService.salvarAvatar(file);
       if (error) {
@@ -92,11 +119,10 @@ export function useSupabasePerfil() {
     return false;
   };
 
-  // Adição: recarregar perfil ao logar/deslogar
+  // Load profile when user changes
   useEffect(() => {
     carregarPerfil();
-    // Poderia adicionar listener para evento de login/logout aqui se necessário no futuro
-  }, []);
+  }, [user?.id]); // Use user.id instead of just user to avoid unnecessary re-renders
 
   return {
     perfil,
