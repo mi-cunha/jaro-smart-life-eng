@@ -19,7 +19,7 @@ export function AuthCard({ children }: AuthCardProps) {
           <CardHeader className="text-center space-y-4 pb-6">
             <div className="flex justify-center">
               <img 
-                src="/lovable-uploads/d2b82cfd-b1cd-4e96-baa8-0c3595710c50.png" 
+                src="/lovable-uploads/03a9ce16-4e5b-468b-9a10-7d8b302f54f5.png" 
                 alt="JaroSmart Logo" 
                 className="h-16 w-auto object-contain animate-pulse" 
               />
