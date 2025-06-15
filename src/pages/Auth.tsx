@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -7,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2 } from 'lucide-react';
-import { JaroSmartLogo } from '@/components/JaroSmartLogo';
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -154,7 +154,11 @@ const Auth = () => {
         <Card className="bg-dark-bg border-white/10 shadow-xl">
           <CardHeader className="text-center space-y-4 pb-6">
             <div className="flex justify-center">
-              <JaroSmartLogo size="lg" animated />
+              <img
+                src="/lovable-uploads/d2b82cfd-b1cd-4e96-baa8-0c3595710c50.png"
+                alt="JaroSmart Logo"
+                className="h-16 w-auto object-contain animate-pulse"
+              />
             </div>
             <CardTitle className="text-white text-xl sm:text-2xl">
               Welcome to JaroSmart
