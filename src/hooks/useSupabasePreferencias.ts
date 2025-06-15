@@ -39,6 +39,8 @@ export function useSupabasePreferencias() {
         return;
       }
 
+      console.log('✅ Found subscriber with usuario_id:', subscriber.usuario_id);
+
       // Then get the preferences using the usuario_id
       const { data, error } = await supabase
         .from('preferencias_usuario')
@@ -55,10 +57,22 @@ export function useSupabasePreferencias() {
           restricoes: []
         });
       } else if (data) {
-        console.log('✅ Found preferences:', data);
+        console.log('✅ Found preferences data:', data);
+        
+        // Safely handle the preferencias_alimentares field
+        let alimentaresValue = 'nenhuma';
+        if (data.preferencias_alimentares) {
+          if (typeof data.preferencias_alimentares === 'string') {
+            alimentaresValue = data.preferencias_alimentares;
+          } else if (typeof data.preferencias_alimentares === 'object') {
+            // If it's an object (quiz data), we'll use a default value
+            alimentaresValue = 'personalizada';
+          }
+        }
+
         setPreferencias({
           objetivo: data.objetivo || 'Perda de peso',
-          alimentares: data.preferencias_alimentares || 'nenhuma',
+          alimentares: alimentaresValue,
           restricoes: data.restricoes_alimentares || []
         });
       } else {
@@ -115,6 +129,7 @@ export function useSupabasePreferencias() {
 
       if (!error) {
         setPreferencias(novasPreferencias);
+        console.log('✅ Preferences updated successfully');
         return true;
       } else {
         console.error('❌ Error updating preferences:', error);

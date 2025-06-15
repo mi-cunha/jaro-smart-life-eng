@@ -17,14 +17,14 @@ interface QuizData {
 }
 
 export function useQuizData() {
-  const { user, userProfile } = useAuth();
+  const { user } = useAuth();
   const [quizData, setQuizData] = useState<QuizData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadQuizData = async () => {
       if (!user?.email) {
-        console.log('🔍 No user email available');
+        console.log('🔍 No user email available for quiz data');
         setLoading(false);
         return;
       }
@@ -41,7 +41,7 @@ export function useQuizData() {
           .single();
 
         if (subError || !subscriber?.usuario_id) {
-          console.log('❌ No subscriber found or no usuario_id:', subError);
+          console.log('❌ No subscriber found for quiz data:', subError);
           setQuizData(null);
           setLoading(false);
           return;
@@ -49,26 +49,45 @@ export function useQuizData() {
 
         console.log('✅ Found subscriber with usuario_id:', subscriber.usuario_id);
 
-        // Then get the preferences using the usuario_id
+        // Then get the preferences using the usuario_id to extract quiz data
         const { data: preferencias, error: prefError } = await supabase
           .from('preferencias_usuario')
-          .select('*')
+          .select('preferencias_alimentares')
           .eq('usuario_id', subscriber.usuario_id)
           .single();
 
         if (prefError) {
-          console.log('❌ Error fetching preferences:', prefError);
+          console.log('❌ Error fetching quiz data from preferences:', prefError);
           setQuizData(null);
           setLoading(false);
           return;
         }
 
-        if (preferencias?.preferencias_alimentares && typeof preferencias.preferencias_alimentares === 'object') {
-          console.log('✅ Found quiz data:', preferencias.preferencias_alimentares);
-          const data = preferencias.preferencias_alimentares as QuizData;
-          setQuizData(data);
+        // Extract quiz data from preferencias_alimentares if it exists and is an object
+        if (preferencias?.preferencias_alimentares && 
+            typeof preferencias.preferencias_alimentares === 'object' &&
+            !Array.isArray(preferencias.preferencias_alimentares)) {
+          
+          const quizDataFromDB = preferencias.preferencias_alimentares as any;
+          console.log('✅ Found quiz data in database:', quizDataFromDB);
+          
+          // Map the quiz data to our expected structure
+          const mappedQuizData: QuizData = {
+            age: quizDataFromDB.age,
+            gender: quizDataFromDB.gender,
+            activityLevel: quizDataFromDB.activityLevel,
+            healthGoals: quizDataFromDB.healthGoals,
+            dietaryRestrictions: quizDataFromDB.dietaryRestrictions,
+            mealPreferences: quizDataFromDB.mealPreferences,
+            cookingFrequency: quizDataFromDB.cookingFrequency,
+            budgetRange: quizDataFromDB.budgetRange,
+            healthConditions: quizDataFromDB.healthConditions,
+            supplementUsage: quizDataFromDB.supplementUsage
+          };
+          
+          setQuizData(mappedQuizData);
         } else {
-          console.log('❌ No quiz data found in preferences');
+          console.log('❌ No valid quiz data found in preferences_alimentares');
           setQuizData(null);
         }
       } catch (error) {
@@ -83,7 +102,7 @@ export function useQuizData() {
   }, [user?.email]);
 
   const getPersonalizedMessage = () => {
-    if (!quizData) return "Welcome to your health journey!";
+    if (!quizData) return "Complete your health profile to get personalized recommendations!";
     
     const { age, gender, healthGoals, activityLevel } = quizData;
     
@@ -109,7 +128,15 @@ export function useQuizData() {
   };
 
   const getRecommendedActions = () => {
-    if (!quizData) return [];
+    if (!quizData) return [
+      {
+        title: "Complete Health Quiz",
+        description: "Take our assessment to get personalized recommendations",
+        icon: "user",
+        link: "/quiz",
+        priority: "high"
+      }
+    ];
 
     const actions = [];
     const { healthGoals, cookingFrequency, dietaryRestrictions } = quizData;
@@ -163,7 +190,7 @@ export function useQuizData() {
 
     const { age, gender, activityLevel, healthGoals } = quizData;
     
-    // Calculate personalized targets based on quiz data
+    // Calculate personalized targets based on quiz data from Supabase
     let recommendedCalories = 2000; // Base value
     let recommendedWater = 8; // glasses
     let recommendedTeaDoses = 2;

@@ -21,7 +21,8 @@ const iconMap = {
   chef: ChefHat,
   heart: Heart,
   check: CheckCircle,
-  target: Target
+  target: Target,
+  user: User
 };
 
 export function PersonalizedInsights() {
@@ -36,11 +37,10 @@ export function PersonalizedInsights() {
     hasQuizData 
   } = useQuizData();
 
-  // Debug logs
-  console.log('🔍 PersonalizedInsights Debug:', {
+  console.log('🔍 PersonalizedInsights - Real Data from Supabase:', {
     userEmail: user?.email,
     hasQuizData,
-    quizData,
+    quizDataKeys: quizData ? Object.keys(quizData) : 'No quiz data',
     loading
   });
 
@@ -48,7 +48,7 @@ export function PersonalizedInsights() {
     return (
       <Card className="bg-dark-bg border-white/10">
         <CardContent className="p-6">
-          <div className="text-white/60">Loading personalized insights...</div>
+          <div className="text-white/60">Loading your personalized insights...</div>
         </CardContent>
       </Card>
     );
@@ -65,10 +65,10 @@ export function PersonalizedInsights() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-white/80">
-            Take our quick health assessment to get personalized recommendations for your wellness journey.
+            Take our quick health assessment to get personalized recommendations tailored to your wellness journey.
           </p>
           <p className="text-white/60 text-sm">
-            Current user: {user?.email || 'Not logged in'}
+            User: {user?.email || 'Not logged in'}
           </p>
           <Button 
             onClick={() => navigate('/quiz')} 
@@ -87,22 +87,7 @@ export function PersonalizedInsights() {
 
   return (
     <div className="space-y-6">
-      {/* Debug Information */}
-      <Card className="bg-dark-bg border-yellow-500/20">
-        <CardContent className="p-4">
-          <div className="text-yellow-400 text-sm">
-            <strong>Debug Info:</strong> User: {user?.email}, Quiz Data: {hasQuizData ? 'Found' : 'Not Found'}
-            {quizData && (
-              <div className="mt-2">
-                Quiz contains: Age: {quizData.age}, Gender: {quizData.gender}, 
-                Goals: {quizData.healthGoals?.join(', ') || 'None'}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Personalized Welcome Message */}
+      {/* Personalized Welcome Message - Based on Real Supabase Data */}
       <Card className="bg-gradient-to-r from-neon-green/10 to-blue-500/10 border-neon-green/20">
         <CardContent className="p-6">
           <div className="flex items-center gap-3 mb-3">
@@ -113,7 +98,7 @@ export function PersonalizedInsights() {
             {getPersonalizedMessage()}
           </p>
           
-          {/* User Profile Summary */}
+          {/* User Profile Summary - Real Data from Supabase */}
           <div className="flex flex-wrap gap-2 mt-4">
             {quizData?.age && (
               <Badge variant="secondary" className="bg-white/10 text-white border-white/20">
@@ -131,17 +116,22 @@ export function PersonalizedInsights() {
                 {quizData.activityLevel} activity
               </Badge>
             )}
+            {quizData?.healthGoals && quizData.healthGoals.length > 0 && (
+              <Badge variant="secondary" className="bg-neon-green/20 text-neon-green border-neon-green/30">
+                {quizData.healthGoals.length} goal{quizData.healthGoals.length > 1 ? 's' : ''}
+              </Badge>
+            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Personalized Stats */}
+      {/* Personalized Stats - Calculated from Real Quiz Data */}
       {personalizedStats && (
         <Card className="bg-dark-bg border-white/10">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Target className="w-5 h-5 text-neon-green" />
-              Your Personalized Targets
+              Your Personalized Targets (Based on Your Quiz)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -151,28 +141,38 @@ export function PersonalizedInsights() {
                   {personalizedStats.recommendedCalories}
                 </div>
                 <div className="text-sm text-white/70">Daily Calories</div>
+                <div className="text-xs text-white/50 mt-1">
+                  Based on your age, gender & activity
+                </div>
               </div>
               <div className="text-center p-4 rounded-lg bg-white/5">
                 <div className="text-2xl font-bold text-neon-green">
                   {personalizedStats.recommendedWater}
                 </div>
                 <div className="text-sm text-white/70">Glasses of Water</div>
+                <div className="text-xs text-white/50 mt-1">
+                  Adjusted for your activity level
+                </div>
               </div>
               <div className="text-center p-4 rounded-lg bg-white/5">
                 <div className="text-2xl font-bold text-neon-green">
                   {personalizedStats.recommendedTeaDoses}
                 </div>
                 <div className="text-sm text-white/70">Tea Doses</div>
+                <div className="text-xs text-white/50 mt-1">
+                  Based on your health goals
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Recommended Actions */}
+      {/* Recommended Actions - Based on Real Quiz Responses */}
       <Card className="bg-dark-bg border-white/10">
         <CardHeader>
-          <CardTitle className="text-white">Recommended Actions for You</CardTitle>
+          <CardTitle className="text-white">Your Personalized Action Plan</CardTitle>
+          <p className="text-white/60 text-sm">Based on your quiz responses from Supabase</p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
