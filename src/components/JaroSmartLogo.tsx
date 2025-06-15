@@ -1,6 +1,4 @@
 
-import { Leaf, Sparkles } from 'lucide-react';
-
 interface JaroSmartLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'full' | 'icon' | 'text';
@@ -15,13 +13,6 @@ const sizeClasses = {
   xl: 'h-20'
 };
 
-const iconSizes = {
-  sm: 'w-6 h-6',
-  md: 'w-8 h-8',
-  lg: 'w-10 h-10',
-  xl: 'w-12 h-12'
-};
-
 export function JaroSmartLogo({ 
   size = 'md', 
   variant = 'full', 
@@ -29,46 +20,36 @@ export function JaroSmartLogo({
   animated = false 
 }: JaroSmartLogoProps) {
   
-  const logoIcon = (
-    <div className={`relative ${iconSizes[size]} bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl shadow-lg border-2 border-green-400/30 flex items-center justify-center ${animated ? 'animate-pulse' : ''}`}>
-      {/* Letra J estilizada */}
-      <div className="relative">
-        <span className="text-white font-bold text-lg leading-none">J</span>
-        <Leaf className="absolute -top-1 -right-2 w-3 h-3 text-green-300" />
-      </div>
-      
-      {/* Efeito de brilho */}
-      <div className="absolute top-1 left-1 w-2 h-2 bg-white/40 rounded-full"></div>
-      
-      {/* Partículas decorativas */}
-      {animated && (
-        <>
-          <Sparkles className="absolute -top-2 -left-2 w-3 h-3 text-yellow-400 animate-bounce" style={{ animationDelay: '0.5s' }} />
-          <Sparkles className="absolute -bottom-1 -right-1 w-2 h-2 text-green-300 animate-bounce" style={{ animationDelay: '1s' }} />
-        </>
-      )}
-    </div>
+  const logoImage = (
+    <img
+      src="/lovable-uploads/9b36781f-44c4-45d7-977e-2fbf139295e0.png"
+      alt="JaroSmart Logo"
+      className={`${sizeClasses[size]} w-auto object-contain ${animated ? 'animate-pulse' : ''} ${className}`}
+    />
   );
 
-  const logoText = (
-    <div className="flex flex-col">
-      <span className="text-neon-green font-bold text-xl leading-tight">Jaro</span>
-      <span className="text-green-400 text-sm font-medium -mt-1">Smart</span>
-    </div>
-  );
-
+  // For icon variant, show just a square portion of the logo
   if (variant === 'icon') {
-    return <div className={className}>{logoIcon}</div>;
+    return (
+      <div className={`${sizeClasses[size]} aspect-square overflow-hidden rounded-lg ${className}`}>
+        <img
+          src="/lovable-uploads/9b36781f-44c4-45d7-977e-2fbf139295e0.png"
+          alt="JaroSmart Logo"
+          className={`h-full w-full object-cover ${animated ? 'animate-pulse' : ''}`}
+        />
+      </div>
+    );
   }
 
+  // For text variant, extract just the text portion (this would need the logo split)
   if (variant === 'text') {
-    return <div className={className}>{logoText}</div>;
+    return (
+      <div className={`flex flex-col ${className}`}>
+        <span className="text-neon-green font-bold text-xl leading-tight">JaroSmart</span>
+      </div>
+    );
   }
 
-  return (
-    <div className={`flex items-center space-x-3 ${sizeClasses[size]} ${className}`}>
-      {logoIcon}
-      {logoText}
-    </div>
-  );
+  // Full variant shows the complete logo
+  return logoImage;
 }
