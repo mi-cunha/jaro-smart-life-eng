@@ -21,7 +21,7 @@ export function AuthCard({ children }: AuthCardProps) {
               <img 
                 src="/lovable-uploads/03a9ce16-4e5b-468b-9a10-7d8b302f54f5.png" 
                 alt="JaroSmart Logo" 
-                className="h-16 w-auto object-contain animate-pulse" 
+                className="h-16 w-auto object-contain" 
               />
             </div>
             <CardTitle className="text-white text-xl sm:text-2xl">
