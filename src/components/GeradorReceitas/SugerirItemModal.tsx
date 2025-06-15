@@ -36,21 +36,21 @@ export function SugerirItemModal({ refeicoes, onAddIngrediente }: SugerirItemMod
 
   const adicionarItem = (item: string) => {
     if (!item.trim()) {
-      toast.error("Digite um nome para o item!");
+      toast.error("Enter an item name!");
       return;
     }
 
     const itemEhSaudavel = RecomendacoesNutricionais.verificarSeItemEhSaudavel(item);
     
     if (!itemEhSaudavel) {
-      toast.error("⚠️ Este item não é recomendado por nutricionistas para uma dieta saudável!");
+      toast.error("⚠️ This item is not recommended by nutritionists for a healthy diet!");
       return;
     }
 
     onAddIngrediente(refeicaoSelecionada, item);
     
     const dica = RecomendacoesNutricionais.obterDicaNutricional(item);
-    toast.success(`✅ ${item} adicionado! ${dica}`);
+    toast.success(`✅ ${item} added! ${dica}`);
     
     setInputValue("");
     setSugestoes([]);
@@ -72,21 +72,21 @@ export function SugerirItemModal({ refeicoes, onAddIngrediente }: SugerirItemMod
           className="border-blue-400/30 text-blue-400 hover:bg-blue-400/10"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Sugerir Item
+          Suggest Item
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-dark-bg border-white/10 max-w-md">
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
             <Lightbulb className="w-5 h-5 text-yellow-400" />
-            Sugerir Item Saudável
+            Suggest Healthy Item
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <div>
             <label className="text-white/80 text-sm font-medium mb-2 block">
-              Refeição:
+              Meal:
             </label>
             <div className="flex gap-2 flex-wrap">
               {refeicoes.map((refeicao) => (
@@ -108,11 +108,11 @@ export function SugerirItemModal({ refeicoes, onAddIngrediente }: SugerirItemMod
 
           <div>
             <label className="text-white/80 text-sm font-medium mb-2 block">
-              Nome do Item:
+              Item Name:
             </label>
             <div className="space-y-2">
               <Input
-                placeholder="Digite o nome do item..."
+                placeholder="Enter item name..."
                 value={inputValue}
                 onChange={(e) => handleInputChange(e.target.value)}
                 className="bg-white/5 border-white/20 text-white placeholder-white/50"
@@ -123,7 +123,7 @@ export function SugerirItemModal({ refeicoes, onAddIngrediente }: SugerirItemMod
                 <div className="flex items-center gap-2 p-2 bg-red-500/10 border border-red-500/30 rounded-md">
                   <AlertTriangle className="w-4 h-4 text-red-400" />
                   <span className="text-red-400 text-sm">
-                    Item não recomendado para dietas saudáveis. Veja as alternativas abaixo.
+                    Item not recommended for healthy diets. See alternatives below.
                   </span>
                 </div>
               )}
@@ -134,7 +134,7 @@ export function SugerirItemModal({ refeicoes, onAddIngrediente }: SugerirItemMod
             <div>
               <label className="text-white/80 text-sm font-medium mb-2 block flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-400" />
-                Sugestões Saudáveis:
+                Healthy Suggestions:
               </label>
               <div className="grid gap-2 max-h-48 overflow-y-auto">
                 {sugestoes.map((sugestao, index) => (
@@ -159,12 +159,12 @@ export function SugerirItemModal({ refeicoes, onAddIngrediente }: SugerirItemMod
               className="bg-neon-green text-black hover:bg-neon-green/90 flex-1"
               disabled={!inputValue.trim()}
             >
-              Adicionar Item
+              Add Item
             </Button>
           </div>
 
           <div className="text-xs text-white/60 p-2 bg-blue-500/10 border border-blue-500/30 rounded-md">
-            💡 <strong>Dica:</strong> Priorizamos alimentos naturais e minimamente processados para uma alimentação mais saudável e nutritiva.
+            💡 <strong>Tip:</strong> We prioritize natural and minimally processed foods for healthier and more nutritious eating.
           </div>
         </div>
       </DialogContent>
