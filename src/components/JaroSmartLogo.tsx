@@ -1,4 +1,5 @@
 
+
 interface JaroSmartLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'full' | 'icon' | 'text';
@@ -22,7 +23,7 @@ export function JaroSmartLogo({
   
   const logoImage = (
     <img
-      src="/lovable-uploads/9b36781f-44c4-45d7-977e-2fbf139295e0.png"
+      src="/lovable-uploads/d2b82cfd-b1cd-4e96-baa8-0c3595710c50.png"
       alt="JaroSmart Logo"
       className={`${sizeClasses[size]} w-auto object-contain ${animated ? 'animate-pulse' : ''} ${className}`}
     />
@@ -33,7 +34,7 @@ export function JaroSmartLogo({
     return (
       <div className={`${sizeClasses[size]} aspect-square overflow-hidden rounded-lg ${className}`}>
         <img
-          src="/lovable-uploads/9b36781f-44c4-45d7-977e-2fbf139295e0.png"
+          src="/lovable-uploads/d2b82cfd-b1cd-4e96-baa8-0c3595710c50.png"
           alt="JaroSmart Logo"
           className={`h-full w-full object-cover ${animated ? 'animate-pulse' : ''}`}
         />
@@ -53,3 +54,4 @@ export function JaroSmartLogo({
   // Full variant shows the complete logo
   return logoImage;
 }
+
