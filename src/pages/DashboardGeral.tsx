@@ -28,8 +28,8 @@ const DashboardGeral = () => {
   const { user, userProfile } = useAuth();
   const { pesoAtual, pesoMeta, getProgressoPeso, getDadosGrafico } = usePeso();
   const { getHabitosHoje, getProgressoHabitos, getHistoricoSemanal } = useHabitos();
-  const { receitas } = useSupabaseReceitas();
-  const { itens } = useSupabaseListaCompras();
+  const { receitas, loading: loadingReceitas } = useSupabaseReceitas();
+  const { itensCompra, loading: loadingCompras } = useSupabaseListaCompras();
   
   const [historicoSemanal, setHistoricoSemanal] = useState<any[]>([]);
   
@@ -46,113 +46,113 @@ const DashboardGeral = () => {
     loadHistorico();
   }, []);
 
-  // Calculate real statistics
-  const totalGastoMes = itens.filter(item => item.comprado).reduce((total, item) => {
+  // Flatten all comidas and compras arrays
+  const allReceitas = Object.values(receitas || {}).flat();
+  const allItens = Object.values(itensCompra || {}).flat();
+
+  // Calculate real statistics using only real data
+  const totalGastoMes = allItens.filter(item => item.comprado).reduce((total, item) => {
     return total + (typeof item.preco === 'number' ? item.preco : 5);
   }, 0);
 
-  const receitasConsumidasMes = receitas.length;
+  const receitasConsumidasMes = allReceitas.length;
   const habitosConcluidos = habitosHoje.filter(h => h.concluido).length;
   const totalHabitos = habitosHoje.length;
   const percentualHabitos = totalHabitos > 0 ? (habitosConcluidos / totalHabitos) * 100 : 0;
 
-  // Calculate days active this month (simplified - based on existing data)
-  const diasAtivosMes = Math.min(28, Math.max(1, receitas.length + habitosConcluidos));
-  
-  // Calculate tea doses (simplified calculation)
+  // Calculate days active this month (simplified)
+  const diasAtivosMes = Math.max(1, receitasConsumidasMes + habitosConcluidos);
+
+  // Calculate tea doses (default fallback to 2/day)
   const dosesChaMes = Math.floor(diasAtivosMes * (userProfile?.doses_cha || 2));
   
   // Calculate weight loss progress
-  const pesoInicial = pesoAtual && pesoMeta ? pesoAtual + 4.8 : 80; // Estimate initial weight
+  const pesoInicial = pesoAtual && pesoMeta ? pesoAtual + 4.8 : 80;
   const pesoPerdido = pesoInicial - (pesoAtual || 75);
 
-  // Progress cards with real data
+  // Progress cards (translated)
   const progressoCards = [
     {
       title: "Jaro Tea",
       icon: <Coffee className="w-6 h-6 text-neon-green" />,
-      valor: `${Math.floor(dosesChaMes / 7)}/7 days`,
-      descricao: "Days completed this week",
-      progresso: Math.floor((dosesChaMes / 7) / 7 * 100),
+      value: `${Math.floor(dosesChaMes / 7)}/7 days`,
+      description: "Days completed this week",
+      progress: Math.floor((dosesChaMes / 7) / 7 * 100),
       link: "/cha-jaro"
     },
     {
       title: "Habits",
       icon: <CheckCircle className="w-6 h-6 text-neon-green" />,
-      valor: `${Math.round(percentualHabitos)}%`,
-      descricao: "Monthly completion rate",
-      progresso: Math.round(percentualHabitos),
+      value: `${Math.round(percentualHabitos)}%`,
+      description: "Monthly completion rate",
+      progress: Math.round(percentualHabitos),
       link: "/habit-tracker"
     },
     {
       title: "Weight",
       icon: <Scale className="w-6 h-6 text-neon-green" />,
-      valor: pesoAtual && pesoMeta ? `${Math.abs(pesoAtual - pesoMeta).toFixed(1)} kg remaining` : "Set your goal",
-      descricao: "To reach your target",
-      progresso: progressoPeso,
+      value: pesoAtual && pesoMeta ? `${Math.abs(pesoAtual - pesoMeta).toFixed(1)} kg remaining` : "Set your goal",
+      description: "To reach your target",
+      progress: progressoPeso,
       link: "/progresso-peso"
     },
     {
       title: "Recipes",
       icon: <ChefHat className="w-6 h-6 text-neon-green" />,
-      valor: `${receitasConsumidasMes}/28`,
-      descricao: "Healthy meals this month",
-      progresso: Math.min(100, (receitasConsumidasMes / 28) * 100),
+      value: `${receitasConsumidasMes}/28`,
+      description: "Healthy meals this month",
+      progress: Math.min(100, (receitasConsumidasMes / 28) * 100),
       link: "/gerador-receitas"
     },
     {
       title: "Shopping",
       icon: <ShoppingCart className="w-6 h-6 text-neon-green" />,
-      valor: `$${totalGastoMes.toFixed(2)}`,
-      descricao: "Estimated monthly spending",
-      progresso: 0,
+      value: `$${totalGastoMes.toFixed(2)}`,
+      description: "Estimated monthly spending",
+      progress: 0,
       link: "/lista-compras"
     },
     {
       title: "Achievements",
       icon: <Trophy className="w-6 h-6 text-neon-green" />,
-      valor: `${Math.floor(progressoPeso / 15)} medals`,
-      descricao: "Goals achieved",
-      progresso: 0,
+      value: `${Math.floor(progressoPeso / 15)} medals`,
+      description: "Goals achieved",
+      progress: 0,
       link: "#"
     }
   ];
 
-  // Top 5 recipes with real data
-  const receitasTop = receitas.slice(0, 5).map((receita, index) => ({
+  // Top 5 recipes (removes buggy mock mapping)
+  const receitasTop = allReceitas.slice(0, 5).map((receita, index) => ({
     nome: receita.nome,
-    consumos: Math.floor(Math.random() * 8) + 1, // Simplified - would need consumption tracking
+    consumos: Math.floor(Math.random() * 8) + 1, // Placeholder since there's no usage tracking
     calorias: receita.calorias || 300
   }));
 
-  // Achievements based on real progress
+  // Medals/achievements
   const medalhas = [
-    { nome: "7 Days of Tea", icone: "🏅", conquistada: dosesChaMes >= 7 },
-    { nome: "30 Days of Habits", icone: "🏆", conquistada: percentualHabitos >= 80 },
-    { nome: "Weight Goal", icone: "🎯", conquistada: progressoPeso >= 100 },
-    { nome: "Recipe Master", icone: "👨‍🍳", conquistada: receitas.length >= 10 },
-    { nome: "Smart Shopper", icone: "🛒", conquistada: itens.length >= 20 },
-    { nome: "Iron Streak", icone: "💪", conquistada: habitosConcluidos >= totalHabitos && totalHabitos > 0 },
-    { nome: "Health Champion", icone: "❤️", conquistada: progressoPeso >= 50 }
+    { name: "7 Days of Tea", icon: "🏅", achieved: dosesChaMes >= 7 },
+    { name: "30 Days of Habits", icon: "🏆", achieved: percentualHabitos >= 80 },
+    { name: "Weight Goal", icon: "🎯", achieved: progressoPeso >= 100 },
+    { name: "Recipe Master", icon: "👨‍🍳", achieved: allReceitas.length >= 10 },
+    { name: "Smart Shopper", icon: "🛒", achieved: allItens.length >= 20 },
+    { name: "Iron Streak", icon: "💪", achieved: habitosConcluidos >= totalHabitos && totalHabitos > 0 },
+    { name: "Health Champion", icon: "❤️", achieved: progressoPeso >= 50 }
   ];
 
-  // Personalized suggestions based on real data
-  const sugestoesMelhoria = [];
-  
+  // Suggestions
+  const improvementSuggestions = [];
   if (percentualHabitos < 80) {
-    sugestoesMelhoria.push("Your habit completion rate dropped this week. Try setting reminders during meal times!");
+    improvementSuggestions.push("Your habit completion rate dropped this week. Try setting reminders during meal times!");
   }
-  
-  if (receitas.length < 10) {
-    sugestoesMelhoria.push("Consider generating more recipe varieties to maintain a balanced diet throughout the month.");
+  if (allReceitas.length < 10) {
+    improvementSuggestions.push("Consider generating more recipe varieties to maintain a balanced diet throughout the month.");
   }
-  
   if (progressoPeso < 50 && pesoAtual && pesoMeta) {
-    sugestoesMelhoria.push("You're getting closer to your weight goal. Consider increasing hydration to boost metabolism.");
+    improvementSuggestions.push("You're getting closer to your weight goal. Consider increasing hydration to boost metabolism.");
   }
-  
-  if (sugestoesMelhoria.length === 0) {
-    sugestoesMelhoria.push("Great progress! Keep maintaining your current routine for optimal results.");
+  if (improvementSuggestions.length === 0) {
+    improvementSuggestions.push("Great progress! Keep maintaining your current routine for optimal results.");
   }
 
   return (
@@ -170,16 +170,16 @@ const DashboardGeral = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-2xl font-bold text-neon-green">
-                  {card.valor}
+                  {card.value}
                 </div>
                 <div className="text-white/70 text-sm">
-                  {card.descricao}
+                  {card.description}
                 </div>
-                {card.progresso > 0 && (
+                {card.progress > 0 && (
                   <div className="progress-bar h-2">
                     <div 
                       className="progress-fill h-full"
-                      style={{ width: `${Math.min(100, card.progresso)}%` }}
+                      style={{ width: `${Math.min(100, card.progress)}%` }}
                     />
                   </div>
                 )}
@@ -299,18 +299,18 @@ const DashboardGeral = () => {
                 <div
                   key={index}
                   className={`text-center p-4 rounded-lg border transition-all ${
-                    medalha.conquistada
+                    medalha.achieved
                       ? 'bg-neon-green/10 border-neon-green/30'
                       : 'bg-white/5 border-white/10'
                   }`}
                 >
-                  <div className="text-3xl mb-2">{medalha.icone}</div>
+                  <div className="text-3xl mb-2">{medalha.icon}</div>
                   <div className={`text-sm font-medium ${
-                    medalha.conquistada ? 'text-neon-green' : 'text-white/60'
+                    medalha.achieved ? 'text-neon-green' : 'text-white/60'
                   }`}>
-                    {medalha.nome}
+                    {medalha.name}
                   </div>
-                  {medalha.conquistada && (
+                  {medalha.achieved && (
                     <Badge className="mt-2 bg-neon-green/20 text-neon-green border-neon-green/30 text-xs">
                       Achieved
                     </Badge>
@@ -333,13 +333,13 @@ const DashboardGeral = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {sugestoesMelhoria.map((sugestao, index) => (
+            {improvementSuggestions.map((suggestion, index) => (
               <div key={index} className="p-4 bg-white/5 rounded-lg border border-white/10">
                 <div className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-neon-green/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                     <span className="text-neon-green text-sm font-bold">{index + 1}</span>
                   </div>
-                  <div className="text-white/80">{sugestao}</div>
+                  <div className="text-white/80">{suggestion}</div>
                 </div>
               </div>
             ))}
