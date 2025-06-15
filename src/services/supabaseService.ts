@@ -1,12 +1,22 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Receita, ItemCompra, PreferenciasUsuario } from '@/types/receitas';
 
-const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
-
 export class SupabaseService {
-  // Recipe Services - Updated to match database schema
+  // Helper method to get authenticated user
+  private static async getAuthenticatedUser() {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    if (error || !user) {
+      throw new Error('User not authenticated');
+    }
+    return user;
+  }
+
+  // Recipe Services - Updated to use authenticated user
   static async salvarReceita(receita: Receita) {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       const { data, error } = await supabase
         .from('receitas')
         .insert({
@@ -15,7 +25,7 @@ export class SupabaseService {
           calorias: receita.calorias,
           ingredientes: receita.ingredientes,
           instrucoes: receita.preparo?.join('\n') || '', // Map preparo array to instrucoes string
-          usuario_id: DEFAULT_USER_ID
+          usuario_id: user.id
         })
         .select()
         .single();
@@ -29,10 +39,12 @@ export class SupabaseService {
 
   static async buscarReceitas(refeicao?: string) {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       let query = supabase
         .from('receitas')
         .select('*')
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .eq('usuario_id', user.id)
         .order('created_at', { ascending: false });
 
       const { data, error } = await query;
@@ -67,6 +79,8 @@ export class SupabaseService {
 
   static async atualizarReceita(id: string, updates: Partial<Receita>) {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       const updateData: any = { ...updates };
       
       // Map frontend fields to database fields
@@ -89,7 +103,7 @@ export class SupabaseService {
         .from('receitas')
         .update(updateData)
         .eq('id', id)
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .eq('usuario_id', user.id)
         .select()
         .single();
 
@@ -102,11 +116,13 @@ export class SupabaseService {
 
   static async deletarReceita(id: string) {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       const { error } = await supabase
         .from('receitas')
         .delete()
         .eq('id', id)
-        .eq('usuario_id', DEFAULT_USER_ID);
+        .eq('usuario_id', user.id);
 
       return { error };
     } catch (error) {
@@ -115,16 +131,18 @@ export class SupabaseService {
     }
   }
 
-  // Shopping List Services - Updated to match database schema
+  // Shopping List Services - Updated to use authenticated user
   static async salvarItemCompra(item: ItemCompra, refeicao: string) {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       const { data, error } = await supabase
         .from('lista_compras')
         .insert({
           item: item.nome, // Map nome to item
           quantidade: item.quantidade,
           comprado: item.comprado,
-          usuario_id: DEFAULT_USER_ID
+          usuario_id: user.id
           // Note: preco, categoria, refeicao don't exist in current DB schema
         })
         .select()
@@ -139,10 +157,12 @@ export class SupabaseService {
 
   static async buscarItensCompra(refeicao?: string) {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       let query = supabase
         .from('lista_compras')
         .select('*')
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .eq('usuario_id', user.id)
         .order('created_at', { ascending: false });
 
       const { data, error } = await query;
@@ -166,6 +186,8 @@ export class SupabaseService {
 
   static async atualizarItemCompra(id: string, updates: Partial<ItemCompra>) {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       const updateData: any = {};
       
       // Map frontend fields to database fields
@@ -186,7 +208,7 @@ export class SupabaseService {
         .from('lista_compras')
         .update(updateData)
         .eq('id', id)
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .eq('usuario_id', user.id)
         .select()
         .single();
 
@@ -199,11 +221,13 @@ export class SupabaseService {
 
   static async deletarItemCompra(id: string) {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       const { error } = await supabase
         .from('lista_compras')
         .delete()
         .eq('id', id)
-        .eq('usuario_id', DEFAULT_USER_ID);
+        .eq('usuario_id', user.id);
 
       return { error };
     } catch (error) {
@@ -212,13 +236,15 @@ export class SupabaseService {
     }
   }
 
-  // Ingredients Services - Updated to match database schema
+  // Ingredients Services - Updated to use authenticated user
   static async salvarIngredientes(ingredientes: any[], refeicao: string) {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       const ingredientesData = ingredientes.map(ing => ({
         nome: ing.nome,
         categoria: ing.categoria || null,
-        usuario_id: DEFAULT_USER_ID
+        usuario_id: user.id
         // Note: selecionado, refeicao don't exist in current DB schema
       }));
 
@@ -239,10 +265,12 @@ export class SupabaseService {
 
   static async buscarIngredientes(refeicao?: string) {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       let query = supabase
         .from('ingredientes')
         .select('*')
-        .eq('usuario_id', DEFAULT_USER_ID);
+        .eq('usuario_id', user.id);
 
       const { data, error } = await query;
       return { data: data || [], error };
@@ -252,16 +280,18 @@ export class SupabaseService {
     }
   }
 
-  // Preferences Services
+  // Preferences Services - Updated to use authenticated user
   static async salvarPreferencias(preferencias: PreferenciasUsuario) {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       const { data, error } = await supabase
         .from('preferencias_usuario')
         .upsert({
           objetivo: preferencias.objetivo,
           preferencias_alimentares: preferencias.alimentares,
           restricoes_alimentares: preferencias.restricoes,
-          usuario_id: DEFAULT_USER_ID
+          usuario_id: user.id
         })
         .select()
         .single();
@@ -275,10 +305,12 @@ export class SupabaseService {
 
   static async buscarPreferencias() {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       const { data, error } = await supabase
         .from('preferencias_usuario')
         .select('*')
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .eq('usuario_id', user.id)
         .single();
 
       return { data, error };
@@ -288,13 +320,15 @@ export class SupabaseService {
     }
   }
 
-  // User Profile Services
+  // User Profile Services - Updated to use authenticated user
   static async buscarPerfilUsuario() {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       const { data, error } = await supabase
         .from('perfil_usuario')
         .select('*')
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .eq('usuario_id', user.id)
         .single();
 
       return { data, error };
@@ -306,10 +340,12 @@ export class SupabaseService {
 
   static async atualizarPerfilUsuario(updates: any) {
     try {
+      const user = await this.getAuthenticatedUser();
+      
       const { data, error } = await supabase
         .from('perfil_usuario')
         .update(updates)
-        .eq('usuario_id', DEFAULT_USER_ID)
+        .eq('usuario_id', user.id)
         .select()
         .single();
 
