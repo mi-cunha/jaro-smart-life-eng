@@ -1,4 +1,3 @@
-
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -22,6 +21,13 @@ import { useHabitos } from "@/hooks/useHabitos";
 import { useSupabaseReceitas } from "@/hooks/useSupabaseReceitas";
 import { useSupabaseListaCompras } from "@/hooks/useSupabaseListaCompras";
 import { useEffect, useState } from "react";
+import { ProgressCards } from "@/components/DashboardGeral/ProgressCards";
+import { AdvancedStatistics } from "@/components/DashboardGeral/AdvancedStatistics";
+import { TopRecipesTable } from "@/components/DashboardGeral/TopRecipesTable";
+import { AchievementsMedals } from "@/components/DashboardGeral/AchievementsMedals";
+import { ImprovementSuggestions } from "@/components/DashboardGeral/ImprovementSuggestions";
+import { MonthlySummary } from "@/components/DashboardGeral/MonthlySummary";
+import { DashboardActions } from "@/components/DashboardGeral/DashboardActions";
 
 const DashboardGeral = () => {
   const navigate = useNavigate();
@@ -159,253 +165,24 @@ const DashboardGeral = () => {
     <Layout title="General Dashboard" breadcrumb={["Home", "General Dashboard"]}>
       <div className="space-y-8">
         {/* Main Progress Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {progressoCards.map((card, index) => (
-            <Card key={index} className="bg-dark-bg border-white/10 hover:border-neon-green/50 transition-all duration-300">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-white flex items-center gap-2 text-lg">
-                  {card.icon}
-                  {card.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-2xl font-bold text-neon-green">
-                  {card.value}
-                </div>
-                <div className="text-white/70 text-sm">
-                  {card.description}
-                </div>
-                {card.progress > 0 && (
-                  <div className="progress-bar h-2">
-                    <div 
-                      className="progress-fill h-full"
-                      style={{ width: `${Math.min(100, card.progress)}%` }}
-                    />
-                  </div>
-                )}
-                {card.link !== "#" && (
-                  <Button 
-                    onClick={() => navigate(card.link)}
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full border-neon-green/30 text-neon-green hover:bg-neon-green/10"
-                  >
-                    View More
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
+        <ProgressCards cards={progressoCards} />
         {/* Advanced Statistics */}
-        <Card className="bg-dark-bg border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white">Advanced Statistics</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-8">
-            {/* Weight Evolution Chart */}
-            {dadosGraficoPeso.length > 0 && (
-              <div>
-                <h3 className="text-white font-medium mb-4 flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-neon-green" />
-                  Weight Evolution (Last 2 weeks)
-                </h3>
-                <div className="h-64">
-                  <ProgressChart
-                    title=""
-                    data={dadosGraficoPeso}
-                    type="line"
-                    unit=" kg"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Weekly Habits Chart */}
-            {historicoSemanal.length > 0 && (
-              <div>
-                <h3 className="text-white font-medium mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-neon-green" />
-                  Habit Completion (Last 4 weeks)
-                </h3>
-                <div className="h-64">
-                  <ProgressChart
-                    title=""
-                    data={historicoSemanal.map(item => ({
-                      date: item.date,
-                      value: item.percentual
-                    }))}
-                    type="bar"
-                    unit="%"
-                  />
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
+        <AdvancedStatistics weightData={dadosGraficoPeso} habitsWeekly={historicoSemanal} />
         {/* Top 5 Recipes */}
-        {receitasTop.length > 0 && (
-          <Card className="bg-dark-bg border-white/10">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <ChefHat className="w-5 h-5 text-neon-green" />
-                Top 5 Most Used Recipes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-white/10">
-                      <th className="text-left text-white/80 py-3">#</th>
-                      <th className="text-left text-white/80 py-3">Recipe</th>
-                      <th className="text-left text-white/80 py-3">Usage</th>
-                      <th className="text-left text-white/80 py-3">Average Calories</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {receitasTop.map((receita, index) => (
-                      <tr key={index} className="border-b border-white/5">
-                        <td className="py-3">
-                          <div className="w-8 h-8 bg-neon-green/20 rounded-full flex items-center justify-center">
-                            <span className="text-neon-green font-bold">{index + 1}</span>
-                          </div>
-                        </td>
-                        <td className="text-white py-3">{receita.nome}</td>
-                        <td className="text-neon-green py-3 font-medium">{receita.consumos}x</td>
-                        <td className="text-white/70 py-3">{receita.calorias} kcal</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
+        <TopRecipesTable recipes={receitasTop} />
         {/* Achievements & Medals */}
-        <Card className="bg-dark-bg border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-neon-green" />
-              Achievements & Medals
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-              {medalhas.map((medalha, index) => (
-                <div
-                  key={index}
-                  className={`text-center p-4 rounded-lg border transition-all ${
-                    medalha.achieved
-                      ? 'bg-neon-green/10 border-neon-green/30'
-                      : 'bg-white/5 border-white/10'
-                  }`}
-                >
-                  <div className="text-3xl mb-2">{medalha.icon}</div>
-                  <div className={`text-sm font-medium ${
-                    medalha.achieved ? 'text-neon-green' : 'text-white/60'
-                  }`}>
-                    {medalha.name}
-                  </div>
-                  {medalha.achieved && (
-                    <Badge className="mt-2 bg-neon-green/20 text-neon-green border-neon-green/30 text-xs">
-                      Achieved
-                    </Badge>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
+        <AchievementsMedals medals={medalhas} />
         {/* Personalized Improvement Suggestions */}
-        <Card className="bg-gradient-to-r from-neon-green/10 to-transparent border-neon-green/30">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Target className="w-5 h-5 text-neon-green" />
-              Personalized Improvement Suggestions
-            </CardTitle>
-            <div className="text-sm text-white/70">
-              Based on your recent performance
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {improvementSuggestions.map((suggestion, index) => (
-              <div key={index} className="p-4 bg-white/5 rounded-lg border border-white/10">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-neon-green/20 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-neon-green text-sm font-bold">{index + 1}</span>
-                  </div>
-                  <div className="text-white/80">{suggestion}</div>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
+        <ImprovementSuggestions suggestions={improvementSuggestions} />
         {/* Monthly Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-6 text-center">
-              <Calendar className="w-8 h-8 text-neon-green mx-auto mb-3" />
-              <div className="text-2xl font-bold text-neon-green">{diasAtivosMes}</div>
-              <div className="text-sm text-white/70">Active days this month</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-6 text-center">
-              <Coffee className="w-8 h-8 text-neon-green mx-auto mb-3" />
-              <div className="text-2xl font-bold text-neon-green">{dosesChaMes}</div>
-              <div className="text-sm text-white/70">Tea doses taken</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-6 text-center">
-              <ChefHat className="w-8 h-8 text-neon-green mx-auto mb-3" />
-              <div className="text-2xl font-bold text-neon-green">{receitasConsumidasMes}</div>
-              <div className="text-sm text-white/70">Recipes consumed</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-6 text-center">
-              <TrendingUp className="w-8 h-8 text-neon-green mx-auto mb-3" />
-              <div className="text-2xl font-bold text-neon-green">{pesoPerdido.toFixed(1)}kg</div>
-              <div className="text-sm text-white/70">Lost since start</div>
-            </CardContent>
-          </Card>
-        </div>
-
+        <MonthlySummary
+          activeDays={diasAtivosMes}
+          teaDoses={dosesChaMes}
+          recipesConsumed={receitasConsumidasMes}
+          weightLost={pesoPerdido}
+        />
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Button
-            onClick={() => navigate("/")}
-            className="bg-neon-green text-black hover:bg-neon-green/90 flex-1"
-          >
-            Back to Home
-          </Button>
-          
-          <Button
-            onClick={() => navigate("/gerador-receitas")}
-            variant="outline"
-            className="border-neon-green/30 text-neon-green hover:bg-neon-green/10 flex-1"
-          >
-            Generate New Recipe
-          </Button>
-          
-          <Button
-            onClick={() => navigate("/habit-tracker")}
-            variant="outline"
-            className="border-neon-green/30 text-neon-green hover:bg-neon-green/10 flex-1"
-          >
-            View Today's Habits
-          </Button>
-        </div>
+        <DashboardActions />
       </div>
     </Layout>
   );
