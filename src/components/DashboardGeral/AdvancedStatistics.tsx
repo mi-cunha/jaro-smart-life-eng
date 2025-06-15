@@ -21,7 +21,13 @@ export function AdvancedStatistics({ weightData, habitsWeekly }: AdvancedStatist
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ProgressChart data={weightData} />
+          <ProgressChart 
+            title="Weight Progress"
+            data={weightData} 
+            type="line"
+            color="#00FF66"
+            unit="lbs"
+          />
         </CardContent>
       </Card>
 
