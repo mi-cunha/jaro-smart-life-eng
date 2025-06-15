@@ -6,7 +6,11 @@ export class SupabaseService {
   // Helper method to get authenticated user
   private static async getAuthenticatedUser() {
     const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) {
+    if (error) {
+      console.error('Authentication error:', error);
+      throw new Error('Authentication failed');
+    }
+    if (!user) {
       throw new Error('User not authenticated');
     }
     return user;
@@ -30,7 +34,12 @@ export class SupabaseService {
         .select()
         .single();
 
-      return { data, error };
+      if (error) {
+        console.error('Error saving recipe:', error);
+        return { data: null, error };
+      }
+
+      return { data, error: null };
     } catch (error) {
       console.error('Erro ao salvar receita:', error);
       return { data: null, error };
@@ -49,6 +58,11 @@ export class SupabaseService {
 
       const { data, error } = await query;
       
+      if (error) {
+        console.error('Error fetching recipes:', error);
+        return { data: [], error };
+      }
+      
       if (data) {
         return {
           data: data.map(item => ({
@@ -66,11 +80,11 @@ export class SupabaseService {
             },
             favorita: false // Default since not in current DB schema
           })),
-          error
+          error: null
         };
       }
 
-      return { data: [], error };
+      return { data: [], error: null };
     } catch (error) {
       console.error('Erro ao buscar receitas:', error);
       return { data: [], error };
@@ -107,7 +121,12 @@ export class SupabaseService {
         .select()
         .single();
 
-      return { data, error };
+      if (error) {
+        console.error('Error updating recipe:', error);
+        return { data: null, error };
+      }
+
+      return { data, error: null };
     } catch (error) {
       console.error('Erro ao atualizar receita:', error);
       return { data: null, error };
@@ -124,7 +143,12 @@ export class SupabaseService {
         .eq('id', id)
         .eq('usuario_id', user.id);
 
-      return { error };
+      if (error) {
+        console.error('Error deleting recipe:', error);
+        return { error };
+      }
+
+      return { error: null };
     } catch (error) {
       console.error('Erro ao deletar receita:', error);
       return { error };
@@ -148,7 +172,12 @@ export class SupabaseService {
         .select()
         .single();
 
-      return { data, error };
+      if (error) {
+        console.error('Error saving shopping item:', error);
+        return { data: null, error };
+      }
+
+      return { data, error: null };
     } catch (error) {
       console.error('Erro ao salvar item:', error);
       return { data: null, error };
@@ -167,6 +196,11 @@ export class SupabaseService {
 
       const { data, error } = await query;
       
+      if (error) {
+        console.error('Error fetching shopping items:', error);
+        return { data: [], error };
+      }
+      
       // Transform database items to frontend format
       const transformedData = (data || []).map(item => ({
         id: item.id,
@@ -177,7 +211,7 @@ export class SupabaseService {
         categoria: undefined // Not in current DB schema
       }));
 
-      return { data: transformedData, error };
+      return { data: transformedData, error: null };
     } catch (error) {
       console.error('Erro ao buscar itens:', error);
       return { data: [], error };
@@ -212,7 +246,12 @@ export class SupabaseService {
         .select()
         .single();
 
-      return { data, error };
+      if (error) {
+        console.error('Error updating shopping item:', error);
+        return { data: null, error };
+      }
+
+      return { data, error: null };
     } catch (error) {
       console.error('Erro ao atualizar item:', error);
       return { data: null, error };
@@ -229,7 +268,12 @@ export class SupabaseService {
         .eq('id', id)
         .eq('usuario_id', user.id);
 
-      return { error };
+      if (error) {
+        console.error('Error deleting shopping item:', error);
+        return { error };
+      }
+
+      return { error: null };
     } catch (error) {
       console.error('Erro ao deletar item:', error);
       return { error };
@@ -256,7 +300,12 @@ export class SupabaseService {
         })
         .select();
 
-      return { data, error };
+      if (error) {
+        console.error('Error saving ingredients:', error);
+        return { data: null, error };
+      }
+
+      return { data, error: null };
     } catch (error) {
       console.error('Erro ao salvar ingredientes:', error);
       return { data: null, error };
@@ -273,7 +322,13 @@ export class SupabaseService {
         .eq('usuario_id', user.id);
 
       const { data, error } = await query;
-      return { data: data || [], error };
+      
+      if (error) {
+        console.error('Error fetching ingredients:', error);
+        return { data: [], error };
+      }
+
+      return { data: data || [], error: null };
     } catch (error) {
       console.error('Erro ao buscar ingredientes:', error);
       return { data: [], error };
@@ -296,7 +351,12 @@ export class SupabaseService {
         .select()
         .single();
 
-      return { data, error };
+      if (error) {
+        console.error('Error saving preferences:', error);
+        return { data: null, error };
+      }
+
+      return { data, error: null };
     } catch (error) {
       console.error('Erro ao salvar preferências:', error);
       return { data: null, error };
@@ -313,7 +373,12 @@ export class SupabaseService {
         .eq('usuario_id', user.id)
         .single();
 
-      return { data, error };
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching preferences:', error);
+        return { data: null, error };
+      }
+
+      return { data, error: null };
     } catch (error) {
       console.error('Erro ao buscar preferências:', error);
       return { data: null, error };
@@ -331,7 +396,12 @@ export class SupabaseService {
         .eq('usuario_id', user.id)
         .single();
 
-      return { data, error };
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        return { data: null, error };
+      }
+
+      return { data, error: null };
     } catch (error) {
       console.error('Erro ao buscar perfil:', error);
       return { data: null, error };
@@ -349,7 +419,12 @@ export class SupabaseService {
         .select()
         .single();
 
-      return { data, error };
+      if (error) {
+        console.error('Error updating profile:', error);
+        return { data: null, error };
+      }
+
+      return { data, error: null };
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
       return { data: null, error };
