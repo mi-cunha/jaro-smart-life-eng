@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useQuizData } from "@/hooks/useQuizData";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Target, 
   Heart, 
@@ -25,6 +26,7 @@ const iconMap = {
 
 export function PersonalizedInsights() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { 
     quizData, 
     loading, 
@@ -33,6 +35,14 @@ export function PersonalizedInsights() {
     getPersonalizedStats,
     hasQuizData 
   } = useQuizData();
+
+  // Debug logs
+  console.log('🔍 PersonalizedInsights Debug:', {
+    userEmail: user?.email,
+    hasQuizData,
+    quizData,
+    loading
+  });
 
   if (loading) {
     return (
@@ -57,6 +67,9 @@ export function PersonalizedInsights() {
           <p className="text-white/80">
             Take our quick health assessment to get personalized recommendations for your wellness journey.
           </p>
+          <p className="text-white/60 text-sm">
+            Current user: {user?.email || 'Not logged in'}
+          </p>
           <Button 
             onClick={() => navigate('/quiz')} 
             className="bg-neon-green text-black hover:bg-neon-green/80"
@@ -74,6 +87,21 @@ export function PersonalizedInsights() {
 
   return (
     <div className="space-y-6">
+      {/* Debug Information */}
+      <Card className="bg-dark-bg border-yellow-500/20">
+        <CardContent className="p-4">
+          <div className="text-yellow-400 text-sm">
+            <strong>Debug Info:</strong> User: {user?.email}, Quiz Data: {hasQuizData ? 'Found' : 'Not Found'}
+            {quizData && (
+              <div className="mt-2">
+                Quiz contains: Age: {quizData.age}, Gender: {quizData.gender}, 
+                Goals: {quizData.healthGoals?.join(', ') || 'None'}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Personalized Welcome Message */}
       <Card className="bg-gradient-to-r from-neon-green/10 to-blue-500/10 border-neon-green/20">
         <CardContent className="p-6">

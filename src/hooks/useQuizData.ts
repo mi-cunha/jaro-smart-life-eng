@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { useSupabasePreferencias } from './useSupabasePreferencias';
+import { useAuth } from './useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface QuizData {
   age?: number;
@@ -16,16 +17,70 @@ interface QuizData {
 }
 
 export function useQuizData() {
-  const { preferencias, loading } = useSupabasePreferencias();
+  const { user, userProfile } = useAuth();
   const [quizData, setQuizData] = useState<QuizData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (preferencias?.alimentares && typeof preferencias.alimentares === 'object') {
-      // Extract quiz data from preferencias_alimentares JSON field
-      const data = preferencias.alimentares as QuizData;
-      setQuizData(data);
-    }
-  }, [preferencias]);
+    const loadQuizData = async () => {
+      if (!user?.email) {
+        console.log('🔍 No user email available');
+        setLoading(false);
+        return;
+      }
+
+      console.log('🔍 Loading quiz data for user:', user.email);
+      setLoading(true);
+
+      try {
+        // First, get the subscriber record to find the usuario_id
+        const { data: subscriber, error: subError } = await supabase
+          .from('subscribers')
+          .select('usuario_id')
+          .eq('email', user.email)
+          .single();
+
+        if (subError || !subscriber?.usuario_id) {
+          console.log('❌ No subscriber found or no usuario_id:', subError);
+          setQuizData(null);
+          setLoading(false);
+          return;
+        }
+
+        console.log('✅ Found subscriber with usuario_id:', subscriber.usuario_id);
+
+        // Then get the preferences using the usuario_id
+        const { data: preferencias, error: prefError } = await supabase
+          .from('preferencias_usuario')
+          .select('*')
+          .eq('usuario_id', subscriber.usuario_id)
+          .single();
+
+        if (prefError) {
+          console.log('❌ Error fetching preferences:', prefError);
+          setQuizData(null);
+          setLoading(false);
+          return;
+        }
+
+        if (preferencias?.preferencias_alimentares && typeof preferencias.preferencias_alimentares === 'object') {
+          console.log('✅ Found quiz data:', preferencias.preferencias_alimentares);
+          const data = preferencias.preferencias_alimentares as QuizData;
+          setQuizData(data);
+        } else {
+          console.log('❌ No quiz data found in preferences');
+          setQuizData(null);
+        }
+      } catch (error) {
+        console.error('❌ Error loading quiz data:', error);
+        setQuizData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadQuizData();
+  }, [user?.email]);
 
   const getPersonalizedMessage = () => {
     if (!quizData) return "Welcome to your health journey!";
