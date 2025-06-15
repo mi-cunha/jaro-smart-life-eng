@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { SupabaseService } from '@/services/supabaseService';
+import { PreferencesService } from '@/services/preferencesService';
 import { PreferenciasUsuario } from '@/types/receitas';
 
 export function useSupabasePreferencias() {
@@ -10,7 +10,7 @@ export function useSupabasePreferencias() {
   const carregarPreferencias = async () => {
     setLoading(true);
     try {
-      const { data, error } = await SupabaseService.buscarPreferencias();
+      const { data, error } = await PreferencesService.buscarPreferencias();
       if (!error && data) {
         setPreferencias({
           objetivo: data.objetivo || 'Perda de peso',
@@ -40,7 +40,7 @@ export function useSupabasePreferencias() {
 
   const atualizarPreferencias = async (novasPreferencias: PreferenciasUsuario) => {
     try {
-      const { data, error } = await SupabaseService.salvarPreferencias(novasPreferencias);
+      const { data, error } = await PreferencesService.salvarPreferencias(novasPreferencias);
       if (!error) {
         setPreferencias(novasPreferencias);
         return true;

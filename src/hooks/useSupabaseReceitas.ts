@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { SupabaseService } from '@/services/supabaseService';
+import { RecipesService } from '@/services/recipesService';
 import { Receita } from '@/types/receitas';
 import { toast } from 'sonner';
 
@@ -43,7 +43,7 @@ export function useSupabaseReceitas() {
       };
 
       for (const refeicao of Object.keys(receitasPorRefeicao)) {
-        const { data, error } = await SupabaseService.buscarReceitas(refeicao);
+        const { data, error } = await RecipesService.buscarReceitas(refeicao);
         if (error) {
           console.error(`Erro ao carregar receitas de ${refeicao}:`, error);
         } else {
@@ -62,7 +62,7 @@ export function useSupabaseReceitas() {
 
   const salvarReceita = async (receita: Receita) => {
     try {
-      const { data, error } = await SupabaseService.salvarReceita(receita);
+      const { data, error } = await RecipesService.salvarReceita(receita);
       if (error) {
         toast.error('Erro ao salvar receita');
         return;
@@ -87,7 +87,7 @@ export function useSupabaseReceitas() {
     if (!receita) return;
 
     try {
-      const { error } = await SupabaseService.atualizarReceita(receitaId, {
+      const { error } = await RecipesService.atualizarReceita(receitaId, {
         favorita: !receita.favorita
       });
 
@@ -113,7 +113,7 @@ export function useSupabaseReceitas() {
 
   const removerReceita = async (refeicao: string, receitaId: string) => {
     try {
-      const { error } = await SupabaseService.deletarReceita(receitaId);
+      const { error } = await RecipesService.deletarReceita(receitaId);
       if (error) {
         toast.error('Erro ao remover receita');
         return;

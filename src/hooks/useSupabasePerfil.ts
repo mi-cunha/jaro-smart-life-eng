@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { PerfilService, PerfilUsuario } from '@/services/perfilService';
+import { UserProfileService } from '@/services/userProfileService';
 import { toast } from 'sonner';
 
 export function useSupabasePerfil() {
@@ -10,7 +11,19 @@ export function useSupabasePerfil() {
   const carregarPerfil = async () => {
     setLoading(true);
     try {
-      const { data, error } = await PerfilService.buscarPerfil();
+      // Try to use the existing PerfilService first, then fallback to UserProfileService
+      let data, error;
+      try {
+        const result = await PerfilService.buscarPerfil();
+        data = result.data;
+        error = result.error;
+      } catch {
+        // Fallback to UserProfileService if PerfilService fails
+        const result = await UserProfileService.buscarPerfilUsuario();
+        data = result.data;
+        error = result.error;
+      }
+
       if (error) {
         toast.error('Erro ao carregar perfil');
         console.error('Erro ao carregar perfil:', error);
@@ -31,7 +44,19 @@ export function useSupabasePerfil() {
 
   const atualizarPerfil = async (updates: Partial<PerfilUsuario>) => {
     try {
-      const { data, error } = await PerfilService.atualizarPerfil(updates);
+      // Try to use the existing PerfilService first, then fallback to UserProfileService
+      let data, error;
+      try {
+        const result = await PerfilService.atualizarPerfil(updates);
+        data = result.data;
+        error = result.error;
+      } catch {
+        // Fallback to UserProfileService if PerfilService fails
+        const result = await UserProfileService.atualizarPerfilUsuario(updates);
+        data = result.data;
+        error = result.error;
+      }
+
       if (error) {
         toast.error('Erro ao atualizar perfil');
         return false;

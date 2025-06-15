@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { SupabaseService } from '@/services/supabaseService';
+import { ShoppingService } from '@/services/shoppingService';
 import { ItemCompra } from '@/types/receitas';
 import { toast } from 'sonner';
 
@@ -24,7 +24,7 @@ export function useSupabaseListaCompras() {
       };
 
       for (const refeicao of Object.keys(itensPorRefeicao)) {
-        const { data, error } = await SupabaseService.buscarItensCompra(refeicao);
+        const { data, error } = await ShoppingService.buscarItensCompra(refeicao);
         if (error) {
           console.error(`Error loading items for ${refeicao}:`, error);
         } else {
@@ -43,7 +43,7 @@ export function useSupabaseListaCompras() {
 
   const adicionarItem = async (refeicao: string, item: ItemCompra) => {
     try {
-      const { data, error } = await SupabaseService.salvarItemCompra(item, refeicao);
+      const { data, error } = await ShoppingService.salvarItemCompra(item, refeicao);
       if (error) {
         toast.error('Error adding item');
         return;
@@ -64,7 +64,7 @@ export function useSupabaseListaCompras() {
 
   const atualizarItem = async (refeicao: string, itemId: string, updates: Partial<ItemCompra>) => {
     try {
-      const { error } = await SupabaseService.atualizarItemCompra(itemId, updates);
+      const { error } = await ShoppingService.atualizarItemCompra(itemId, updates);
       if (error) {
         toast.error('Error updating item');
         return;
@@ -85,7 +85,7 @@ export function useSupabaseListaCompras() {
 
   const removerItem = async (refeicao: string, itemId: string) => {
     try {
-      const { error } = await SupabaseService.deletarItemCompra(itemId);
+      const { error } = await ShoppingService.deletarItemCompra(itemId);
       if (error) {
         toast.error('Error removing item');
         return;
