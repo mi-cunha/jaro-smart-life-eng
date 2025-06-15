@@ -1,4 +1,5 @@
 
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -155,7 +156,7 @@ const Auth = () => {
           <CardHeader className="text-center space-y-4 pb-6">
             <div className="flex justify-center">
               <img
-                src="/lovable-uploads/d2b82cfd-b1cd-4e96-baa8-0c3595710c50.png"
+                src="/lovable-uploads/be25c910-c292-4a0f-8934-97cdb0172f59.png"
                 alt="JaroSmart Logo"
                 className="h-16 w-auto object-contain animate-pulse"
               />
@@ -298,3 +299,4 @@ const Auth = () => {
 };
 
 export default Auth;
+
