@@ -18,35 +18,35 @@ export function RestrictionsModal({ restrictions, onUpdate }: RestrictionsModalP
 
   const addRestriction = () => {
     if (!newRestriction.trim()) {
-      toast.error("Digite uma restrição válida!");
+      toast.error("Enter a valid restriction!");
       return;
     }
     
     if (localRestrictions.includes(newRestriction.trim())) {
-      toast.error("Esta restrição já foi adicionada!");
+      toast.error("This restriction has already been added!");
       return;
     }
 
     const updated = [...localRestrictions, newRestriction.trim()];
     setLocalRestrictions(updated);
     setNewRestriction("");
-    toast.success("Restrição adicionada!");
+    toast.success("Restriction added!");
   };
 
   const removeRestriction = (restriction: string) => {
     const updated = localRestrictions.filter(r => r !== restriction);
     setLocalRestrictions(updated);
-    toast.success("Restrição removida!");
+    toast.success("Restriction removed!");
   };
 
   const handleSave = () => {
     onUpdate(localRestrictions);
-    toast.success("Restrições alimentares atualizadas!");
+    toast.success("Dietary restrictions updated!");
   };
 
   const commonRestrictions = [
-    "Lactose", "Glúten", "Amendoim", "Frutos do mar", "Ovo", 
-    "Soja", "Nozes", "Peixe", "Crustáceos", "Gergelim"
+    "Lactose", "Gluten", "Peanuts", "Seafood", "Eggs", 
+    "Soy", "Nuts", "Fish", "Shellfish", "Sesame"
   ];
 
   return (
@@ -57,19 +57,19 @@ export function RestrictionsModal({ restrictions, onUpdate }: RestrictionsModalP
           className="border-orange-400/30 text-orange-400 hover:bg-orange-400/10"
         >
           <AlertCircle className="w-4 h-4 mr-2" />
-          Restrições Alimentares
+          Dietary Restrictions
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-dark-bg border-white/10 max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-white">Gerenciar Restrições Alimentares</DialogTitle>
+          <DialogTitle className="text-white">Manage Dietary Restrictions</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
           <div>
-            <h4 className="text-white/80 font-medium mb-3">Suas Restrições Atuais:</h4>
+            <h4 className="text-white/80 font-medium mb-3">Your Current Restrictions:</h4>
             {localRestrictions.length === 0 ? (
-              <p className="text-white/60 text-sm italic">Nenhuma restrição cadastrada</p>
+              <p className="text-white/60 text-sm italic">No restrictions registered</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {localRestrictions.map((restriction, index) => (
@@ -94,12 +94,12 @@ export function RestrictionsModal({ restrictions, onUpdate }: RestrictionsModalP
           </div>
 
           <div>
-            <h4 className="text-white/80 font-medium mb-3">Adicionar Nova Restrição:</h4>
+            <h4 className="text-white/80 font-medium mb-3">Add New Restriction:</h4>
             <div className="flex gap-2">
               <Input
                 value={newRestriction}
                 onChange={(e) => setNewRestriction(e.target.value)}
-                placeholder="Digite uma restrição alimentar..."
+                placeholder="Enter a dietary restriction..."
                 className="bg-white/5 border-white/20 text-white"
                 onKeyPress={(e) => e.key === 'Enter' && addRestriction()}
               />
@@ -113,7 +113,7 @@ export function RestrictionsModal({ restrictions, onUpdate }: RestrictionsModalP
           </div>
 
           <div>
-            <h4 className="text-white/80 font-medium mb-3">Restrições Comuns:</h4>
+            <h4 className="text-white/80 font-medium mb-3">Common Restrictions:</h4>
             <div className="flex flex-wrap gap-2">
               {commonRestrictions.map((restriction, index) => (
                 <Button
@@ -123,7 +123,7 @@ export function RestrictionsModal({ restrictions, onUpdate }: RestrictionsModalP
                   onClick={() => {
                     if (!localRestrictions.includes(restriction)) {
                       setLocalRestrictions([...localRestrictions, restriction]);
-                      toast.success(`${restriction} adicionado às restrições!`);
+                      toast.success(`${restriction} added to restrictions!`);
                     }
                   }}
                   className="border-white/20 text-white/70 hover:border-orange-400/30 hover:text-orange-400"
@@ -141,7 +141,7 @@ export function RestrictionsModal({ restrictions, onUpdate }: RestrictionsModalP
                 onClick={handleSave}
                 className="bg-neon-green text-black hover:bg-neon-green/90 flex-1"
               >
-                Salvar Restrições
+                Save Restrictions
               </Button>
             </DialogTrigger>
           </div>

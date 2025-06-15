@@ -19,26 +19,26 @@ export function ConfiguracoesPessoais({
   return (
     <Card className="bg-dark-bg border-white/10">
       <CardHeader>
-        <CardTitle className="text-white">Configurações Pessoais</CardTitle>
+        <CardTitle className="text-white">Personal Settings</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-white/80 text-sm mb-2 block">Preferências Alimentares</label>
+            <label className="text-white/80 text-sm mb-2 block">Dietary Preferences</label>
             <Select value={preferenciasAlimentares} onValueChange={setPreferenciasAlimentares}>
               <SelectTrigger className="bg-white/5 border-white/20 text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="bg-dark-bg border-white/20">
-                <SelectItem value="nenhuma">Nenhuma preferência</SelectItem>
-                <SelectItem value="vegetariano">Vegetariano</SelectItem>
-                <SelectItem value="vegano">Vegano</SelectItem>
+                <SelectItem value="nenhuma">No preference</SelectItem>
+                <SelectItem value="vegetariano">Vegetarian</SelectItem>
+                <SelectItem value="vegano">Vegan</SelectItem>
                 <SelectItem value="low-carb">Low Carb</SelectItem>
-                <SelectItem value="cetogenico">Cetogênico</SelectItem>
-                <SelectItem value="mediterraneo">Mediterrâneo</SelectItem>
+                <SelectItem value="cetogenico">Ketogenic</SelectItem>
+                <SelectItem value="mediterraneo">Mediterranean</SelectItem>
                 <SelectItem value="paleo">Paleo</SelectItem>
-                <SelectItem value="sem-gluten">Sem Glúten</SelectItem>
-                <SelectItem value="sem-lactose">Sem Lactose</SelectItem>
+                <SelectItem value="sem-gluten">Gluten Free</SelectItem>
+                <SelectItem value="sem-lactose">Lactose Free</SelectItem>
               </SelectContent>
             </Select>
           </div>
