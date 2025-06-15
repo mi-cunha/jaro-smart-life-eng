@@ -1,4 +1,3 @@
-
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +13,7 @@ import { useRef } from "react";
 import { useSupabasePerfil } from "@/hooks/useSupabasePerfil";
 
 const Perfil = () => {
-  const { perfil, loading, atualizarPerfil, salvarAvatar } = useSupabasePerfil();
+  const { perfil, loading, atualizarPerfil, salvarAvatar, carregarPerfil } = useSupabasePerfil();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (loading) {
@@ -30,8 +29,11 @@ const Perfil = () => {
   if (!perfil) {
     return (
       <Layout title="Perfil & Configurações" breadcrumb={["Home", "Perfil"]}>
-        <div className="flex items-center justify-center min-h-64">
-          <div className="text-white">Erro ao carregar perfil</div>
+        <div className="flex items-center justify-center min-h-64 flex-col">
+          <div className="text-white mb-4">Erro ao carregar perfil</div>
+          <Button className="bg-neon-green text-black" onClick={carregarPerfil}>
+            Tentar Novamente
+          </Button>
         </div>
       </Layout>
     );

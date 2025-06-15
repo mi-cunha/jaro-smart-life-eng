@@ -14,12 +14,16 @@ export function useSupabasePerfil() {
       if (error) {
         toast.error('Erro ao carregar perfil');
         console.error('Erro ao carregar perfil:', error);
+        setPerfil(null); // limpar perfil em caso de erro
       } else if (data) {
         setPerfil(data);
+      } else {
+        setPerfil(null); // garantir estado
       }
     } catch (error) {
       console.error('Erro ao carregar perfil:', error);
       toast.error('Erro ao carregar perfil');
+      setPerfil(null);
     } finally {
       setLoading(false);
     }
@@ -63,8 +67,10 @@ export function useSupabasePerfil() {
     return false;
   };
 
+  // Adição: recarregar perfil ao logar/deslogar
   useEffect(() => {
     carregarPerfil();
+    // Poderia adicionar listener para evento de login/logout aqui se necessário no futuro
   }, []);
 
   return {
