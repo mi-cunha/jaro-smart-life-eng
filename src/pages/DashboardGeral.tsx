@@ -29,7 +29,9 @@ import { AchievementsMedals } from "@/components/DashboardGeral/AchievementsMeda
 import { ImprovementSuggestions } from "@/components/DashboardGeral/ImprovementSuggestions";
 import { MonthlySummary } from "@/components/DashboardGeral/MonthlySummary";
 import { DashboardActions } from "@/components/DashboardGeral/DashboardActions";
+import { PersonalizedInsights } from "@/components/DashboardGeral/PersonalizedInsights";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
+import { useQuizData } from "@/hooks/useQuizData";
 
 const GeneralDashboard = () => {
   const navigate = useNavigate();
@@ -39,6 +41,7 @@ const GeneralDashboard = () => {
   const { receitas, loading: loadingReceitas } = useSupabaseReceitas();
   const { itensCompra, loading: loadingCompras } = useSupabaseListaCompras();
   const { convertToDisplayWeight, formatWeight, unit } = useWeightUnit();
+  const { getPersonalizedStats, hasQuizData } = useQuizData();
   
   const [historicoSemanal, setHistoricoSemanal] = useState<any[]>([]);
   
@@ -46,6 +49,7 @@ const GeneralDashboard = () => {
   const progressoHabitos = getProgressoHabitos();
   const progressoPeso = getProgressoPeso();
   const dadosGraficoPeso = getDadosGrafico();
+  const personalizedStats = getPersonalizedStats();
 
   useEffect(() => {
     const loadHistorico = async () => {
@@ -74,8 +78,9 @@ const GeneralDashboard = () => {
   // Calculate days active this month (simplified)
   const diasAtivosMes = Math.max(1, receitasConsumidasMes + habitosConcluidos);
 
-  // Calculate tea doses (default fallback to 2/day)
-  const dosesChaMes = Math.floor(diasAtivosMes * (userProfile?.doses_cha || 2));
+  // Calculate tea doses using personalized recommendations or fallback
+  const recommendedTeaDoses = personalizedStats?.recommendedTeaDoses || userProfile?.doses_cha || 2;
+  const dosesChaMes = Math.floor(diasAtivosMes * recommendedTeaDoses);
   
   // Calculate weight loss progress - convert to display units
   const currentWeightDisplay = convertToDisplayWeight(pesoAtual || 165); // Default 165 lbs
@@ -83,13 +88,13 @@ const GeneralDashboard = () => {
   const initialWeightDisplay = currentWeightDisplay + convertToDisplayWeight(4.8);
   const weightLostDisplay = initialWeightDisplay - currentWeightDisplay;
 
-  // Progress cards (translated)
+  // Progress cards with personalized data
   const progressoCards = [
     {
       title: "Jaro Tea",
       icon: <Coffee className="w-6 h-6 text-neon-green" />,
       value: `${Math.floor(dosesChaMes / 7)}/7 days`,
-      description: "Days completed this week",
+      description: hasQuizData ? "Personalized daily doses" : "Days completed this week",
       progress: Math.floor((dosesChaMes / 7) / 7 * 100),
       link: "/cha-jaro"
     },
@@ -113,7 +118,7 @@ const GeneralDashboard = () => {
       title: "Recipes",
       icon: <ChefHat className="w-6 h-6 text-neon-green" />,
       value: `${receitasConsumidasMes}/28`,
-      description: "Healthy meals this month",
+      description: hasQuizData ? "Personalized healthy meals" : "Healthy meals this month",
       progress: Math.min(100, (receitasConsumidasMes / 28) * 100),
       link: "/gerador-receitas"
     },
@@ -138,11 +143,10 @@ const GeneralDashboard = () => {
   // Top 5 recipes (removes buggy mock mapping)
   const receitasTop = allReceitas.slice(0, 5).map((receita, index) => ({
     nome: receita.nome,
-    consumos: Math.floor(Math.random() * 8) + 1, // Placeholder since there's no usage tracking
+    consumos: Math.floor(Math.random() * 8) + 1,
     calorias: receita.calorias || 300
   }));
 
-  // Medals/achievements
   const medalhas = [
     { name: "7 Days of Tea", icon: "🏅", achieved: dosesChaMes >= 7 },
     { name: "30 Days of Habits", icon: "🏆", achieved: percentualHabitos >= 80 },
@@ -153,7 +157,6 @@ const GeneralDashboard = () => {
     { name: "Health Champion", icon: "❤️", achieved: progressoPeso >= 50 }
   ];
 
-  // Suggestions
   const improvementSuggestions = [];
   if (percentualHabitos < 80) {
     improvementSuggestions.push("Your habit completion rate dropped this week. Try setting reminders during meal times!");
@@ -171,16 +174,24 @@ const GeneralDashboard = () => {
   return (
     <Layout title="General Dashboard" breadcrumb={["Home", "General Dashboard"]}>
       <div className="space-y-8">
+        {/* Personalized Insights - New Section */}
+        <PersonalizedInsights />
+        
         {/* Main Progress Cards */}
         <ProgressCards cards={progressoCards} />
+        
         {/* Advanced Statistics */}
         <AdvancedStatistics weightData={dadosGraficoPeso} habitsWeekly={historicoSemanal} />
+        
         {/* Top 5 Recipes */}
         <TopRecipesTable recipes={receitasTop} />
+        
         {/* Achievements & Medals */}
         <AchievementsMedals medals={medalhas} />
+        
         {/* Personalized Improvement Suggestions */}
         <ImprovementSuggestions suggestions={improvementSuggestions} />
+        
         {/* Monthly Summary */}
         <MonthlySummary
           activeDays={diasAtivosMes}
@@ -188,6 +199,7 @@ const GeneralDashboard = () => {
           recipesConsumed={receitasConsumidasMes}
           weightLost={weightLostDisplay}
         />
+        
         {/* Action Buttons */}
         <DashboardActions />
       </div>

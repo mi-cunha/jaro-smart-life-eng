@@ -1,75 +1,75 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, CheckCircle } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ProgressChart } from "@/components/ProgressChart";
-import { useWeightUnit } from "@/hooks/useWeightUnit";
-
-interface ChartData {
-  date: string;
-  value: number;
-}
-
-interface WeeklyData {
-  date: string;
-  percentual: number;
-}
+import { QuizBasedRecommendations } from "./QuizBasedRecommendations";
+import { TrendingUp, BarChart } from "lucide-react";
 
 interface AdvancedStatisticsProps {
-  weightData: ChartData[];
-  habitsWeekly: WeeklyData[];
+  weightData: any[];
+  habitsWeekly: any[];
 }
 
 export function AdvancedStatistics({ weightData, habitsWeekly }: AdvancedStatisticsProps) {
-  const { convertToDisplayWeight, unit } = useWeightUnit();
-
-  // Convert weight data to display units
-  const convertedWeightData = weightData.map(item => ({
-    ...item,
-    value: convertToDisplayWeight(item.value)
-  }));
-
   return (
-    <Card className="bg-dark-bg border-white/10">
-      <CardHeader>
-        <CardTitle className="text-white">Advanced Statistics</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-8">
-        {weightData.length > 0 && (
-          <div>
-            <h3 className="text-white font-medium mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-neon-green" />
-              Weight Evolution (Last 2 weeks)
-            </h3>
-            <div className="h-64">
-              <ProgressChart
-                title=""
-                data={convertedWeightData}
-                type="line"
-                unit={` ${unit}`}
-              />
-            </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Weight Progress Chart */}
+      <Card className="bg-dark-bg border-white/10">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-neon-green" />
+            Weight Progress Trend
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ProgressChart data={weightData} />
+        </CardContent>
+      </Card>
+
+      {/* Habits Weekly Progress */}
+      <Card className="bg-dark-bg border-white/10">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <BarChart className="w-5 h-5 text-neon-green" />
+            Weekly Habits Performance
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {habitsWeekly.length > 0 ? (
+              habitsWeekly.slice(0, 5).map((day, index) => {
+                const completionRate = day.total > 0 ? (day.completed / day.total) * 100 : 0;
+                return (
+                  <div key={index} className="flex items-center justify-between">
+                    <span className="text-white/80 text-sm">
+                      {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-neon-green transition-all duration-300"
+                          style={{ width: `${completionRate}%` }}
+                        />
+                      </div>
+                      <span className="text-white text-sm font-medium min-w-[3rem]">
+                        {Math.round(completionRate)}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-white/60 text-center py-4">
+                No habit data available for this week
+              </div>
+            )}
           </div>
-        )}
-        {habitsWeekly.length > 0 && (
-          <div>
-            <h3 className="text-white font-medium mb-4 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-neon-green" />
-              Habit Completion (Last 4 weeks)
-            </h3>
-            <div className="h-64">
-              <ProgressChart
-                title=""
-                data={habitsWeekly.map(item => ({
-                  date: item.date,
-                  value: item.percentual
-                }))}
-                type="bar"
-                unit="%"
-              />
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Quiz-Based Recommendations - Full Width */}
+      <div className="lg:col-span-2">
+        <QuizBasedRecommendations />
+      </div>
+    </div>
   );
 }
