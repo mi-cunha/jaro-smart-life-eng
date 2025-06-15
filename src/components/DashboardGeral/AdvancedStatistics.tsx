@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, CheckCircle } from "lucide-react";
 import { ProgressChart } from "@/components/ProgressChart";
+import { useWeightUnit } from "@/hooks/useWeightUnit";
 
 interface ChartData {
   date: string;
@@ -19,6 +20,14 @@ interface AdvancedStatisticsProps {
 }
 
 export function AdvancedStatistics({ weightData, habitsWeekly }: AdvancedStatisticsProps) {
+  const { convertToDisplayWeight, unit } = useWeightUnit();
+
+  // Convert weight data to display units
+  const convertedWeightData = weightData.map(item => ({
+    ...item,
+    value: convertToDisplayWeight(item.value)
+  }));
+
   return (
     <Card className="bg-dark-bg border-white/10">
       <CardHeader>
@@ -34,9 +43,9 @@ export function AdvancedStatistics({ weightData, habitsWeekly }: AdvancedStatist
             <div className="h-64">
               <ProgressChart
                 title=""
-                data={weightData}
+                data={convertedWeightData}
                 type="line"
-                unit=" kg"
+                unit={` ${unit}`}
               />
             </div>
           </div>

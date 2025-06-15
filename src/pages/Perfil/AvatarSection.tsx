@@ -50,8 +50,8 @@ export function AvatarSection({ nome, avatar_url, onAvatarChange }: AvatarSectio
         />
       </div>
       <div className="flex-1">
-        <h3 className="text-white font-medium mb-1">Foto do perfil</h3>
-        <p className="text-white/60 text-sm">Clique no ícone da câmera para alterar sua foto</p>
+        <h3 className="text-white font-medium mb-1">Profile Photo</h3>
+        <p className="text-white/60 text-sm">Click the camera icon to change your photo</p>
       </div>
     </div>
   );

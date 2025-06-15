@@ -10,18 +10,18 @@ interface NotificationsSectionProps {
 
 export function NotificationsSection({ perfil, onToggleNotificacao }: NotificationsSectionProps) {
   const notificacoes = [
-    { key: 'notif_tomar_cha', label: 'Lembrete para tomar Chá Jaro', desc: 'Antes das principais refeições' },
-    { key: 'notif_marcar_habito', label: 'Lembrete para marcar hábitos', desc: 'Diariamente às 20:00' },
-    { key: 'notif_gerar_receitas', label: 'Sugestão para gerar receitas', desc: 'Domingos às 10:00' },
-    { key: 'notif_comprar_itens', label: 'Lembrete para comprar itens', desc: 'Quando lista estiver vazia' },
-    { key: 'notif_atingir_meta', label: 'Notificação ao atingir meta de peso', desc: 'Quando objetivos forem alcançados' },
+    { key: 'notif_tomar_cha', label: 'Jaro Tea Reminder', desc: 'Before main meals' },
+    { key: 'notif_marcar_habito', label: 'Habit Tracking Reminder', desc: 'Daily at 8:00 PM' },
+    { key: 'notif_gerar_receitas', label: 'Recipe Generation Suggestion', desc: 'Sundays at 10:00 AM' },
+    { key: 'notif_comprar_itens', label: 'Shopping List Reminder', desc: 'When list is empty' },
+    { key: 'notif_atingir_meta', label: 'Weight Goal Achievement', desc: 'When goals are reached' },
   ];
   return (
     <Card className="bg-dark-bg border-white/10">
       <CardHeader>
         <CardTitle className="text-white flex items-center gap-2">
           <Bell className="w-5 h-5 text-neon-green" />
-          Notificações
+          Notifications
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">

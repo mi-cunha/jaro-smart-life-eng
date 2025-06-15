@@ -1,3 +1,4 @@
+
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,14 +29,16 @@ import { AchievementsMedals } from "@/components/DashboardGeral/AchievementsMeda
 import { ImprovementSuggestions } from "@/components/DashboardGeral/ImprovementSuggestions";
 import { MonthlySummary } from "@/components/DashboardGeral/MonthlySummary";
 import { DashboardActions } from "@/components/DashboardGeral/DashboardActions";
+import { useWeightUnit } from "@/hooks/useWeightUnit";
 
-const DashboardGeral = () => {
+const GeneralDashboard = () => {
   const navigate = useNavigate();
   const { user, userProfile } = useAuth();
   const { pesoAtual, pesoMeta, getProgressoPeso, getDadosGrafico } = usePeso();
   const { getHabitosHoje, getProgressoHabitos, getHistoricoSemanal } = useHabitos();
   const { receitas, loading: loadingReceitas } = useSupabaseReceitas();
   const { itensCompra, loading: loadingCompras } = useSupabaseListaCompras();
+  const { convertToDisplayWeight, formatWeight } = useWeightUnit();
   
   const [historicoSemanal, setHistoricoSemanal] = useState<any[]>([]);
   
@@ -56,9 +59,11 @@ const DashboardGeral = () => {
   const allReceitas = Object.values(receitas || {}).flat();
   const allItens = Object.values(itensCompra || {}).flat();
 
-  // Calculate real statistics using only real data
+  // Calculate real statistics using only real data - converted to USD
   const totalGastoMes = allItens.filter(item => item.comprado).reduce((total, item) => {
-    return total + (typeof item.preco === 'number' ? item.preco : 5);
+    // Convert R$ to USD (approximate rate: 1 USD = 5.5 BRL)
+    const priceInUSD = (typeof item.preco === 'number' ? item.preco : 5) / 5.5;
+    return total + priceInUSD;
   }, 0);
 
   const receitasConsumidasMes = allReceitas.length;
@@ -72,9 +77,11 @@ const DashboardGeral = () => {
   // Calculate tea doses (default fallback to 2/day)
   const dosesChaMes = Math.floor(diasAtivosMes * (userProfile?.doses_cha || 2));
   
-  // Calculate weight loss progress
-  const pesoInicial = pesoAtual && pesoMeta ? pesoAtual + 4.8 : 80;
-  const pesoPerdido = pesoInicial - (pesoAtual || 75);
+  // Calculate weight loss progress - convert to display units
+  const currentWeightDisplay = convertToDisplayWeight(pesoAtual || 165); // Default 165 lbs
+  const goalWeightDisplay = convertToDisplayWeight(pesoMeta || 150); // Default 150 lbs
+  const initialWeightDisplay = currentWeightDisplay + convertToDisplayWeight(4.8);
+  const weightLostDisplay = initialWeightDisplay - currentWeightDisplay;
 
   // Progress cards (translated)
   const progressoCards = [
@@ -97,7 +104,7 @@ const DashboardGeral = () => {
     {
       title: "Weight",
       icon: <Scale className="w-6 h-6 text-neon-green" />,
-      value: pesoAtual && pesoMeta ? `${Math.abs(pesoAtual - pesoMeta).toFixed(1)} kg remaining` : "Set your goal",
+      value: pesoAtual && pesoMeta ? `${formatWeight(Math.abs(currentWeightDisplay - goalWeightDisplay), false)} remaining` : "Set your goal",
       description: "To reach your target",
       progress: progressoPeso,
       link: "/progresso-peso"
@@ -179,7 +186,7 @@ const DashboardGeral = () => {
           activeDays={diasAtivosMes}
           teaDoses={dosesChaMes}
           recipesConsumed={receitasConsumidasMes}
-          weightLost={pesoPerdido}
+          weightLost={weightLostDisplay}
         />
         {/* Action Buttons */}
         <DashboardActions />
@@ -188,4 +195,4 @@ const DashboardGeral = () => {
   );
 };
 
-export default DashboardGeral;
+export default GeneralDashboard;

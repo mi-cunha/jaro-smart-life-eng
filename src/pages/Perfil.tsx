@@ -1,3 +1,4 @@
+
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,16 +20,17 @@ import { NotificationsSection } from "./Perfil/NotificationsSection";
 import { IntegrationsSection } from "./Perfil/IntegrationsSection";
 import { SaveConfigBar } from "./Perfil/SaveConfigBar";
 import { PrivacySection } from "./Perfil/PrivacySection";
+import { WeightUnitToggle } from "@/components/WeightUnitToggle";
 
-const Perfil = () => {
+const Profile = () => {
   const { perfil, loading, atualizarPerfil, salvarAvatar, carregarPerfil } = useSupabasePerfil();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   if (loading) {
     return (
-      <Layout title="Perfil & Configurações" breadcrumb={["Home", "Perfil"]}>
+      <Layout title="Profile & Settings" breadcrumb={["Home", "Profile"]}>
         <div className="flex items-center justify-center min-h-64">
-          <div className="text-white">Carregando perfil...</div>
+          <div className="text-white">Loading profile...</div>
         </div>
       </Layout>
     );
@@ -36,11 +38,11 @@ const Perfil = () => {
 
   if (!perfil) {
     return (
-      <Layout title="Perfil & Configurações" breadcrumb={["Home", "Perfil"]}>
+      <Layout title="Profile & Settings" breadcrumb={["Home", "Profile"]}>
         <div className="flex items-center justify-center min-h-64 flex-col">
-          <div className="text-white mb-4">Erro ao carregar perfil</div>
+          <div className="text-white mb-4">Error loading profile</div>
           <Button className="bg-neon-green text-black" onClick={carregarPerfil}>
-            Tentar Novamente
+            Try Again
           </Button>
         </div>
       </Layout>
@@ -48,7 +50,7 @@ const Perfil = () => {
   }
 
   const handleSalvarConfiguracao = () => {
-    // Dados já são salvos automaticamente
+    // Data is already saved automatically
   };
 
   const handleTogglePreferencia = async (preferencia: string) => {
@@ -88,9 +90,14 @@ const Perfil = () => {
   };
 
   return (
-    <Layout title="Perfil & Configurações" breadcrumb={["Home", "Perfil"]}>
+    <Layout title="Profile & Settings" breadcrumb={["Home", "Profile"]}>
       <div className="space-y-8">
-        {/* Avatar and Infos */}
+        {/* Weight Unit Toggle */}
+        <div className="flex justify-end">
+          <WeightUnitToggle />
+        </div>
+
+        {/* Avatar and Info */}
         <AvatarSection
           nome={perfil.nome || ""}
           avatar_url={perfil.avatar_url}
@@ -128,4 +135,4 @@ const Perfil = () => {
   );
 };
 
-export default Perfil;
+export default Profile;
