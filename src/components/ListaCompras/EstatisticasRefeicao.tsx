@@ -25,7 +25,7 @@ export function EstatisticasRefeicao({ itens }: EstatisticasRefeicaoProps) {
           <div className="text-2xl font-bold text-neon-green">
             {itensComprados}
           </div>
-          <div className="text-sm text-white/70">Itens Comprados</div>
+          <div className="text-sm text-white/70">Items Purchased</div>
         </CardContent>
       </Card>
 
@@ -34,7 +34,7 @@ export function EstatisticasRefeicao({ itens }: EstatisticasRefeicaoProps) {
           <div className="text-2xl font-bold text-neon-green">
             {itensPendentes}
           </div>
-          <div className="text-sm text-white/70">Itens Pendentes</div>
+          <div className="text-sm text-white/70">Pending Items</div>
         </CardContent>
       </Card>
 
@@ -43,7 +43,7 @@ export function EstatisticasRefeicao({ itens }: EstatisticasRefeicaoProps) {
           <div className="text-2xl font-bold text-neon-green">
             {percentualConcluido.toFixed(0)}%
           </div>
-          <div className="text-sm text-white/70">Concluído</div>
+          <div className="text-sm text-white/70">Completed</div>
         </CardContent>
       </Card>
     </div>

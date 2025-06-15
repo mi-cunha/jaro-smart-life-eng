@@ -34,63 +34,63 @@ export function GerarListaModal({
 
   const gerarLista = async () => {
     setIsGenerating(true);
-    toast.loading("Gerando lista personalizada...", { duration: 3000 });
+    toast.loading("Generating personalized list...", { duration: 3000 });
     
     setTimeout(() => {
-      // Simulação de geração baseada na refeição e preferências
+      // Simulation of generation based on meal and preferences
       const itensBase = {
-        "Café da Manhã": [
-          { nome: "Aveia em Flocos Integrais", quantidade: "500g", preco: 6.50, categoria: "cereais" },
-          { nome: "Bananas Orgânicas", quantidade: "1kg", preco: 5.20, categoria: "frutas" },
-          { nome: "Iogurte Natural Desnatado", quantidade: "500ml", preco: 7.80, categoria: "laticínios" },
-          { nome: "Mel Orgânico", quantidade: "250ml", preco: 18.90, categoria: "adoçantes" },
-          { nome: "Sementes de Chia", quantidade: "200g", preco: 15.60, categoria: "sementes" },
-          { nome: "Mirtilos Frescos", quantidade: "200g", preco: 12.90, categoria: "frutas" },
-          { nome: "Leite de Amêndoas", quantidade: "1L", preco: 8.90, categoria: "bebidas" }
+        "Breakfast": [
+          { nome: "Organic Rolled Oats", quantidade: "500g", preco: 6.50, categoria: "cereals" },
+          { nome: "Organic Bananas", quantidade: "1kg", preco: 5.20, categoria: "fruits" },
+          { nome: "Natural Low-Fat Yogurt", quantidade: "500ml", preco: 7.80, categoria: "dairy" },
+          { nome: "Organic Honey", quantidade: "250ml", preco: 18.90, categoria: "sweeteners" },
+          { nome: "Chia Seeds", quantidade: "200g", preco: 15.60, categoria: "seeds" },
+          { nome: "Fresh Blueberries", quantidade: "200g", preco: 12.90, categoria: "fruits" },
+          { nome: "Almond Milk", quantidade: "1L", preco: 8.90, categoria: "beverages" }
         ],
-        "Almoço": [
-          { nome: "Peito de Frango Orgânico", quantidade: "1kg", preco: 18.90, categoria: "proteínas" },
-          { nome: "Quinoa Tricolor", quantidade: "500g", preco: 14.80, categoria: "grãos" },
-          { nome: "Brócolis Fresco", quantidade: "500g", preco: 6.20, categoria: "vegetais" },
-          { nome: "Batata Doce", quantidade: "1kg", preco: 7.50, categoria: "carboidratos" },
-          { nome: "Azeite Extra Virgem", quantidade: "500ml", preco: 22.90, categoria: "óleos" },
-          { nome: "Tomates Cereja", quantidade: "300g", preco: 5.80, categoria: "vegetais" },
-          { nome: "Água de Coco Natural", quantidade: "1L", preco: 4.50, categoria: "bebidas" }
+        "Lunch": [
+          { nome: "Organic Chicken Breast", quantidade: "1kg", preco: 18.90, categoria: "proteins" },
+          { nome: "Tricolor Quinoa", quantidade: "500g", preco: 14.80, categoria: "grains" },
+          { nome: "Fresh Broccoli", quantidade: "500g", preco: 6.20, categoria: "vegetables" },
+          { nome: "Sweet Potato", quantidade: "1kg", preco: 7.50, categoria: "carbohydrates" },
+          { nome: "Extra Virgin Olive Oil", quantidade: "500ml", preco: 22.90, categoria: "oils" },
+          { nome: "Cherry Tomatoes", quantidade: "300g", preco: 5.80, categoria: "vegetables" },
+          { nome: "Natural Coconut Water", quantidade: "1L", preco: 4.50, categoria: "beverages" }
         ],
-        "Lanche": [
-          { nome: "Mix de Castanhas", quantidade: "200g", preco: 24.90, categoria: "oleaginosas" },
-          { nome: "Maçãs Verdes", quantidade: "1kg", preco: 8.90, categoria: "frutas" },
-          { nome: "Queijo Cottage", quantidade: "200g", preco: 9.80, categoria: "laticínios" },
-          { nome: "Chá Verde", quantidade: "20 sachês", preco: 12.50, categoria: "bebidas" },
-          { nome: "Biscoitos Integrais", quantidade: "200g", preco: 6.90, categoria: "snacks" }
+        "Snack": [
+          { nome: "Mixed Nuts", quantidade: "200g", preco: 24.90, categoria: "nuts" },
+          { nome: "Green Apples", quantidade: "1kg", preco: 8.90, categoria: "fruits" },
+          { nome: "Cottage Cheese", quantidade: "200g", preco: 9.80, categoria: "dairy" },
+          { nome: "Green Tea", quantidade: "20 bags", preco: 12.50, categoria: "beverages" },
+          { nome: "Whole Grain Crackers", quantidade: "200g", preco: 6.90, categoria: "snacks" }
         ],
-        "Jantar": [
-          { nome: "Salmão Fresco", quantidade: "500g", preco: 34.90, categoria: "proteínas" },
-          { nome: "Aspargos Frescos", quantidade: "300g", preco: 15.80, categoria: "vegetais" },
-          { nome: "Abobrinha", quantidade: "500g", preco: 4.20, categoria: "vegetais" },
-          { nome: "Cogumelos Shiitake", quantidade: "200g", preco: 12.90, categoria: "vegetais" },
-          { nome: "Limão Siciliano", quantidade: "500g", preco: 3.80, categoria: "frutas" },
-          { nome: "Ervas Finas", quantidade: "1 maço", preco: 2.90, categoria: "temperos" },
-          { nome: "Água Mineral", quantidade: "1.5L", preco: 2.50, categoria: "bebidas" }
+        "Dinner": [
+          { nome: "Fresh Salmon", quantidade: "500g", preco: 34.90, categoria: "proteins" },
+          { nome: "Fresh Asparagus", quantidade: "300g", preco: 15.80, categoria: "vegetables" },
+          { nome: "Zucchini", quantidade: "500g", preco: 4.20, categoria: "vegetables" },
+          { nome: "Shiitake Mushrooms", quantidade: "200g", preco: 12.90, categoria: "vegetables" },
+          { nome: "Sicilian Lemon", quantidade: "500g", preco: 3.80, categoria: "fruits" },
+          { nome: "Fresh Herbs", quantidade: "1 bunch", preco: 2.90, categoria: "seasonings" },
+          { nome: "Mineral Water", quantidade: "1.5L", preco: 2.50, categoria: "beverages" }
         ]
       };
 
       let itens = itensBase[refeicao as keyof typeof itensBase] || [];
       
-      // Ajustar baseado nas preferências
-      if (preferenciasAlimentares === "vegano") {
-        itens = itens.filter(item => !["laticínios", "proteínas"].includes(item.categoria) || 
-          item.nome.includes("Vegetal") || item.nome.includes("Tofu"));
+      // Adjust based on preferences
+      if (preferenciasAlimentares === "vegan") {
+        itens = itens.filter(item => !["dairy", "proteins"].includes(item.categoria) || 
+          item.nome.includes("Plant") || item.nome.includes("Tofu"));
       }
 
-      // Filtrar restrições
+      // Filter restrictions
       restricoesAlimentares.forEach(restricao => {
         if (restricao.toLowerCase().includes("lactose")) {
-          itens = itens.filter(item => item.categoria !== "laticínios");
+          itens = itens.filter(item => item.categoria !== "dairy");
         }
-        if (restricao.toLowerCase().includes("glúten")) {
-          itens = itens.filter(item => !item.nome.toLowerCase().includes("aveia") && 
-            !item.nome.toLowerCase().includes("biscoito"));
+        if (restricao.toLowerCase().includes("gluten")) {
+          itens = itens.filter(item => !item.nome.toLowerCase().includes("oats") && 
+            !item.nome.toLowerCase().includes("crackers"));
         }
       });
 
@@ -102,7 +102,7 @@ export function GerarListaModal({
       setItensSugeridos(itensSelecionados);
       setShowResults(true);
       setIsGenerating(false);
-      toast.success("Lista gerada com sucesso!");
+      toast.success("List generated successfully!");
     }, 3000);
   };
 
@@ -115,12 +115,12 @@ export function GerarListaModal({
   const adicionarItens = () => {
     const itensSelecionados = itensSugeridos.filter(item => item.selecionado);
     if (itensSelecionados.length === 0) {
-      toast.error("Selecione pelo menos um item!");
+      toast.error("Select at least one item!");
       return;
     }
     
     onAddItens(itensSelecionados);
-    toast.success(`${itensSelecionados.length} itens adicionados à lista de ${refeicao}!`);
+    toast.success(`${itensSelecionados.length} items added to ${refeicao} list!`);
     setShowResults(false);
     setItensSugeridos([]);
   };
@@ -140,29 +140,29 @@ export function GerarListaModal({
           className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
         >
           <ShoppingCart className="w-4 h-4 mr-2" />
-          Gerar Lista
+          Generate List
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-dark-bg border-white/10 max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-white">Gerar Lista para {refeicao}</DialogTitle>
+          <DialogTitle className="text-white">Generate List for {refeicao}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
           {!showResults && !isGenerating && (
             <div className="space-y-4">
               <div className="p-4 bg-white/5 rounded-lg">
-                <h4 className="text-white font-medium mb-2">Configurações:</h4>
+                <h4 className="text-white font-medium mb-2">Settings:</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex gap-2">
-                    <span className="text-white/60">Refeição:</span>
+                    <span className="text-white/60">Meal:</span>
                     <Badge className="bg-neon-green/20 text-neon-green border-neon-green/30">
                       {refeicao}
                     </Badge>
                   </div>
                   {preferenciasAlimentares && (
                     <div className="flex gap-2">
-                      <span className="text-white/60">Preferência:</span>
+                      <span className="text-white/60">Preference:</span>
                       <Badge variant="outline" className="border-blue-400/30 text-blue-400">
                         {preferenciasAlimentares}
                       </Badge>
@@ -170,7 +170,7 @@ export function GerarListaModal({
                   )}
                   {restricoesAlimentares.length > 0 && (
                     <div className="flex gap-2 flex-wrap">
-                      <span className="text-white/60">Restrições:</span>
+                      <span className="text-white/60">Restrictions:</span>
                       {restricoesAlimentares.map((restricao, index) => (
                         <Badge key={index} variant="outline" className="border-orange-400/30 text-orange-400">
                           {restricao}
@@ -185,7 +185,7 @@ export function GerarListaModal({
                 onClick={gerarLista}
                 className="w-full bg-neon-green text-black hover:bg-neon-green/90"
               >
-                Gerar Lista Personalizada
+                Generate Personalized List
               </Button>
             </div>
           )}
@@ -193,14 +193,14 @@ export function GerarListaModal({
           {isGenerating && (
             <div className="text-center py-8">
               <Loader2 className="w-8 h-8 text-neon-green animate-spin mx-auto mb-4" />
-              <p className="text-white/80">Gerando lista personalizada baseada em suas preferências...</p>
+              <p className="text-white/80">Generating personalized list based on your preferences...</p>
             </div>
           )}
 
           {showResults && (
             <div className="space-y-4">
               <h4 className="text-white font-medium">
-                Itens Sugeridos ({itensSugeridos.filter(item => item.selecionado).length}/{itensSugeridos.length}):
+                Suggested Items ({itensSugeridos.filter(item => item.selecionado).length}/{itensSugeridos.length}):
               </h4>
               
               <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -219,7 +219,7 @@ export function GerarListaModal({
                       {item.categoria}
                     </Badge>
                     <div className="text-neon-green font-medium">
-                      R$ {item.preco.toFixed(2)}
+                      ${item.preco.toFixed(2)}
                     </div>
                   </div>
                 ))}
@@ -230,14 +230,14 @@ export function GerarListaModal({
                   onClick={adicionarItens}
                   className="bg-neon-green text-black hover:bg-neon-green/90 flex-1"
                 >
-                  Adicionar Itens Selecionados
+                  Add Selected Items
                 </Button>
                 <Button
                   onClick={() => setShowResults(false)}
                   variant="outline"
                   className="border-white/20 text-white"
                 >
-                  Gerar Nova Lista
+                  Generate New List
                 </Button>
               </div>
             </div>

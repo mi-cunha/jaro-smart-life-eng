@@ -14,22 +14,22 @@ export function ListaComprasStats({ totalGeral, onExportar, onVoltarReceitas }: 
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold text-neon-green">
-              R$ {totalGeral.toFixed(2)}
+              ${totalGeral.toFixed(2)}
             </h2>
-            <p className="text-white/70">Total estimado da compra</p>
+            <p className="text-white/70">Estimated shopping total</p>
           </div>
           <div className="flex gap-2">
             <button
               onClick={onExportar}
               className="border border-neon-green/30 text-neon-green hover:bg-neon-green/10 px-4 py-2 rounded-md transition-colors"
             >
-              📊 Exportar Lista
+              📊 Export List
             </button>
             <button
               onClick={onVoltarReceitas}
               className="bg-neon-green text-black hover:bg-neon-green/90 px-4 py-2 rounded-md transition-colors"
             >
-              👨‍🍳 Voltar às Receitas
+              👨‍🍳 Back to Recipes
             </button>
           </div>
         </div>

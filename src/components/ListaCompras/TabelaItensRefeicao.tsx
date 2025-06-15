@@ -25,10 +25,10 @@ export function TabelaItensRefeicao({ itens, onToggleItem, onRemoverItem }: Tabe
           <tr className="border-b border-white/10">
             <th className="text-left text-white/80 py-3 w-12"></th>
             <th className="text-left text-white/80 py-3">Item</th>
-            <th className="text-left text-white/80 py-3">Quantidade</th>
-            <th className="text-left text-white/80 py-3">Preço Estimado</th>
+            <th className="text-left text-white/80 py-3">Quantity</th>
+            <th className="text-left text-white/80 py-3">Estimated Price</th>
             <th className="text-left text-white/80 py-3">Status</th>
-            <th className="text-left text-white/80 py-3 w-16">Ações</th>
+            <th className="text-left text-white/80 py-3 w-16">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -51,13 +51,13 @@ export function TabelaItensRefeicao({ itens, onToggleItem, onRemoverItem }: Tabe
               </td>
               <td className="text-white/70 py-3">{item.quantidade}</td>
               <td className="text-neon-green py-3 font-medium">
-                R$ {item.preco.toFixed(2)}
+                ${item.preco.toFixed(2)}
               </td>
               <td className="py-3">
                 {item.comprado ? (
-                  <span className="text-neon-green text-sm font-medium">✅ Comprado</span>
+                  <span className="text-neon-green text-sm font-medium">✅ Purchased</span>
                 ) : (
-                  <span className="text-white/40 text-sm">Pendente</span>
+                  <span className="text-white/40 text-sm">Pending</span>
                 )}
               </td>
               <td className="py-3">

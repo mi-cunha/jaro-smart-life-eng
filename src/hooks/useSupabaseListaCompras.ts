@@ -6,10 +6,10 @@ import { toast } from 'sonner';
 
 export function useSupabaseListaCompras() {
   const [itensCompra, setItensCompra] = useState<{ [key: string]: ItemCompra[] }>({
-    "Café da Manhã": [],
-    "Almoço": [],
-    "Lanche": [],
-    "Jantar": []
+    "Breakfast": [],
+    "Lunch": [],
+    "Snack": [],
+    "Dinner": []
   });
   const [loading, setLoading] = useState(false);
 
@@ -17,10 +17,10 @@ export function useSupabaseListaCompras() {
     setLoading(true);
     try {
       const itensPorRefeicao: { [key: string]: ItemCompra[] } = {
-        "Café da Manhã": [],
-        "Almoço": [],
-        "Lanche": [],
-        "Jantar": []
+        "Breakfast": [],
+        "Lunch": [],
+        "Snack": [],
+        "Dinner": []
       };
 
       for (const refeicao of Object.keys(itensPorRefeicao)) {
