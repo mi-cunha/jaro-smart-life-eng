@@ -38,7 +38,7 @@ const GeneralDashboard = () => {
   const { getHabitosHoje, getProgressoHabitos, getHistoricoSemanal } = useHabitos();
   const { receitas, loading: loadingReceitas } = useSupabaseReceitas();
   const { itensCompra, loading: loadingCompras } = useSupabaseListaCompras();
-  const { convertToDisplayWeight, formatWeight } = useWeightUnit();
+  const { convertToDisplayWeight, formatWeight, unit } = useWeightUnit();
   
   const [historicoSemanal, setHistoricoSemanal] = useState<any[]>([]);
   
@@ -104,7 +104,7 @@ const GeneralDashboard = () => {
     {
       title: "Weight",
       icon: <Scale className="w-6 h-6 text-neon-green" />,
-      value: pesoAtual && pesoMeta ? `${formatWeight(Math.abs(currentWeightDisplay - goalWeightDisplay), false)} remaining` : "Set your goal",
+      value: pesoAtual && pesoMeta ? `${formatWeight(Math.abs(currentWeightDisplay - goalWeightDisplay), false)} ${unit} remaining` : "Set your goal",
       description: "To reach your target",
       progress: progressoPeso,
       link: "/progresso-peso"
