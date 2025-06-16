@@ -80,7 +80,7 @@ export default function ReceitaCard({
           </div>
 
           <div>
-            <h5 className="text-white/80 text-sm font-medium mb-2">Ingredientes:</h5>
+            <h5 className="text-white/80 text-sm font-medium mb-2">Ingredients:</h5>
             <div className="flex flex-wrap gap-1">
               {receita.ingredientes.slice(0, 3).map((ingrediente, index) => (
                 <Badge key={index} variant="secondary" className="text-xs bg-white/10 text-white/70">
@@ -97,15 +97,15 @@ export default function ReceitaCard({
 
           <div className="grid grid-cols-3 gap-2 text-xs">
             <div className="text-center p-2 bg-white/5 rounded">
-              <div className="text-white/60">Proteínas</div>
+              <div className="text-white/60">Proteins</div>
               <div className="text-white font-medium">{receita.macros.proteinas}g</div>
             </div>
             <div className="text-center p-2 bg-white/5 rounded">
-              <div className="text-white/60">Carboidratos</div>
+              <div className="text-white/60">Carbs</div>
               <div className="text-white font-medium">{receita.macros.carboidratos}g</div>
             </div>
             <div className="text-center p-2 bg-white/5 rounded">
-              <div className="text-white/60">Gorduras</div>
+              <div className="text-white/60">Fats</div>
               <div className="text-white font-medium">{receita.macros.gorduras}g</div>
             </div>
           </div>
@@ -117,7 +117,7 @@ export default function ReceitaCard({
             className="w-full border-neon-green/30 text-neon-green hover:bg-neon-green/10"
           >
             <Eye className="w-4 h-4 mr-2" />
-            Ver Detalhes
+            View Details
           </Button>
         </CardContent>
       </Card>

@@ -21,7 +21,7 @@ export function ReceitaDetalhesModal({ receita, isOpen, onClose }: ReceitaDetalh
         </DialogHeader>
         
         <div className="space-y-6">
-          {/* Badges informativos */}
+          {/* Information badges */}
           <div className="flex gap-3 flex-wrap">
             <Badge variant="outline" className="border-neon-green/30 text-neon-green">
               <Clock className="w-3 h-3 mr-1" />
@@ -36,11 +36,11 @@ export function ReceitaDetalhesModal({ receita, isOpen, onClose }: ReceitaDetalh
             </Badge>
           </div>
 
-          {/* Ingredientes */}
+          {/* Ingredients */}
           <div>
             <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
               <ChefHat className="w-4 h-4 text-neon-green" />
-              Ingredientes:
+              Ingredients:
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {receita.ingredientes.map((ingrediente, index) => (
@@ -52,9 +52,9 @@ export function ReceitaDetalhesModal({ receita, isOpen, onClose }: ReceitaDetalh
             </div>
           </div>
 
-          {/* Modo de Preparo */}
+          {/* Preparation Instructions */}
           <div>
-            <h4 className="text-white font-semibold mb-3">Modo de Preparo:</h4>
+            <h4 className="text-white font-semibold mb-3">Preparation Instructions:</h4>
             <ol className="space-y-3">
               {receita.preparo.map((passo, index) => (
                 <li key={index} className="text-white/80 flex gap-4">
@@ -67,53 +67,53 @@ export function ReceitaDetalhesModal({ receita, isOpen, onClose }: ReceitaDetalh
             </ol>
           </div>
 
-          {/* Tabela Nutricional */}
+          {/* Nutritional Information */}
           <div>
-            <h4 className="text-white font-semibold mb-3">Informações Nutricionais:</h4>
+            <h4 className="text-white font-semibold mb-3">Nutritional Information:</h4>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="bg-white/5 p-4 rounded-lg text-center">
                 <div className="text-2xl font-bold text-neon-green mb-1">
                   {receita.calorias}
                 </div>
-                <div className="text-white/60 text-sm">Calorias</div>
+                <div className="text-white/60 text-sm">Calories</div>
               </div>
               <div className="bg-white/5 p-4 rounded-lg text-center">
                 <div className="text-2xl font-bold text-blue-400 mb-1">
                   {receita.macros.proteinas}g
                 </div>
-                <div className="text-white/60 text-sm">Proteínas</div>
+                <div className="text-white/60 text-sm">Proteins</div>
               </div>
               <div className="bg-white/5 p-4 rounded-lg text-center">
                 <div className="text-2xl font-bold text-yellow-400 mb-1">
                   {receita.macros.carboidratos}g
                 </div>
-                <div className="text-white/60 text-sm">Carboidratos</div>
+                <div className="text-white/60 text-sm">Carbohydrates</div>
               </div>
               <div className="bg-white/5 p-4 rounded-lg text-center">
                 <div className="text-2xl font-bold text-red-400 mb-1">
                   {receita.macros.gorduras}g
                 </div>
-                <div className="text-white/60 text-sm">Gorduras</div>
+                <div className="text-white/60 text-sm">Fats</div>
               </div>
             </div>
           </div>
 
-          {/* Sugestões Extras */}
+          {/* Extra Suggestions */}
           <div>
-            <h4 className="text-white font-semibold mb-3">💡 Sugestões Extras:</h4>
+            <h4 className="text-white font-semibold mb-3">💡 Extra Suggestions:</h4>
             <div className="bg-neon-green/10 border border-neon-green/30 rounded-lg p-4 space-y-2">
-              <p className="text-white/80">• Beba bastante água durante o preparo e consumo</p>
-              <p className="text-white/80">• Prefira ingredientes orgânicos quando possível</p>
-              <p className="text-white/80">• Ajuste o sal e temperos conforme seu gosto</p>
-              <p className="text-white/80">• Esta receita pode ser preparada com até 2 dias de antecedência</p>
-              {receita.refeicao === "Café da Manhã" && (
-                <p className="text-white/80">• Ideal consumir até 30 minutos após o despertar</p>
+              <p className="text-white/80">• Drink plenty of water during preparation and consumption</p>
+              <p className="text-white/80">• Choose organic ingredients when possible</p>
+              <p className="text-white/80">• Adjust salt and seasonings to your taste</p>
+              <p className="text-white/80">• This recipe can be prepared up to 2 days in advance</p>
+              {receita.refeicao === "Breakfast" && (
+                <p className="text-white/80">• Best consumed within 30 minutes of waking up</p>
               )}
-              {receita.refeicao === "Almoço" && (
-                <p className="text-white/80">• Combine com uma salada verde para mais fibras</p>
+              {receita.refeicao === "Lunch" && (
+                <p className="text-white/80">• Combine with a green salad for more fiber</p>
               )}
-              {receita.refeicao === "Jantar" && (
-                <p className="text-white/80">• Evite consumir até 2 horas antes de dormir</p>
+              {receita.refeicao === "Dinner" && (
+                <p className="text-white/80">• Avoid consuming until 2 hours before bedtime</p>
               )}
             </div>
           </div>

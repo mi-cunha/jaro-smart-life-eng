@@ -1,56 +1,56 @@
 
-// Serviço para recomendações nutricionais saudáveis
+// Service for healthy nutritional recommendations
 export class RecomendacoesNutricionais {
-  // Lista de itens não recomendados para dietas saudáveis
+  // List of items not recommended for healthy diets
   private static itensProibidos = [
-    'coca cola', 'coca-cola', 'refrigerante', 'guaraná', 'pepsi', 'sprite',
-    'chocolate', 'bombom', 'doce', 'açúcar', 'mel artificial', 'xarope',
-    'óleo', 'óleo de soja', 'margarina', 'manteiga', 'banha',
-    'frituras', 'batata frita', 'salgadinho', 'chips',
-    'embutidos', 'salsicha', 'linguiça', 'mortadela', 'presunto',
-    'fast food', 'hambúrguer', 'pizza', 'hot dog',
-    'biscoito recheado', 'bolacha', 'wafer', 'rosquinha',
-    'sorvete', 'milkshake', 'açaí com leite condensado',
-    'energético', 'isotônico artificial', 'bebida alcoólica',
-    'macarrão instantâneo', 'miojo', 'comida pronta congelada'
+    'coca cola', 'coca-cola', 'soda', 'soft drink', 'guarana', 'pepsi', 'sprite',
+    'chocolate', 'candy', 'sweets', 'sugar', 'artificial honey', 'syrup',
+    'oil', 'soybean oil', 'margarine', 'butter', 'lard',
+    'fried foods', 'french fries', 'chips', 'snacks',
+    'processed meats', 'sausage', 'hot dog', 'bologna', 'ham',
+    'fast food', 'burger', 'pizza', 'hot dog',
+    'filled cookies', 'crackers', 'wafer', 'donuts',
+    'ice cream', 'milkshake', 'açaí with condensed milk',
+    'energy drink', 'artificial isotonic', 'alcoholic beverage',
+    'instant noodles', 'cup noodles', 'frozen ready meals'
   ];
 
-  // Recomendações saudáveis por categoria
+  // Healthy recommendations by category
   private static recomendacoesSaudaveis = {
     proteinas: [
-      'Peito de frango grelhado', 'Peixe fresco (salmão, tilápia)', 'Ovos orgânicos', 
-      'Tofu natural', 'Lentilhas', 'Feijão preto', 'Grão-de-bico', 'Quinoa'
+      'Grilled chicken breast', 'Fresh fish (salmon, tilapia)', 'Organic eggs', 
+      'Natural tofu', 'Lentils', 'Black beans', 'Chickpeas', 'Quinoa'
     ],
     vegetais: [
-      'Brócolis fresco', 'Espinafre', 'Couve', 'Rúcula', 'Alface orgânica',
-      'Tomate cereja', 'Pepino', 'Cenoura', 'Abobrinha', 'Berinjela'
+      'Fresh broccoli', 'Spinach', 'Kale', 'Arugula', 'Organic lettuce',
+      'Cherry tomatoes', 'Cucumber', 'Carrots', 'Zucchini', 'Eggplant'
     ],
     frutas: [
-      'Maçã verde', 'Banana prata', 'Morango orgânico', 'Mirtilo',
-      'Abacate', 'Limão', 'Laranja', 'Mamão papaya', 'Melão'
+      'Green apple', 'Banana', 'Organic strawberries', 'Blueberries',
+      'Avocado', 'Lemon', 'Orange', 'Papaya', 'Cantaloupe'
     ],
     carboidratos: [
-      'Batata doce', 'Mandioca', 'Aveia em flocos', 'Quinoa tricolor',
-      'Arroz integral', 'Pão integral sem açúcar', 'Tapioca natural'
+      'Sweet potato', 'Cassava', 'Oat flakes', 'Tricolor quinoa',
+      'Brown rice', 'Sugar-free whole grain bread', 'Natural tapioca'
     ],
     gordurasSaudaveis: [
-      'Azeite extra virgem', 'Abacate', 'Castanha do Pará', 'Amêndoas',
-      'Chia', 'Linhaça', 'Óleo de coco extravirgem'
+      'Extra virgin olive oil', 'Avocado', 'Brazil nuts', 'Almonds',
+      'Chia seeds', 'Flaxseed', 'Extra virgin coconut oil'
     ],
     bebidas: [
-      'Água mineral', 'Chá verde', 'Chá de hibisco', 'Água de coco natural',
-      'Suco verde natural', 'Água com limão', 'Kombucha natural'
+      'Mineral water', 'Green tea', 'Hibiscus tea', 'Natural coconut water',
+      'Natural green juice', 'Lemon water', 'Natural kombucha'
     ],
     temperos: [
-      'Cúrcuma', 'Gengibre', 'Alho', 'Cebola', 'Ervas finas',
-      'Oregano', 'Manjericão', 'Alecrim', 'Sal rosa do Himalaia'
+      'Turmeric', 'Ginger', 'Garlic', 'Onion', 'Fine herbs',
+      'Oregano', 'Basil', 'Rosemary', 'Himalayan pink salt'
     ]
   };
 
   static verificarSeItemEhSaudavel(nomeItem: string): boolean {
     const itemLower = nomeItem.toLowerCase().trim();
     
-    // Verifica se o item está na lista de proibidos
+    // Check if item is in the prohibited list
     return !this.itensProibidos.some(proibido => 
       itemLower.includes(proibido) || proibido.includes(itemLower)
     );
@@ -60,45 +60,45 @@ export class RecomendacoesNutricionais {
     const palavra = palavraChave.toLowerCase().trim();
     let recomendacoes: string[] = [];
 
-    // Se a palavra-chave não é saudável, retorna alternativas saudáveis
+    // If the keyword is not healthy, return healthy alternatives
     if (!this.verificarSeItemEhSaudavel(palavra)) {
-      // Retorna alternativas baseadas no tipo de item não saudável
-      if (palavra.includes('refrigerante') || palavra.includes('coca') || palavra.includes('guaraná')) {
+      // Return alternatives based on the type of unhealthy item
+      if (palavra.includes('soda') || palavra.includes('coca') || palavra.includes('soft drink')) {
         return this.recomendacoesSaudaveis.bebidas.slice(0, 5);
       }
-      if (palavra.includes('chocolate') || palavra.includes('doce')) {
+      if (palavra.includes('chocolate') || palavra.includes('candy') || palavra.includes('sweets')) {
         return this.recomendacoesSaudaveis.frutas.slice(0, 5);
       }
-      if (palavra.includes('óleo') || palavra.includes('margarina')) {
+      if (palavra.includes('oil') || palavra.includes('margarine')) {
         return this.recomendacoesSaudaveis.gordurasSaudaveis.slice(0, 3);
       }
-      if (palavra.includes('embutido') || palavra.includes('salsicha')) {
+      if (palavra.includes('processed') || palavra.includes('sausage')) {
         return this.recomendacoesSaudaveis.proteinas.slice(0, 4);
       }
       
-      // Caso geral: retorna frutas e vegetais
+      // General case: return fruits and vegetables
       return [...this.recomendacoesSaudaveis.frutas.slice(0, 3), ...this.recomendacoesSaudaveis.vegetais.slice(0, 2)];
     }
 
-    // Para itens saudáveis, busca por categoria
-    if (palavra.includes('fruta') || palavra.includes('maçã') || palavra.includes('banana')) {
+    // For healthy items, search by category
+    if (palavra.includes('fruit') || palavra.includes('apple') || palavra.includes('banana')) {
       recomendacoes = this.recomendacoesSaudaveis.frutas;
-    } else if (palavra.includes('vegetal') || palavra.includes('verdura') || palavra.includes('legume')) {
+    } else if (palavra.includes('vegetable') || palavra.includes('greens') || palavra.includes('veggie')) {
       recomendacoes = this.recomendacoesSaudaveis.vegetais;
-    } else if (palavra.includes('proteína') || palavra.includes('carne') || palavra.includes('frango')) {
+    } else if (palavra.includes('protein') || palavra.includes('meat') || palavra.includes('chicken')) {
       recomendacoes = this.recomendacoesSaudaveis.proteinas;
-    } else if (palavra.includes('carboidrato') || palavra.includes('arroz') || palavra.includes('batata')) {
+    } else if (palavra.includes('carb') || palavra.includes('rice') || palavra.includes('potato')) {
       recomendacoes = this.recomendacoesSaudaveis.carboidratos;
-    } else if (palavra.includes('bebida') || palavra.includes('água') || palavra.includes('chá')) {
+    } else if (palavra.includes('drink') || palavra.includes('water') || palavra.includes('tea')) {
       recomendacoes = this.recomendacoesSaudaveis.bebidas;
     } else {
-      // Busca em todas as categorias
+      // Search in all categories
       const todasRecomendacoes = Object.values(this.recomendacoesSaudaveis).flat();
       recomendacoes = todasRecomendacoes.filter(item => 
         item.toLowerCase().includes(palavra) || palavra.includes(item.toLowerCase())
       );
       
-      // Se não encontrou nada específico, retorna uma mistura saudável
+      // If nothing specific was found, return a healthy mix
       if (recomendacoes.length === 0) {
         recomendacoes = [
           ...this.recomendacoesSaudaveis.vegetais.slice(0, 2),
@@ -108,19 +108,19 @@ export class RecomendacoesNutricionais {
       }
     }
 
-    return recomendacoes.slice(0, 8); // Limita a 8 sugestões
+    return recomendacoes.slice(0, 8); // Limit to 8 suggestions
   }
 
   static obterDicaNutricional(item: string): string {
     const itemLower = item.toLowerCase();
     
-    if (itemLower.includes('brócolis')) return "Rico em vitamina C e fibras, excelente para o sistema imunológico";
-    if (itemLower.includes('salmão')) return "Fonte de ômega-3, ajuda na saúde cardiovascular";
-    if (itemLower.includes('aveia')) return "Rica em fibras solúveis, ajuda a controlar o colesterol";
-    if (itemLower.includes('quinoa')) return "Proteína completa e sem glúten, ideal para vegetarianos";
-    if (itemLower.includes('abacate')) return "Gorduras boas que ajudam na absorção de vitaminas";
-    if (itemLower.includes('chá verde')) return "Antioxidantes naturais que aceleram o metabolismo";
+    if (itemLower.includes('broccoli')) return "Rich in vitamin C and fiber, excellent for the immune system";
+    if (itemLower.includes('salmon')) return "Source of omega-3, helps cardiovascular health";
+    if (itemLower.includes('oat')) return "Rich in soluble fiber, helps control cholesterol";
+    if (itemLower.includes('quinoa')) return "Complete protein and gluten-free, ideal for vegetarians";
+    if (itemLower.includes('avocado')) return "Good fats that help in vitamin absorption";
+    if (itemLower.includes('green tea')) return "Natural antioxidants that boost metabolism";
     
-    return "Escolha saudável que contribui para uma alimentação equilibrada";
+    return "Healthy choice that contributes to a balanced diet";
   }
 }

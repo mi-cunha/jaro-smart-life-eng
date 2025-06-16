@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { RecipesService } from '@/services/recipesService';
 import { Receita } from '@/types/receitas';
@@ -65,7 +66,7 @@ export function useSupabaseReceitas() {
       // Load all recipes at once instead of by meal type
       const { data, error } = await RecipesService.buscarReceitas();
       if (error) {
-        console.error('Erro ao carregar receitas:', error);
+        console.error('Error loading recipes:', error);
       } else {
         // Group recipes by meal type
         data.forEach(receita => {
@@ -87,8 +88,8 @@ export function useSupabaseReceitas() {
 
       setReceitas(receitasPorRefeicao);
     } catch (error) {
-      console.error('Erro ao carregar receitas:', error);
-      toast.error('Erro ao carregar receitas');
+      console.error('Error loading recipes:', error);
+      toast.error('Error loading recipes');
     } finally {
       setLoading(false);
     }
@@ -98,7 +99,7 @@ export function useSupabaseReceitas() {
     try {
       const { data, error } = await RecipesService.salvarReceita(receita);
       if (error) {
-        toast.error('Erro ao salvar receita');
+        toast.error('Error saving recipe');
         return;
       }
 
@@ -126,10 +127,10 @@ export function useSupabaseReceitas() {
         return newState;
       });
 
-      toast.success('Receita salva com sucesso!');
+      toast.success('Recipe saved successfully!');
     } catch (error) {
-      console.error('Erro ao salvar receita:', error);
-      toast.error('Erro ao salvar receita');
+      console.error('Error saving recipe:', error);
+      toast.error('Error saving recipe');
     }
   };
 
@@ -151,7 +152,7 @@ export function useSupabaseReceitas() {
       });
 
       if (error) {
-        toast.error('Erro ao atualizar favorito');
+        toast.error('Error updating favorite');
         return;
       }
 
@@ -170,10 +171,10 @@ export function useSupabaseReceitas() {
         return newState;
       });
 
-      toast.success(receita.favorita ? 'Removido dos favoritos' : 'Adicionado aos favoritos!');
+      toast.success(receita.favorita ? 'Removed from favorites' : 'Added to favorites!');
     } catch (error) {
-      console.error('Erro ao toggle favorito:', error);
-      toast.error('Erro ao atualizar favorito');
+      console.error('Error toggling favorite:', error);
+      toast.error('Error updating favorite');
     }
   };
 
@@ -181,7 +182,7 @@ export function useSupabaseReceitas() {
     try {
       const { error } = await RecipesService.deletarReceita(receitaId);
       if (error) {
-        toast.error('Erro ao remover receita');
+        toast.error('Error removing recipe');
         return;
       }
 
@@ -198,10 +199,10 @@ export function useSupabaseReceitas() {
         return newState;
       });
 
-      toast.success('Receita removida!');
+      toast.success('Recipe removed!');
     } catch (error) {
-      console.error('Erro ao remover receita:', error);
-      toast.error('Erro ao remover receita');
+      console.error('Error removing recipe:', error);
+      toast.error('Error removing recipe');
     }
   };
 
