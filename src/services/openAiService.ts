@@ -51,27 +51,32 @@ export class OpenAIService {
 
       console.log('Received recipe data:', data);
 
-      // Validate and normalize the response
+      // Validate and normalize the response with more strict checks
       const recipeResponse: RecipeResponse = {
-        nome: data.nome || 'Receita Gerada',
-        tempo: Number(data.tempo) || 30,
-        calorias: Number(data.calorias) || 300,
-        ingredientes: Array.isArray(data.ingredientes) ? data.ingredientes : [],
-        preparo: Array.isArray(data.preparo) ? data.preparo : [],
-        proteinas: Number(data.proteinas) || 25,
-        carboidratos: Number(data.carboidratos) || 30,
-        gorduras: Number(data.gorduras) || 15
+        nome: data.nome && data.nome.trim() ? data.nome.trim() : 'Healthy Recipe',
+        tempo: Math.max(Number(data.tempo) || 15, 5),
+        calorias: Math.max(Number(data.calorias) || 250, 50),
+        ingredientes: Array.isArray(data.ingredientes) && data.ingredientes.length > 0 
+          ? data.ingredientes.filter(ing => ing && ing.trim()) 
+          : ['Basic ingredients'],
+        preparo: Array.isArray(data.preparo) && data.preparo.length > 0 
+          ? data.preparo.filter(step => step && step.trim()) 
+          : ['Follow basic preparation steps'],
+        proteinas: Math.max(Number(data.proteinas) || 10, 0),
+        carboidratos: Math.max(Number(data.carboidratos) || 20, 0),
+        gorduras: Math.max(Number(data.gorduras) || 5, 0)
       };
 
-      // Additional validation
+      // Final validation to ensure we have complete data
       if (recipeResponse.ingredientes.length === 0) {
-        throw new Error('Recipe generation returned no ingredients');
+        throw new Error('Recipe generation returned no valid ingredients');
       }
 
       if (recipeResponse.preparo.length === 0) {
-        throw new Error('Recipe generation returned no preparation steps');
+        throw new Error('Recipe generation returned no valid preparation steps');
       }
 
+      console.log('Validated recipe response:', recipeResponse);
       return recipeResponse;
     } catch (error) {
       console.error('Error generating recipe with OpenAI:', error);
@@ -90,37 +95,6 @@ export class OpenAIService {
       } else {
         throw new Error('Unknown error occurred during recipe generation. Please try again.');
       }
-    }
-  }
-
-  static async saveRecipeToSupabase(recipe: RecipeResponse, mealType: string): Promise<boolean> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.email) {
-        console.error('User not authenticated');
-        return false;
-      }
-
-      const { data, error } = await supabase
-        .from('receitas')
-        .insert({
-          nome: recipe.nome,
-          tempo_preparo: recipe.tempo,
-          calorias: recipe.calorias,
-          ingredientes: recipe.ingredientes,
-          instrucoes: recipe.preparo.join('\n'),
-          user_email: user.email
-        });
-
-      if (error) {
-        console.error('Error saving recipe to Supabase:', error);
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error saving recipe:', error);
-      return false;
     }
   }
 }
