@@ -10,7 +10,7 @@ export class PreferencesService {
       console.error('Authentication error:', error);
       throw new Error('Authentication failed');
     }
-    if (!user) {
+    if (!user?.email) {
       throw new Error('User not authenticated');
     }
     return user;
@@ -26,7 +26,7 @@ export class PreferencesService {
           objetivo: preferencias.objetivo,
           preferencias_alimentares: preferencias.alimentares,
           restricoes_alimentares: preferencias.restricoes,
-          usuario_id: user.id
+          user_email: user.email
         })
         .select()
         .single();
@@ -50,7 +50,7 @@ export class PreferencesService {
       const { data, error } = await supabase
         .from('preferencias_usuario')
         .select('*')
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .single();
 
       if (error && error.code !== 'PGRST116') {

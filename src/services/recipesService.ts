@@ -10,7 +10,7 @@ export class RecipesService {
       console.error('Authentication error:', error);
       throw new Error('Authentication failed');
     }
-    if (!user) {
+    if (!user?.email) {
       throw new Error('User not authenticated');
     }
     return user;
@@ -28,7 +28,7 @@ export class RecipesService {
           calorias: receita.calorias,
           ingredientes: receita.ingredientes,
           instrucoes: receita.preparo?.join('\n') || '', // Map preparo array to instrucoes string
-          usuario_id: user.id
+          user_email: user.email
         })
         .select()
         .single();
@@ -52,7 +52,7 @@ export class RecipesService {
       let query = supabase
         .from('receitas')
         .select('*')
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .order('created_at', { ascending: false });
 
       const { data, error } = await query;
@@ -116,7 +116,7 @@ export class RecipesService {
         .from('receitas')
         .update(updateData)
         .eq('id', id)
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .select()
         .single();
 
@@ -140,7 +140,7 @@ export class RecipesService {
         .from('receitas')
         .delete()
         .eq('id', id)
-        .eq('usuario_id', user.id);
+        .eq('user_email', user.email);
 
       if (error) {
         console.error('Error deleting recipe:', error);

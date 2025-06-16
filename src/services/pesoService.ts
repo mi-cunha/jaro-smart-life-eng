@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface HistoricoPeso {
   id: string;
-  usuario_id: string;
+  user_email: string;
   peso: number;
   data: string;
   observacoes?: string;
@@ -14,14 +14,14 @@ export class PesoService {
   static async buscarHistoricoPeso(limite: number = 30) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.email) {
         return { data: [], error: new Error('User not authenticated') };
       }
 
       const { data, error } = await supabase
         .from('historico_peso')
         .select('*')
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .order('data', { ascending: false })
         .limit(limite);
 
@@ -40,14 +40,14 @@ export class PesoService {
   static async adicionarPeso(peso: number, observacoes?: string) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.email) {
         return { data: null, error: new Error('User not authenticated') };
       }
 
       const { data, error } = await supabase
         .from('historico_peso')
         .insert({
-          usuario_id: user.id,
+          user_email: user.email,
           peso,
           observacoes,
           data: new Date().toISOString().split('T')[0]
@@ -70,7 +70,7 @@ export class PesoService {
   static async atualizarPeso(id: string, peso: number, observacoes?: string) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.email) {
         return { data: null, error: new Error('User not authenticated') };
       }
 
@@ -78,7 +78,7 @@ export class PesoService {
         .from('historico_peso')
         .update({ peso, observacoes })
         .eq('id', id)
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .select()
         .single();
 
@@ -97,7 +97,7 @@ export class PesoService {
   static async deletarPeso(id: string) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.email) {
         return { error: new Error('User not authenticated') };
       }
 
@@ -105,7 +105,7 @@ export class PesoService {
         .from('historico_peso')
         .delete()
         .eq('id', id)
-        .eq('usuario_id', user.id);
+        .eq('user_email', user.email);
 
       if (error) {
         console.error('Error deleting weight record:', error);

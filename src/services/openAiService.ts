@@ -95,6 +95,12 @@ export class OpenAIService {
 
   static async saveRecipeToSupabase(recipe: RecipeResponse, mealType: string): Promise<boolean> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) {
+        console.error('User not authenticated');
+        return false;
+      }
+
       const { data, error } = await supabase
         .from('receitas')
         .insert({
@@ -103,7 +109,7 @@ export class OpenAIService {
           calorias: recipe.calorias,
           ingredientes: recipe.ingredientes,
           instrucoes: recipe.preparo.join('\n'),
-          usuario_id: '00000000-0000-0000-0000-000000000000' // Default user ID
+          user_email: user.email
         });
 
       if (error) {

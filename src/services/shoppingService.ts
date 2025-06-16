@@ -10,7 +10,7 @@ export class ShoppingService {
       console.error('Authentication error:', error);
       throw new Error('Authentication failed');
     }
-    if (!user) {
+    if (!user?.email) {
       throw new Error('User not authenticated');
     }
     return user;
@@ -26,7 +26,7 @@ export class ShoppingService {
           item: item.nome, // Map nome to item
           quantidade: item.quantidade,
           comprado: item.comprado,
-          usuario_id: user.id
+          user_email: user.email
           // Note: preco, categoria, refeicao don't exist in current DB schema
         })
         .select()
@@ -51,7 +51,7 @@ export class ShoppingService {
       let query = supabase
         .from('lista_compras')
         .select('*')
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .order('created_at', { ascending: false });
 
       const { data, error } = await query;
@@ -102,7 +102,7 @@ export class ShoppingService {
         .from('lista_compras')
         .update(updateData)
         .eq('id', id)
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .select()
         .single();
 
@@ -126,7 +126,7 @@ export class ShoppingService {
         .from('lista_compras')
         .delete()
         .eq('id', id)
-        .eq('usuario_id', user.id);
+        .eq('user_email', user.email);
 
       if (error) {
         console.error('Error deleting shopping item:', error);
