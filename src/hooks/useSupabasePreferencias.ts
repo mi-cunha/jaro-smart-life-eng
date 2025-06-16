@@ -43,16 +43,17 @@ export function useSupabasePreferencias() {
       if (data) {
         console.log('📥 Dados brutos do Supabase:', data);
         
-        // Process the preferences data
+        // Process the preferences data with proper type checking
         let alimentaresValue = 'nenhuma';
         if (data.preferencias_alimentares) {
           if (typeof data.preferencias_alimentares === 'string') {
             alimentaresValue = data.preferencias_alimentares;
-          } else if (typeof data.preferencias_alimentares === 'object') {
-            // Extract from JSON object
-            alimentaresValue = data.preferencias_alimentares.dietType || 
-                             data.preferencias_alimentares.dailyRoutine || 
-                             'personalizada';
+          } else if (typeof data.preferencias_alimentares === 'object' && 
+                     data.preferencias_alimentares !== null && 
+                     !Array.isArray(data.preferencias_alimentares)) {
+            // Safe type assertion after checking it's an object
+            const prefObj = data.preferencias_alimentares as Record<string, any>;
+            alimentaresValue = prefObj.dietType || prefObj.dailyRoutine || 'personalizada';
           }
         }
         
