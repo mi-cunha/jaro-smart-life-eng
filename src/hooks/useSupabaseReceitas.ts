@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { RecipesService } from '@/services/recipesService';
 import { Receita } from '@/types/receitas';
@@ -16,7 +15,7 @@ const transformSupabaseReceita = (supabaseReceita: any): Receita => {
     preparo: supabaseReceita.preparo || [],
     macros: {
       proteinas: supabaseReceita.proteinas || 0,
-      carboidratos: supabaseReceitas.carboidratos || 0,
+      carboidratos: supabaseReceita.carboidratos || 0,
       gorduras: supabaseReceita.gorduras || 0,
     },
     favorita: supabaseReceita.favorita || false
