@@ -71,7 +71,8 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
                 )}
               </div>
               <Switch
-                checked={useAI && hasApiKey}
+                checked={useAI}
+                disabled={!hasApiKey}
                 onCheckedChange={handleToggleAI}
                 disabled={!hasApiKey}
                 className="data-[state=checked]:bg-neon-green"
@@ -117,17 +118,16 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
               <div className="flex gap-2">
                 <span className="text-white/60">Preferences:</span>
                 <Badge variant="outline" className="border-green-400/30 text-green-400">
-                  {preferencias?.alimentares || 'None'}
+                  {preferencias?.preferencias_alimentares?.dailyRoutine || 'None'}
                 </Badge>
               </div>
-              {preferencias?.restricoes && preferencias.restricoes.length > 0 && (
+              Array.isArray(preferencias?.restricoes_alimentares) && preferencias.restricoes_alimentares.length > 0
+ && (
                 <div className="flex gap-2 flex-wrap">
                   <span className="text-white/60">Restrictions:</span>
-                  {preferencias.restricoes.map((restricao, index) => (
-                    <Badge key={index} variant="outline" className="border-orange-400/30 text-orange-400">
-                      {restricao}
-                    </Badge>
-                  ))}
+                  {preferencias?.restricoes_alimentares?.map((restricao, index) => (
+  <Badge key={index} ...>{restricao}</Badge>
+))}
                 </div>
               )}
             </div>
