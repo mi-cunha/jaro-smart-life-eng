@@ -42,7 +42,7 @@ export default function ReceitaCard({
       <Card className="bg-white/5 border-white/10 hover:border-white/20 transition-colors">
         <CardHeader className="pb-3">
           <div className="flex justify-between items-start">
-            <CardTitle className="text-white text-lg">{receita.nome}</CardTitle>
+            <CardTitle className="text-white text-lg font-bold leading-tight">{receita.nome}</CardTitle>
             <div className="flex gap-1">
               <Button
                 variant="ghost"
@@ -67,11 +67,11 @@ export default function ReceitaCard({
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <div className="flex gap-2 flex-wrap">
             <Badge variant="outline" className="border-neon-green/30 text-neon-green">
               <Clock className="w-3 h-3 mr-1" />
-              {receita.tempo}min
+              {receita.tempo} min
             </Badge>
             <Badge variant="outline" className="border-orange-400/30 text-orange-400">
               <Zap className="w-3 h-3 mr-1" />
@@ -79,33 +79,39 @@ export default function ReceitaCard({
             </Badge>
           </div>
 
-          <div>
-            <h5 className="text-white/80 text-sm font-medium mb-2">Ingredients:</h5>
-            <div className="flex flex-wrap gap-1">
+          {/* Ingredients Preview */}
+          <div className="bg-white/5 rounded-lg p-3">
+            <h5 className="text-white/90 text-sm font-semibold mb-2 flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-neon-green rounded-full"></div>
+              Ingredients:
+            </h5>
+            <div className="space-y-1">
               {receita.ingredientes.slice(0, 3).map((ingrediente, index) => (
-                <Badge key={index} variant="secondary" className="text-xs bg-white/10 text-white/70">
+                <div key={index} className="text-white/70 text-xs flex items-center gap-2">
+                  <div className="w-1 h-1 bg-neon-green/60 rounded-full flex-shrink-0" />
                   {ingrediente}
-                </Badge>
+                </div>
               ))}
               {receita.ingredientes.length > 3 && (
-                <Badge variant="secondary" className="text-xs bg-white/10 text-white/70">
-                  +{receita.ingredientes.length - 3}
-                </Badge>
+                <div className="text-neon-green text-xs">
+                  +{receita.ingredientes.length - 3} more ingredients
+                </div>
               )}
             </div>
           </div>
 
+          {/* Macros */}
           <div className="grid grid-cols-3 gap-2 text-xs">
-            <div className="text-center p-2 bg-white/5 rounded">
-              <div className="text-white/60">Proteins</div>
+            <div className="text-center p-2 bg-white/5 rounded border border-white/10">
+              <div className="text-white/60">Protein</div>
               <div className="text-white font-medium">{receita.macros.proteinas}g</div>
             </div>
-            <div className="text-center p-2 bg-white/5 rounded">
+            <div className="text-center p-2 bg-white/5 rounded border border-white/10">
               <div className="text-white/60">Carbs</div>
               <div className="text-white font-medium">{receita.macros.carboidratos}g</div>
             </div>
-            <div className="text-center p-2 bg-white/5 rounded">
-              <div className="text-white/60">Fats</div>
+            <div className="text-center p-2 bg-white/5 rounded border border-white/10">
+              <div className="text-white/60">Fat</div>
               <div className="text-white font-medium">{receita.macros.gorduras}g</div>
             </div>
           </div>
@@ -117,7 +123,7 @@ export default function ReceitaCard({
             className="w-full border-neon-green/30 text-neon-green hover:bg-neon-green/10"
           >
             <Eye className="w-4 h-4 mr-2" />
-            View Details
+            View Recipe Details
           </Button>
         </CardContent>
       </Card>

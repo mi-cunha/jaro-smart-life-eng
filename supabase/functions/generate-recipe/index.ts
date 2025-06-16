@@ -50,7 +50,7 @@ DIETARY PREFERENCES: ${dietaryPreferences}
 DIETARY RESTRICTIONS: ${restrictions.join(', ')}
 AVAILABLE TIME: ${timeAvailable} minutes
 
-MANDATORY INSTRUCTIONS:
+MANDATORY REQUIREMENTS:
 1. Use PRIMARILY the available ingredients listed above
 2. The recipe must be suitable for ${mealType.toLowerCase()}
 3. Consider the nutritional goal: ${goal}
@@ -58,33 +58,42 @@ MANDATORY INSTRUCTIONS:
 5. Preparation time should be realistic (maximum ${timeAvailable} minutes)
 6. Provide accurate nutritional values
 7. Create a balanced and nutritious meal
+8. Instructions must be clear, step-by-step and easy to follow
+9. Ingredients must include specific quantities and units
 
 RESPONSE FORMAT (must be valid JSON):
 {
-  "nome": "Creative and appetizing recipe name in Portuguese",
+  "nome": "Creative and appetizing recipe name in English",
   "tempo": number_in_minutes,
   "calorias": total_calories_number,
   "ingredientes": [
-    "quantity + unit + ingredient (ex: 2 xícaras de arroz integral)",
-    "1 colher de sopa de azeite extra virgem"
+    "1 cup rolled oats",
+    "1 medium banana, sliced",
+    "1/2 cup mixed berries",
+    "1/2 cup Greek yogurt",
+    "1 tablespoon honey"
   ],
   "preparo": [
-    "Passo 1: Detailed instruction for the first step",
-    "Passo 2: Detailed instruction for the second step",
-    "Continue until recipe is complete"
+    "Mix oats with Greek yogurt in a bowl",
+    "Add sliced banana on top",
+    "Top with mixed berries",
+    "Drizzle honey to taste and serve"
   ],
   "proteinas": grams_of_protein,
   "carboidratos": grams_of_carbohydrates,
   "gorduras": grams_of_fats
 }
 
-IMPORTANT: 
+IMPORTANT NOTES: 
+- Recipe name must be in English
+- Ingredients must include specific quantities (cups, tablespoons, grams, etc.)
+- Instructions must be clear and numbered steps
 - Respond ONLY with valid JSON, without additional explanations or markdown
-- Be specific with quantities and instructions in Portuguese
+- Be specific with quantities and instructions in English
 - The recipe should be tasty, nutritious and easy to make
 - Use cooking techniques that preserve nutrients
 - Consider harmonious flavor combinations
-- Ensure all values are realistic numbers`
+- Ensure all nutritional values are realistic numbers`
 
     console.log('Sending request to OpenAI API...');
 
@@ -99,7 +108,7 @@ IMPORTANT:
         messages: [
           {
             role: 'system',
-            content: 'You are a professional chef specialized in nutrition who creates healthy and balanced recipes. Always respond with valid JSON only, no additional text or markdown formatting.'
+            content: 'You are a professional chef specialized in nutrition who creates healthy and balanced recipes. Always respond with valid JSON only, no additional text or markdown formatting. Recipe names and instructions must be in English.'
           },
           {
             role: 'user',
