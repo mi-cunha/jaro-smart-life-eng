@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,12 +35,21 @@ export function useQuizData() {
         // Buscar dados das preferências usando user_email
         const { data: preferencias, error: prefError } = await supabase
           .from('preferencias_usuario')
-          .select('preferencias_alimentares')
+          .select('preferencias_alimentares, objetivo, restricoes_alimentares')
           .eq('user_email', user.email)
-          .single();
+          .maybeSingle();
 
         if (prefError) {
           console.log('❌ Error fetching quiz data from preferences:', prefError);
+          setQuizData(null);
+          setLoading(false);
+          return;
+        }
+
+        console.log('📊 Raw preferences data:', preferencias);
+
+        if (!preferencias) {
+          console.log('❌ No preferences found for user');
           setQuizData(null);
           setLoading(false);
           return;
@@ -53,7 +61,7 @@ export function useQuizData() {
             !Array.isArray(preferencias.preferencias_alimentares)) {
           
           const quizDataFromDB = preferencias.preferencias_alimentares as any;
-          console.log('✅ Found quiz data in database:', quizDataFromDB);
+          console.log('✅ Found quiz data in preferencias_alimentares:', quizDataFromDB);
           
           // Map the quiz data to our expected structure
           const mappedQuizData: QuizData = {
@@ -70,8 +78,25 @@ export function useQuizData() {
           };
           
           setQuizData(mappedQuizData);
+        } else if (typeof preferencias.preferencias_alimentares === 'string') {
+          // If it's a string, it might be a simple preference like "vegano", "vegetariano", etc.
+          console.log('ℹ️ Found string preference:', preferencias.preferencias_alimentares);
+          
+          // Create a basic quiz data structure from the string preference
+          const basicQuizData: QuizData = {
+            dietaryRestrictions: [preferencias.preferencias_alimentares]
+          };
+          
+          // Add objetivo if available
+          if (preferencias.objetivo) {
+            if (preferencias.objetivo.includes('peso') || preferencias.objetivo.includes('weight')) {
+              basicQuizData.healthGoals = ['weight-loss'];
+            }
+          }
+          
+          setQuizData(basicQuizData);
         } else {
-          console.log('❌ No valid quiz data found in preferences_alimentares');
+          console.log('❌ No valid quiz data found in preferencias_alimentares');
           setQuizData(null);
         }
       } catch (error) {
@@ -165,7 +190,7 @@ export function useQuizData() {
 
     return actions.sort((a, b) => {
       const priorityOrder = { high: 0, medium: 1, low: 2 };
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
+      return priorityOrder[a.priority as keyof typeof priorityOrder] - priorityOrder[b.priority as keyof typeof priorityOrder];
     });
   };
 

@@ -19,6 +19,8 @@ export interface PerfilUsuario {
   
   // Goals and targets
   peso_objetivo?: number;
+  peso_atual?: number;
+  meta_peso?: number;
   habitos_diarios: number;
   doses_cha: number;
   calorias_diarias: number;
@@ -44,23 +46,28 @@ export class PerfilService {
   static async buscarPerfil() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.email) {
+        console.log('❌ User not authenticated or email missing');
         return { data: null, error: new Error('User not authenticated') };
       }
 
-      const { data, error } = await supabase
+      console.log('🔍 Loading profile for user email:', user.email);
+
+      // Buscar perfil usando user_email
+      const { data: perfilData, error: perfilError } = await supabase
         .from('perfil_usuario')
         .select('*')
         .eq('user_email', user.email)
         .maybeSingle();
 
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return { data: null, error };
+      if (perfilError) {
+        console.error('❌ Error fetching profile:', perfilError);
+        return { data: null, error: perfilError };
       }
 
-      // If no profile exists, create a default one
-      if (!data) {
+      // Se não existe perfil, criar um padrão
+      if (!perfilData) {
+        console.log('🔧 Creating default profile for user:', user.email);
         const defaultProfile = {
           user_email: user.email,
           nome: user.user_metadata?.nome || user.email?.split('@')[0] || 'User',
@@ -91,16 +98,18 @@ export class PerfilService {
           .single();
 
         if (createError) {
-          console.error('Error creating default profile:', createError);
+          console.error('❌ Error creating default profile:', createError);
           return { data: null, error: createError };
         }
 
+        console.log('✅ Default profile created successfully');
         return { data: newProfile, error: null };
       }
 
-      return { data, error: null };
+      console.log('✅ Profile loaded successfully:', perfilData);
+      return { data: perfilData, error: null };
     } catch (error) {
-      console.error('Error in buscarPerfil:', error);
+      console.error('❌ Exception in buscarPerfil:', error);
       return { data: null, error };
     }
   }
@@ -108,9 +117,12 @@ export class PerfilService {
   static async atualizarPerfil(updates: Partial<PerfilUsuario>) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.email) {
+        console.log('❌ User not authenticated for profile update');
         return { data: null, error: new Error('User not authenticated') };
       }
+
+      console.log('🔧 Updating profile for user:', user.email, 'with updates:', updates);
 
       const { data, error } = await supabase
         .from('perfil_usuario')
@@ -120,13 +132,14 @@ export class PerfilService {
         .single();
 
       if (error) {
-        console.error('Error updating profile:', error);
+        console.error('❌ Error updating profile:', error);
         return { data: null, error };
       }
 
+      console.log('✅ Profile updated successfully:', data);
       return { data, error: null };
     } catch (error) {
-      console.error('Error in atualizarPerfil:', error);
+      console.error('❌ Exception in atualizarPerfil:', error);
       return { data: null, error };
     }
   }
@@ -145,7 +158,7 @@ export class PerfilService {
 
       return { data, error };
     } catch (error) {
-      console.error('Error saving avatar:', error);
+      console.error('❌ Error saving avatar:', error);
       return { data: null, error };
     }
   }
