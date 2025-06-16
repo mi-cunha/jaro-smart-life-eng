@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface Habito {
   id: string;
-  usuario_id: string;
+  user_email: string;
   nome: string;
   descricao?: string;
   meta_diaria: number;
@@ -14,7 +14,7 @@ export interface Habito {
 
 export interface HistoricoHabito {
   id: string;
-  usuario_id: string;
+  user_email: string;
   habito_id: string;
   data: string;
   concluido: boolean;
@@ -28,14 +28,14 @@ export class HabitosService {
   static async buscarHabitos() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.email) {
         return { data: [], error: new Error('User not authenticated') };
       }
 
       const { data, error } = await supabase
         .from('habitos')
         .select('*')
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .eq('ativo', true)
         .order('created_at', { ascending: false });
 
@@ -54,7 +54,7 @@ export class HabitosService {
   static async buscarHistoricoHoje() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.email) {
         return { data: [], error: new Error('User not authenticated') };
       }
 
@@ -63,7 +63,7 @@ export class HabitosService {
       const { data, error } = await supabase
         .from('historico_habitos')
         .select('*')
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .eq('data', hoje);
 
       if (error) {
@@ -81,7 +81,7 @@ export class HabitosService {
   static async buscarProgressoSemanal() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.email) {
         return { data: [], error: new Error('User not authenticated') };
       }
 
@@ -91,7 +91,7 @@ export class HabitosService {
       const { data, error } = await supabase
         .from('historico_habitos')
         .select('data, concluido')
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .gte('data', seteDiasAtras.toISOString().split('T')[0])
         .lte('data', hoje.toISOString().split('T')[0])
         .order('data', { ascending: true });
@@ -111,7 +111,7 @@ export class HabitosService {
   static async marcarHabitoCompleto(habitoId: string, concluido: boolean) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.email) {
         return { data: null, error: new Error('User not authenticated') };
       }
 
@@ -121,7 +121,7 @@ export class HabitosService {
       const { data: existing } = await supabase
         .from('historico_habitos')
         .select('id')
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .eq('habito_id', habitoId)
         .eq('data', hoje)
         .single();
@@ -141,7 +141,7 @@ export class HabitosService {
         const { data, error } = await supabase
           .from('historico_habitos')
           .insert({
-            usuario_id: user.id,
+            user_email: user.email,
             habito_id: habitoId,
             data: hoje,
             concluido,
@@ -161,14 +161,14 @@ export class HabitosService {
   static async criarHabito(nome: string, descricao?: string, metaDiaria: number = 1) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user?.email) {
         return { data: null, error: new Error('User not authenticated') };
       }
 
       const { data, error } = await supabase
         .from('habitos')
         .insert({
-          usuario_id: user.id,
+          user_email: user.email,
           nome,
           descricao,
           meta_diaria: metaDiaria,

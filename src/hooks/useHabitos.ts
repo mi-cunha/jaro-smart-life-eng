@@ -1,8 +1,20 @@
+
 import { useState, useEffect } from 'react';
-import { HabitosService, Habito } from '@/services/habitosService';
+import { HabitosService } from '@/services/habitosService';
 import { toast } from 'sonner';
 
-// ✅ Tipagem explícita dos itens do histórico
+// Atualizada para corresponder ao schema atual
+interface Habito {
+  id: string;
+  user_email: string;
+  nome: string;
+  descricao?: string;
+  meta_diaria: number;
+  ativo: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 interface HistoricoSemanalItem {
   data: string;
   concluido: boolean;
@@ -78,7 +90,6 @@ export function useHabitos() {
         return [];
       }
 
-      // ✅ Agrupar por data com tipagem segura
       const groupedByDate = (data as HistoricoSemanalItem[]).reduce(
         (acc, item) => {
           const dataStr = item.data;
@@ -94,7 +105,6 @@ export function useHabitos() {
         {} as Record<string, { total: number; completed: number }>
       );
 
-      // ✅ Converter em array para exibir em gráfico
       return Object.entries(groupedByDate).map(([date, stats]) => {
         const { total, completed } = stats;
         return {

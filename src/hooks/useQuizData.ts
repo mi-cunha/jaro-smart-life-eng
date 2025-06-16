@@ -33,27 +33,11 @@ export function useQuizData() {
       setLoading(true);
 
       try {
-        // First, get the subscriber record to find the usuario_id
-        const { data: subscriber, error: subError } = await supabase
-          .from('subscribers')
-          .select('usuario_id')
-          .eq('email', user.email)
-          .single();
-
-        if (subError || !subscriber?.usuario_id) {
-          console.log('❌ No subscriber found for quiz data:', subError);
-          setQuizData(null);
-          setLoading(false);
-          return;
-        }
-
-        console.log('✅ Found subscriber with usuario_id:', subscriber.usuario_id);
-
-        // Then get the preferences using the usuario_id to extract quiz data
+        // Buscar dados das preferências usando user_email
         const { data: preferencias, error: prefError } = await supabase
           .from('preferencias_usuario')
           .select('preferencias_alimentares')
-          .eq('usuario_id', subscriber.usuario_id)
+          .eq('user_email', user.email)
           .single();
 
         if (prefError) {
@@ -190,19 +174,16 @@ export function useQuizData() {
 
     const { age, gender, activityLevel, healthGoals } = quizData;
     
-    // Calculate personalized targets based on quiz data from Supabase
-    let recommendedCalories = 2000; // Base value
-    let recommendedWater = 8; // glasses
+    let recommendedCalories = 2000;
+    let recommendedWater = 8;
     let recommendedTeaDoses = 2;
 
-    // Adjust based on gender and age
     if (gender === 'male') {
       recommendedCalories = age && age > 50 ? 2200 : 2500;
     } else if (gender === 'female') {
       recommendedCalories = age && age > 50 ? 1800 : 2000;
     }
 
-    // Adjust based on activity level
     if (activityLevel === 'high') {
       recommendedCalories += 300;
       recommendedWater += 2;
@@ -210,10 +191,9 @@ export function useQuizData() {
       recommendedCalories -= 200;
     }
 
-    // Adjust based on health goals
     if (healthGoals?.includes('weight-loss')) {
       recommendedCalories -= 300;
-      recommendedTeaDoses = 3; // More tea for weight loss
+      recommendedTeaDoses = 3;
     }
 
     return {

@@ -2,14 +2,9 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export class IngredientsService {
-  // Helper method to get authenticated user
   private static async getAuthenticatedUser() {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) {
-      console.error('Authentication error:', error);
-      throw new Error('Authentication failed');
-    }
-    if (!user) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.email) {
       throw new Error('User not authenticated');
     }
     return user;
@@ -22,14 +17,13 @@ export class IngredientsService {
       const ingredientesData = ingredientes.map(ing => ({
         nome: ing.nome,
         categoria: ing.categoria || null,
-        usuario_id: user.id
-        // Note: selecionado, refeicao don't exist in current DB schema
+        user_email: user.email
       }));
 
       const { data, error } = await supabase
         .from('ingredientes')
         .upsert(ingredientesData, { 
-          onConflict: 'usuario_id,nome',
+          onConflict: 'user_email,nome',
           ignoreDuplicates: false 
         })
         .select();
@@ -53,7 +47,7 @@ export class IngredientsService {
       let query = supabase
         .from('ingredientes')
         .select('*')
-        .eq('usuario_id', user.id);
+        .eq('user_email', user.email);
 
       const { data, error } = await query;
       

@@ -98,9 +98,9 @@ export function useAuth() {
       console.log('✅ Final subscription status:', isSubbed);
       setIsSubscribed(isSubbed);
 
-      if (isSubbed && subscriber.usuario_id) {
+      if (isSubbed && email) {
         setTimeout(() => {
-          loadUserProfile(subscriber.usuario_id);
+          loadUserProfile(email);
         }, 0);
       }
 
@@ -112,18 +112,18 @@ export function useAuth() {
     }
   };
 
-  const loadUserProfile = async (userId: string) => {
+  const loadUserProfile = async (userEmail: string) => {
     try {
       const { data: perfil, error: perfilError } = await supabase
         .from('perfil_usuario')
         .select('*')
-        .eq('usuario_id', userId)
+        .eq('email', userEmail)
         .single();
 
       const { data: pesoAtual, error: pesoError } = await supabase
         .from('historico_peso')
         .select('peso')
-        .eq('usuario_id', userId)
+        .eq('user_email', userEmail)
         .order('data', { ascending: false })
         .limit(1)
         .single();
@@ -131,7 +131,7 @@ export function useAuth() {
       const { data: preferencias, error: prefError } = await supabase
         .from('preferencias_usuario')
         .select('*')
-        .eq('usuario_id', userId)
+        .eq('user_email', userEmail)
         .single();
 
       const profileData = {

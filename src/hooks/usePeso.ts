@@ -1,8 +1,18 @@
 
 import { useState, useEffect } from 'react';
-import { PesoService, HistoricoPeso } from '@/services/pesoService';
+import { PesoService } from '@/services/pesoService';
 import { PerfilService } from '@/services/perfilService';
 import { toast } from 'sonner';
+
+// Atualizada para corresponder ao schema atual
+interface HistoricoPeso {
+  id: string;
+  user_email: string;
+  peso: number;
+  data: string;
+  observacoes?: string;
+  created_at: string;
+}
 
 export function usePeso() {
   const [historicoPeso, setHistoricoPeso] = useState<HistoricoPeso[]>([]);
@@ -14,7 +24,7 @@ export function usePeso() {
     setLoading(true);
     try {
       const [historicoRes, perfilRes] = await Promise.all([
-        PesoService.buscarHistoricoPeso(30), // últimos 30 registros
+        PesoService.buscarHistoricoPeso(30),
         PerfilService.buscarPerfil()
       ]);
 
@@ -22,7 +32,6 @@ export function usePeso() {
         console.error('Erro ao carregar histórico de peso:', historicoRes.error);
       } else {
         setHistoricoPeso(historicoRes.data);
-        // Usar o peso mais recente do histórico como peso atual
         if (historicoRes.data.length > 0) {
           setPesoAtual(historicoRes.data[0].peso);
         }
@@ -30,14 +39,12 @@ export function usePeso() {
 
       if (perfilRes.error) {
         console.error('Erro ao carregar perfil:', perfilRes.error);
-        // Set default values when profile doesn't exist
         setPesoMeta(70.0);
         if (historicoRes.data.length === 0) {
           setPesoAtual(78.0);
         }
       } else if (perfilRes.data) {
         setPesoMeta(perfilRes.data.meta_peso || 70.0);
-        // Se não há histórico, usar peso_atual do perfil
         if (historicoRes.data.length === 0 && perfilRes.data.peso_atual) {
           setPesoAtual(perfilRes.data.peso_atual);
         }
@@ -45,7 +52,6 @@ export function usePeso() {
     } catch (error) {
       console.error('Erro ao carregar dados de peso:', error);
       toast.error('Error loading weight data');
-      // Set default values on error
       setPesoAtual(78.0);
       setPesoMeta(70.0);
     } finally {
@@ -73,7 +79,6 @@ export function usePeso() {
   const getProgressoPeso = () => {
     if (!pesoAtual || !pesoMeta) return 0;
     
-    // Assumindo que o objetivo é perder peso (peso inicial maior que meta)
     const pesoInicial = historicoPeso.length > 0 ? historicoPeso[historicoPeso.length - 1].peso : pesoAtual;
     const progressoTotal = pesoInicial - pesoMeta;
     const progressoAtual = pesoInicial - pesoAtual;
