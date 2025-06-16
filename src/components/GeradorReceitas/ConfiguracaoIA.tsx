@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -17,26 +16,19 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
   const [hasApiKey, setHasApiKey] = useState(false);
 
   useEffect(() => {
-    // Check if API key is configured in Supabase
     const checkApiKey = async () => {
       try {
-        // Make a simple call to check if the function exists and is configured
         const response = await fetch('/api/check-openai-key');
         setHasApiKey(response.ok);
       } catch (error) {
-        // If function doesn't exist or there's an error, assume key is configured
-        // (since it was manually inserted into Supabase)
-        setHasApiKey(true);
+        setHasApiKey(true); // fallback
       }
     };
-
     checkApiKey();
   }, []);
 
   const handleToggleAI = (checked: boolean) => {
-    if (checked && !hasApiKey) {
-      return; // Don't allow activation if no API key
-    }
+    if (checked && !hasApiKey) return;
     onToggleAI(checked);
   };
 
@@ -56,7 +48,7 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
         <DialogHeader>
           <DialogTitle className="text-white">Generator Settings</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           {/* AI Configuration */}
           <div className="space-y-4">
@@ -72,13 +64,12 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
               </div>
               <Switch
                 checked={useAI}
-                disabled={!hasApiKey}
                 onCheckedChange={handleToggleAI}
                 disabled={!hasApiKey}
                 className="data-[state=checked]:bg-neon-green"
               />
             </div>
-            
+
             {!hasApiKey && (
               <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
                 <div className="flex items-start gap-2">
@@ -92,7 +83,7 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
                 </div>
               </div>
             )}
-            
+
             {hasApiKey && (
               <div className="text-sm text-white/60 space-y-2">
                 <p>
@@ -121,13 +112,14 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
                   {preferencias?.preferencias_alimentares?.dailyRoutine || 'None'}
                 </Badge>
               </div>
-              Array.isArray(preferencias?.restricoes_alimentares) && preferencias.restricoes_alimentares.length > 0
- && (
+              {Array.isArray(preferencias?.restricoes_alimentares) && preferencias.restricoes_alimentares.length > 0 && (
                 <div className="flex gap-2 flex-wrap">
                   <span className="text-white/60">Restrictions:</span>
-                  {preferencias?.restricoes_alimentares?.map((restricao, index) => (
-  <Badge key={index} ...>{restricao}</Badge>
-))}
+                  {preferencias.restricoes_alimentares.map((restricao, index) => (
+                    <Badge key={index} variant="outline" className="border-orange-400/30 text-orange-400">
+                      {restricao}
+                    </Badge>
+                  ))}
                 </div>
               )}
             </div>
