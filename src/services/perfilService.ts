@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface PerfilUsuario {
   id?: string;
-  usuario_id?: string;
+  user_email?: string;
   nome: string;
   email?: string;
   avatar_url?: string;
@@ -51,7 +51,7 @@ export class PerfilService {
       const { data, error } = await supabase
         .from('perfil_usuario')
         .select('*')
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .maybeSingle();
 
       if (error) {
@@ -62,9 +62,9 @@ export class PerfilService {
       // If no profile exists, create a default one
       if (!data) {
         const defaultProfile = {
-          usuario_id: user.id,
+          user_email: user.email,
           nome: user.user_metadata?.nome || user.email?.split('@')[0] || 'User',
-          email: user.email || 'user@jarosmart.com',
+          email: user.email,
           vegano: false,
           vegetariano: false,
           low_carb: false,
@@ -115,7 +115,7 @@ export class PerfilService {
       const { data, error } = await supabase
         .from('perfil_usuario')
         .update(updates)
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .select()
         .single();
 

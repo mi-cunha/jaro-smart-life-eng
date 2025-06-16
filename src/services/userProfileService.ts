@@ -22,7 +22,7 @@ export class UserProfileService {
       const { data, error } = await supabase
         .from('perfil_usuario')
         .select('*')
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .single();
 
       if (error && error.code !== 'PGRST116') {
@@ -44,7 +44,7 @@ export class UserProfileService {
       const { data, error } = await supabase
         .from('perfil_usuario')
         .update(updates)
-        .eq('usuario_id', user.id)
+        .eq('user_email', user.email)
         .select()
         .single();
 

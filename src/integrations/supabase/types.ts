@@ -239,7 +239,7 @@ export type Database = {
           peso_objetivo: number | null
           sem_gluten: boolean | null
           updated_at: string
-          usuario_id: string | null
+          user_email: string
           vegano: boolean | null
           vegetariano: boolean | null
         }
@@ -269,7 +269,7 @@ export type Database = {
           peso_objetivo?: number | null
           sem_gluten?: boolean | null
           updated_at?: string
-          usuario_id?: string | null
+          user_email: string
           vegano?: boolean | null
           vegetariano?: boolean | null
         }
@@ -299,11 +299,19 @@ export type Database = {
           peso_objetivo?: number | null
           sem_gluten?: boolean | null
           updated_at?: string
-          usuario_id?: string | null
+          user_email?: string
           vegano?: boolean | null
           vegetariano?: boolean | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_perfil_usuario_email"
+            columns: ["user_email"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["email"]
+          },
+        ]
       }
       preferencias_usuario: {
         Row: {
@@ -314,7 +322,6 @@ export type Database = {
           restricoes_alimentares: string[] | null
           updated_at: string
           user_email: string
-          usuario_id: string | null
         }
         Insert: {
           created_at?: string
@@ -324,7 +331,6 @@ export type Database = {
           restricoes_alimentares?: string[] | null
           updated_at?: string
           user_email: string
-          usuario_id?: string | null
         }
         Update: {
           created_at?: string
@@ -334,7 +340,6 @@ export type Database = {
           restricoes_alimentares?: string[] | null
           updated_at?: string
           user_email?: string
-          usuario_id?: string | null
         }
         Relationships: [
           {
