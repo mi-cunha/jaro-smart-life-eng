@@ -16,11 +16,23 @@ const transformSupabaseReceita = (supabaseReceita: any): Receita => {
     preparo: supabaseReceita.preparo || [],
     macros: {
       proteinas: supabaseReceita.proteinas || 0,
-      carboidratos: supabaseReceita.carboidratos || 0,
+      carboidratos: supabaseReceitas.carboidratos || 0,
       gorduras: supabaseReceita.gorduras || 0,
     },
     favorita: supabaseReceita.favorita || false
   };
+};
+
+// Map English meal types to Portuguese and vice versa
+const mealTypeMap: { [key: string]: string } = {
+  "Breakfast": "Café da Manhã",
+  "Lunch": "Almoço", 
+  "Snack": "Lanche",
+  "Dinner": "Jantar",
+  "Café da Manhã": "Breakfast",
+  "Almoço": "Lunch",
+  "Lanche": "Snack", 
+  "Jantar": "Dinner"
 };
 
 export function useSupabaseReceitas() {
@@ -28,7 +40,12 @@ export function useSupabaseReceitas() {
     "Café da Manhã": [],
     "Almoço": [],
     "Lanche": [],
-    "Jantar": []
+    "Jantar": [],
+    // Also initialize English keys to handle both languages
+    "Breakfast": [],
+    "Lunch": [],
+    "Snack": [],
+    "Dinner": []
   });
   const [loading, setLoading] = useState(false);
 
@@ -39,16 +56,34 @@ export function useSupabaseReceitas() {
         "Café da Manhã": [],
         "Almoço": [],
         "Lanche": [],
-        "Jantar": []
+        "Jantar": [],
+        "Breakfast": [],
+        "Lunch": [],
+        "Snack": [],
+        "Dinner": []
       };
 
-      for (const refeicao of Object.keys(receitasPorRefeicao)) {
-        const { data, error } = await RecipesService.buscarReceitas(refeicao);
-        if (error) {
-          console.error(`Erro ao carregar receitas de ${refeicao}:`, error);
-        } else {
-          receitasPorRefeicao[refeicao] = data.map(transformSupabaseReceita);
-        }
+      // Load all recipes at once instead of by meal type
+      const { data, error } = await RecipesService.buscarReceitas();
+      if (error) {
+        console.error('Erro ao carregar receitas:', error);
+      } else {
+        // Group recipes by meal type
+        data.forEach(receita => {
+          const transformedReceita = transformSupabaseReceita(receita);
+          const mealType = transformedReceita.refeicao;
+          
+          // Add to both the original key and mapped key if exists
+          if (receitasPorRefeicao[mealType]) {
+            receitasPorRefeicao[mealType].push(transformedReceita);
+          }
+          
+          // Also add to the mapped key (English/Portuguese equivalent)
+          const mappedMealType = mealTypeMap[mealType];
+          if (mappedMealType && receitasPorRefeicao[mappedMealType]) {
+            receitasPorRefeicao[mappedMealType].push(transformedReceita);
+          }
+        });
       }
 
       setReceitas(receitasPorRefeicao);
@@ -70,10 +105,27 @@ export function useSupabaseReceitas() {
 
       // Transform and update local state
       const receitaTransformada = transformSupabaseReceita(data);
-      setReceitas(prev => ({
-        ...prev,
-        [receita.refeicao]: [...prev[receita.refeicao], receitaTransformada]
-      }));
+      const mealType = receita.refeicao;
+      
+      setReceitas(prev => {
+        const newState = { ...prev };
+        
+        // Ensure the meal type exists in state
+        if (!newState[mealType]) {
+          newState[mealType] = [];
+        }
+        
+        // Add to the original meal type
+        newState[mealType] = [...newState[mealType], receitaTransformada];
+        
+        // Also add to the mapped meal type if it exists
+        const mappedMealType = mealTypeMap[mealType];
+        if (mappedMealType && newState[mappedMealType]) {
+          newState[mappedMealType] = [...newState[mappedMealType], receitaTransformada];
+        }
+        
+        return newState;
+      });
 
       toast.success('Receita salva com sucesso!');
     } catch (error) {
@@ -83,7 +135,15 @@ export function useSupabaseReceitas() {
   };
 
   const toggleFavorito = async (refeicao: string, receitaId: string) => {
-    const receita = receitas[refeicao].find(r => r.id === receitaId);
+    // Find the recipe in the current meal type or its mapped equivalent
+    let receita = receitas[refeicao]?.find(r => r.id === receitaId);
+    if (!receita) {
+      const mappedMealType = mealTypeMap[refeicao];
+      if (mappedMealType) {
+        receita = receitas[mappedMealType]?.find(r => r.id === receitaId);
+      }
+    }
+    
     if (!receita) return;
 
     try {
@@ -96,13 +156,20 @@ export function useSupabaseReceitas() {
         return;
       }
 
-      // Atualizar estado local
-      setReceitas(prev => ({
-        ...prev,
-        [refeicao]: prev[refeicao].map(r => 
-          r.id === receitaId ? { ...r, favorita: !r.favorita } : r
-        )
-      }));
+      // Update state for both meal type and its mapped equivalent
+      setReceitas(prev => {
+        const newState = { ...prev };
+        
+        [refeicao, mealTypeMap[refeicao]].forEach(mealType => {
+          if (mealType && newState[mealType]) {
+            newState[mealType] = newState[mealType].map(r => 
+              r.id === receitaId ? { ...r, favorita: !r.favorita } : r
+            );
+          }
+        });
+        
+        return newState;
+      });
 
       toast.success(receita.favorita ? 'Removido dos favoritos' : 'Adicionado aos favoritos!');
     } catch (error) {
@@ -119,11 +186,18 @@ export function useSupabaseReceitas() {
         return;
       }
 
-      // Atualizar estado local
-      setReceitas(prev => ({
-        ...prev,
-        [refeicao]: prev[refeicao].filter(r => r.id !== receitaId)
-      }));
+      // Update state for both meal type and its mapped equivalent
+      setReceitas(prev => {
+        const newState = { ...prev };
+        
+        [refeicao, mealTypeMap[refeicao]].forEach(mealType => {
+          if (mealType && newState[mealType]) {
+            newState[mealType] = newState[mealType].filter(r => r.id !== receitaId);
+          }
+        });
+        
+        return newState;
+      });
 
       toast.success('Receita removida!');
     } catch (error) {
