@@ -25,9 +25,18 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
     }
 
     setIsGenerating(true);
-    toast.loading("Generating personalized recipe with AI...", { duration: 5000 });
+    toast.loading("Generating personalized recipe with AI...", { duration: 10000 });
 
     try {
+      console.log('Starting AI recipe generation with params:', {
+        refeicao,
+        ingredientesSelecionados,
+        preferenciasAlimentares,
+        restricoesAlimentares,
+        objetivo,
+        itensComprados
+      });
+
       const recipeData = await OpenAIService.generateRecipe({
         ingredientes: ingredientesSelecionados,
         preferenciasAlimentares: preferenciasAlimentares || 'none',
@@ -37,6 +46,8 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
         tempoDisponivel: 45,
         itensComprados
       });
+
+      console.log('AI recipe generated successfully:', recipeData);
 
       const novaReceita: Receita = {
         id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -65,8 +76,10 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
       console.error("Error generating AI recipe:", error);
       
       if (error instanceof Error) {
-        if (error.message.includes('API') || error.message.includes('OpenAI')) {
-          toast.error("OpenAI API Error. Please check your API key configuration.");
+        if (error.message.includes('API key')) {
+          toast.error("OpenAI API key not configured. Please check your settings.");
+        } else if (error.message.includes('network') || error.message.includes('connection')) {
+          toast.error("Network error. Please check your connection and try again.");
         } else {
           toast.error(`Recipe generation failed: ${error.message}`);
         }

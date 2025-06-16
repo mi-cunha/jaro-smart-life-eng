@@ -18,7 +18,7 @@ export type Database = {
           meta_diaria: number | null
           nome: string
           updated_at: string
-          usuario_id: string
+          user_email: string
         }
         Insert: {
           ativo?: boolean | null
@@ -28,7 +28,7 @@ export type Database = {
           meta_diaria?: number | null
           nome: string
           updated_at?: string
-          usuario_id: string
+          user_email: string
         }
         Update: {
           ativo?: boolean | null
@@ -38,9 +38,17 @@ export type Database = {
           meta_diaria?: number | null
           nome?: string
           updated_at?: string
-          usuario_id?: string
+          user_email?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_habitos_email"
+            columns: ["user_email"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["email"]
+          },
+        ]
       }
       historico_habitos: {
         Row: {
@@ -52,7 +60,7 @@ export type Database = {
           observacoes: string | null
           quantidade: number | null
           updated_at: string
-          usuario_id: string
+          user_email: string
         }
         Insert: {
           concluido?: boolean | null
@@ -63,7 +71,7 @@ export type Database = {
           observacoes?: string | null
           quantidade?: number | null
           updated_at?: string
-          usuario_id: string
+          user_email: string
         }
         Update: {
           concluido?: boolean | null
@@ -74,9 +82,16 @@ export type Database = {
           observacoes?: string | null
           quantidade?: number | null
           updated_at?: string
-          usuario_id?: string
+          user_email?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_historico_habitos_email"
+            columns: ["user_email"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["email"]
+          },
           {
             foreignKeyName: "historico_habitos_habito_id_fkey"
             columns: ["habito_id"]
@@ -93,7 +108,7 @@ export type Database = {
           id: string
           observacoes: string | null
           peso: number
-          usuario_id: string
+          user_email: string
         }
         Insert: {
           created_at?: string
@@ -101,7 +116,7 @@ export type Database = {
           id?: string
           observacoes?: string | null
           peso: number
-          usuario_id: string
+          user_email: string
         }
         Update: {
           created_at?: string
@@ -109,9 +124,17 @@ export type Database = {
           id?: string
           observacoes?: string | null
           peso?: number
-          usuario_id?: string
+          user_email?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_historico_peso_email"
+            columns: ["user_email"]
+            isOneToOne: false
+            referencedRelation: "usuarios"
+            referencedColumns: ["email"]
+          },
+        ]
       }
       ingredientes: {
         Row: {
@@ -121,7 +144,7 @@ export type Database = {
           id: string
           nome: string
           updated_at: string
-          usuario_id: string
+          user_email: string
         }
         Insert: {
           calorias_por_100g?: number | null
@@ -130,7 +153,7 @@ export type Database = {
           id?: string
           nome: string
           updated_at?: string
-          usuario_id: string
+          user_email: string
         }
         Update: {
           calorias_por_100g?: number | null
@@ -139,15 +162,15 @@ export type Database = {
           id?: string
           nome?: string
           updated_at?: string
-          usuario_id?: string
+          user_email?: string
         }
         Relationships: [
           {
-            foreignKeyName: "fk_ingredientes_usuario"
-            columns: ["usuario_id"]
+            foreignKeyName: "fk_ingredientes_email"
+            columns: ["user_email"]
             isOneToOne: false
             referencedRelation: "usuarios"
-            referencedColumns: ["id"]
+            referencedColumns: ["email"]
           },
         ]
       }
@@ -159,7 +182,7 @@ export type Database = {
           item: string
           quantidade: string | null
           updated_at: string
-          usuario_id: string
+          user_email: string
         }
         Insert: {
           comprado?: boolean | null
@@ -168,7 +191,7 @@ export type Database = {
           item: string
           quantidade?: string | null
           updated_at?: string
-          usuario_id: string
+          user_email: string
         }
         Update: {
           comprado?: boolean | null
@@ -177,15 +200,15 @@ export type Database = {
           item?: string
           quantidade?: string | null
           updated_at?: string
-          usuario_id?: string
+          user_email?: string
         }
         Relationships: [
           {
-            foreignKeyName: "fk_lista_compras_usuario"
-            columns: ["usuario_id"]
+            foreignKeyName: "fk_lista_compras_email"
+            columns: ["user_email"]
             isOneToOne: false
             referencedRelation: "usuarios"
-            referencedColumns: ["id"]
+            referencedColumns: ["email"]
           },
         ]
       }
@@ -216,7 +239,7 @@ export type Database = {
           peso_objetivo: number | null
           sem_gluten: boolean | null
           updated_at: string
-          usuario_id: string
+          usuario_id: string | null
           vegano: boolean | null
           vegetariano: boolean | null
         }
@@ -246,7 +269,7 @@ export type Database = {
           peso_objetivo?: number | null
           sem_gluten?: boolean | null
           updated_at?: string
-          usuario_id: string
+          usuario_id?: string | null
           vegano?: boolean | null
           vegetariano?: boolean | null
         }
@@ -276,19 +299,11 @@ export type Database = {
           peso_objetivo?: number | null
           sem_gluten?: boolean | null
           updated_at?: string
-          usuario_id?: string
+          usuario_id?: string | null
           vegano?: boolean | null
           vegetariano?: boolean | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_perfil_usuario_usuario"
-            columns: ["usuario_id"]
-            isOneToOne: false
-            referencedRelation: "usuarios"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       preferencias_usuario: {
         Row: {
@@ -298,7 +313,8 @@ export type Database = {
           preferencias_alimentares: Json | null
           restricoes_alimentares: string[] | null
           updated_at: string
-          usuario_id: string
+          user_email: string
+          usuario_id: string | null
         }
         Insert: {
           created_at?: string
@@ -307,7 +323,8 @@ export type Database = {
           preferencias_alimentares?: Json | null
           restricoes_alimentares?: string[] | null
           updated_at?: string
-          usuario_id: string
+          user_email: string
+          usuario_id?: string | null
         }
         Update: {
           created_at?: string
@@ -316,15 +333,16 @@ export type Database = {
           preferencias_alimentares?: Json | null
           restricoes_alimentares?: string[] | null
           updated_at?: string
-          usuario_id?: string
+          user_email?: string
+          usuario_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "fk_preferencias_usuario_usuario"
-            columns: ["usuario_id"]
+            foreignKeyName: "fk_preferencias_usuario_email"
+            columns: ["user_email"]
             isOneToOne: false
             referencedRelation: "usuarios"
-            referencedColumns: ["id"]
+            referencedColumns: ["email"]
           },
         ]
       }
@@ -338,7 +356,7 @@ export type Database = {
           nome: string
           tempo_preparo: number | null
           updated_at: string
-          usuario_id: string
+          user_email: string
         }
         Insert: {
           calorias?: number | null
@@ -349,7 +367,7 @@ export type Database = {
           nome: string
           tempo_preparo?: number | null
           updated_at?: string
-          usuario_id: string
+          user_email: string
         }
         Update: {
           calorias?: number | null
@@ -360,15 +378,15 @@ export type Database = {
           nome?: string
           tempo_preparo?: number | null
           updated_at?: string
-          usuario_id?: string
+          user_email?: string
         }
         Relationships: [
           {
-            foreignKeyName: "fk_receitas_usuario"
-            columns: ["usuario_id"]
+            foreignKeyName: "fk_receitas_email"
+            columns: ["user_email"]
             isOneToOne: false
             referencedRelation: "usuarios"
-            referencedColumns: ["id"]
+            referencedColumns: ["email"]
           },
         ]
       }
@@ -383,7 +401,7 @@ export type Database = {
           subscription_end: string | null
           subscription_tier: string | null
           updated_at: string
-          usuario_id: string | null
+          user_email: string
         }
         Insert: {
           created_at?: string
@@ -395,7 +413,7 @@ export type Database = {
           subscription_end?: string | null
           subscription_tier?: string | null
           updated_at?: string
-          usuario_id?: string | null
+          user_email: string
         }
         Update: {
           created_at?: string
@@ -407,15 +425,15 @@ export type Database = {
           subscription_end?: string | null
           subscription_tier?: string | null
           updated_at?: string
-          usuario_id?: string | null
+          user_email?: string
         }
         Relationships: [
           {
-            foreignKeyName: "fk_subscribers_usuario"
-            columns: ["usuario_id"]
-            isOneToOne: true
+            foreignKeyName: "fk_subscribers_email"
+            columns: ["user_email"]
+            isOneToOne: false
             referencedRelation: "usuarios"
-            referencedColumns: ["id"]
+            referencedColumns: ["email"]
           },
         ]
       }
@@ -423,21 +441,18 @@ export type Database = {
         Row: {
           created_at: string
           email: string
-          id: string
           nome: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           email: string
-          id?: string
           nome?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           email?: string
-          id?: string
           nome?: string | null
           updated_at?: string
         }

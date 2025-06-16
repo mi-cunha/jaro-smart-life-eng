@@ -25,6 +25,8 @@ interface RecipeResponse {
 export class OpenAIService {
   static async generateRecipe(request: RecipeRequest): Promise<RecipeResponse> {
     try {
+      console.log('Sending recipe generation request:', request);
+
       // Call the Supabase Edge Function for recipe generation
       const { data, error } = await supabase.functions.invoke('generate-recipe', {
         body: {
@@ -40,33 +42,48 @@ export class OpenAIService {
 
       if (error) {
         console.error('Supabase function error:', error);
-        throw new Error(`API Error: ${error.message}`);
+        throw new Error(`Recipe generation failed: ${error.message}`);
       }
 
       if (!data) {
         throw new Error('No data received from recipe generation service');
       }
 
-      // Transform the response to match our interface
-      return {
-        nome: data.name || data.nome || 'Generated Recipe',
-        tempo: data.prepTime || data.tempo || 30,
-        calorias: data.calories || data.calorias || 300,
-        ingredientes: data.ingredients || data.ingredientes || [],
-        preparo: data.instructions || data.preparo || [],
-        proteinas: data.protein || data.proteinas || 25,
-        carboidratos: data.carbs || data.carboidratos || 30,
-        gorduras: data.fats || data.gorduras || 15
+      console.log('Received recipe data:', data);
+
+      // Validate and normalize the response
+      const recipeResponse: RecipeResponse = {
+        nome: data.nome || 'Receita Gerada',
+        tempo: Number(data.tempo) || 30,
+        calorias: Number(data.calorias) || 300,
+        ingredientes: Array.isArray(data.ingredientes) ? data.ingredientes : [],
+        preparo: Array.isArray(data.preparo) ? data.preparo : [],
+        proteinas: Number(data.proteinas) || 25,
+        carboidratos: Number(data.carboidratos) || 30,
+        gorduras: Number(data.gorduras) || 15
       };
+
+      // Additional validation
+      if (recipeResponse.ingredientes.length === 0) {
+        throw new Error('Recipe generation returned no ingredients');
+      }
+
+      if (recipeResponse.preparo.length === 0) {
+        throw new Error('Recipe generation returned no preparation steps');
+      }
+
+      return recipeResponse;
     } catch (error) {
       console.error('Error generating recipe with OpenAI:', error);
       
       // Provide more specific error messages
       if (error instanceof Error) {
-        if (error.message.includes('API') || error.message.includes('OpenAI')) {
-          throw new Error('OpenAI API Error. Please check your API key configuration.');
+        if (error.message.includes('API key')) {
+          throw new Error('OpenAI API key not configured. Please check your API key in Supabase settings.');
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          throw new Error('Network error. Please check your internet connection.');
+          throw new Error('Network error. Please check your internet connection and try again.');
+        } else if (error.message.includes('Recipe generation failed')) {
+          throw error; // Re-throw the specific error from the edge function
         } else {
           throw new Error(`Recipe generation failed: ${error.message}`);
         }
