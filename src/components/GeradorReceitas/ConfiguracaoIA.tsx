@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -109,13 +110,13 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
               <div className="flex gap-2">
                 <span className="text-white/60">Preferences:</span>
                 <Badge variant="outline" className="border-green-400/30 text-green-400">
-                  {preferencias?.preferencias_alimentares?.dailyRoutine || 'None'}
+                  {preferencias?.alimentares || 'None'}
                 </Badge>
               </div>
-              {Array.isArray(preferencias?.restricoes_alimentares) && preferencias.restricoes_alimentares.length > 0 && (
+              {Array.isArray(preferencias?.restricoes) && preferencias.restricoes.length > 0 && (
                 <div className="flex gap-2 flex-wrap">
                   <span className="text-white/60">Restrictions:</span>
-                  {preferencias.restricoes_alimentares.map((restricao, index) => (
+                  {preferencias.restricoes.map((restricao, index) => (
                     <Badge key={index} variant="outline" className="border-orange-400/30 text-orange-400">
                       {restricao}
                     </Badge>
