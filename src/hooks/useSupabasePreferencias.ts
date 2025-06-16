@@ -2,24 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { PreferenciasUsuario, PreferenciasAlimentaresJSON } from '@/types/receitas';
-
-// Helper function to extract string from preferences JSON or return string directly
-function extractPreferenciasString(preferenciasData: any): string {
-  if (typeof preferenciasData === 'string') {
-    return preferenciasData;
-  }
-  
-  if (preferenciasData && typeof preferenciasData === 'object') {
-    // Try to extract a meaningful string from the object
-    return preferenciasData.dietType || 
-           preferenciasData.dailyRoutine || 
-           (Array.isArray(preferenciasData.mealPreferences) ? preferenciasData.mealPreferences.join(', ') : '') ||
-           'personalizada';
-  }
-  
-  return 'nenhuma';
-}
+import { PreferenciasUsuario } from '@/types/receitas';
 
 export function useSupabasePreferencias() {
   const { user } = useAuth();
@@ -41,19 +24,38 @@ export function useSupabasePreferencias() {
         .from('preferencias_usuario')
         .select('*')
         .eq('user_email', user.email)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('❌ Erro ao buscar preferências:', error);
+        // Create default preferences if none exist
+        const defaultPrefs = {
+          objetivo: 'Perda de peso',
+          alimentares: 'nenhuma',
+          restricoes: []
+        };
+        console.log('⚠️ Aplicando preferências padrão devido ao erro');
+        setPreferencias(defaultPrefs);
+        setLoading(false);
+        return;
       }
 
       if (data) {
         console.log('📥 Dados brutos do Supabase:', data);
         
-        // Extract alimentares preference from the JSON structure or use as string
-        const alimentaresValue = extractPreferenciasString(data.preferencias_alimentares);
+        // Process the preferences data
+        let alimentaresValue = 'nenhuma';
+        if (data.preferencias_alimentares) {
+          if (typeof data.preferencias_alimentares === 'string') {
+            alimentaresValue = data.preferencias_alimentares;
+          } else if (typeof data.preferencias_alimentares === 'object') {
+            // Extract from JSON object
+            alimentaresValue = data.preferencias_alimentares.dietType || 
+                             data.preferencias_alimentares.dailyRoutine || 
+                             'personalizada';
+          }
+        }
         
-        // Ensure restricoes is an array
         const restricoesValue = Array.isArray(data.restricoes_alimentares) 
           ? data.restricoes_alimentares 
           : [];
@@ -67,7 +69,7 @@ export function useSupabasePreferencias() {
         console.log('✅ Preferências processadas:', preferenciasProcessadas);
         setPreferencias(preferenciasProcessadas);
       } else {
-        console.warn('⚠️ Nenhum dado de preferência encontrado. Aplicando valores padrão.');
+        console.log('⚠️ Nenhum dado encontrado. Aplicando valores padrão.');
         setPreferencias({
           objetivo: 'Perda de peso',
           alimentares: 'nenhuma',
@@ -95,13 +97,12 @@ export function useSupabasePreferencias() {
     try {
       console.log('💾 Salvando preferências:', novasPreferencias);
       
-      // Save in the format expected by the database
       const { error } = await supabase
         .from('preferencias_usuario')
         .upsert({
           user_email: user.email,
           objetivo: novasPreferencias.objetivo,
-          preferencias_alimentares: novasPreferencias.alimentares, // Save as string
+          preferencias_alimentares: novasPreferencias.alimentares,
           restricoes_alimentares: novasPreferencias.restricoes
         });
 

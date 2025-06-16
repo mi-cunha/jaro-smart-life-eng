@@ -1,128 +1,182 @@
 
 import { useState, useEffect } from 'react';
-import { PerfilService, PerfilUsuario } from '@/services/perfilService';
-import { UserProfileService } from '@/services/userProfileService';
 import { useAuth } from './useAuth';
-import { toast } from 'sonner';
+import { PerfilService } from '@/services/perfilService';
 
 export function useSupabasePerfil() {
   const { user } = useAuth();
-  const [perfil, setPerfil] = useState<PerfilUsuario | null>(null);
+  const [perfil, setPerfil] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const carregarPerfil = async () => {
-    if (!user) {
-      console.log('🔍 useSupabasePerfil - No user available, skipping profile load');
-      setPerfil(null);
+    if (!user?.email) {
+      console.warn('🚫 Nenhum email de usuário disponível para carregar perfil');
       setLoading(false);
       return;
     }
 
-    console.log('🔍 useSupabasePerfil - Loading profile for user:', user.email);
+    console.log('🔍 Carregando perfil para email:', user.email);
     setLoading(true);
-    
-    try {
-      // Try to use the existing PerfilService first, then fallback to UserProfileService
-      let data, error;
-      try {
-        const result = await PerfilService.buscarPerfil();
-        data = result.data;
-        error = result.error;
-        console.log('✅ PerfilService result:', { data: !!data, error: !!error });
-      } catch (serviceError) {
-        console.log('❌ PerfilService failed, trying UserProfileService:', serviceError);
-        // Fallback to UserProfileService if PerfilService fails
-        const result = await UserProfileService.buscarPerfilUsuario();
-        data = result.data;
-        error = result.error;
-        console.log('✅ UserProfileService result:', { data: !!data, error: !!error });
-      }
 
+    try {
+      const { data, error } = await PerfilService.buscarPerfil();
+      
       if (error) {
-        console.error('❌ Error loading profile:', error);
-        toast.error('Erro ao carregar perfil');
-        setPerfil(null);
+        console.error('❌ Erro ao carregar perfil:', error);
+        // Create default profile if error
+        const defaultProfile = {
+          email: user.email,
+          nome: user.user_metadata?.nome || 'Usuário',
+          user_email: user.email,
+          vegano: false,
+          vegetariano: false,
+          low_carb: false,
+          sem_gluten: false,
+          peso_atual: null,
+          meta_peso: null,
+          peso_objetivo: null,
+          calorias_diarias: 2000,
+          doses_cha: 2,
+          habitos_diarios: 8,
+          notif_tomar_cha: true,
+          notif_marcar_habito: true,
+          notif_gerar_receitas: true,
+          notif_comprar_itens: true,
+          notif_atingir_meta: true,
+          google_fit: false,
+          apple_health: false,
+          fitbit: false,
+          dados_uso: true,
+          notificacoes_push: true,
+          avatar_url: null,
+          alergias: ''
+        };
+        setPerfil(defaultProfile);
       } else if (data) {
-        console.log('✅ Profile loaded successfully:', data);
-        setPerfil(data);
+        console.log('📥 Dados do perfil carregados:', data);
+        setPerfil({
+          ...data,
+          email: user.email,
+          nome: data.nome || user.user_metadata?.nome || 'Usuário'
+        });
       } else {
-        console.log('❌ No profile data returned');
-        setPerfil(null);
+        // No profile found, create default
+        console.log('⚠️ Nenhum perfil encontrado, criando padrão');
+        const defaultProfile = {
+          email: user.email,
+          nome: user.user_metadata?.nome || 'Usuário',
+          user_email: user.email,
+          vegano: false,
+          vegetariano: false,
+          low_carb: false,
+          sem_gluten: false,
+          peso_atual: null,
+          meta_peso: null,
+          peso_objetivo: null,
+          calorias_diarias: 2000,
+          doses_cha: 2,
+          habitos_diarios: 8,
+          notif_tomar_cha: true,
+          notif_marcar_habito: true,
+          notif_gerar_receitas: true,
+          notif_comprar_itens: true,
+          notif_atingir_meta: true,
+          google_fit: false,
+          apple_health: false,
+          fitbit: false,
+          dados_uso: true,
+          notificacoes_push: true,
+          avatar_url: null,
+          alergias: ''
+        };
+        setPerfil(defaultProfile);
       }
-    } catch (error) {
-      console.error('❌ Exception loading profile:', error);
-      toast.error('Erro ao carregar perfil');
-      setPerfil(null);
+    } catch (err) {
+      console.error('❌ Erro inesperado ao carregar perfil:', err);
+      // Fallback profile
+      setPerfil({
+        email: user.email,
+        nome: user.user_metadata?.nome || 'Usuário',
+        user_email: user.email,
+        vegano: false,
+        vegetariano: false,
+        low_carb: false,
+        sem_gluten: false,
+        peso_atual: null,
+        meta_peso: null,
+        peso_objetivo: null,
+        calorias_diarias: 2000,
+        doses_cha: 2,
+        habitos_diarios: 8,
+        notif_tomar_cha: true,
+        notif_marcar_habito: true,
+        notif_gerar_receitas: true,
+        notif_comprar_itens: true,
+        notif_atingir_meta: true,
+        google_fit: false,
+        apple_health: false,
+        fitbit: false,
+        dados_uso: true,
+        notificacoes_push: true,
+        avatar_url: null,
+        alergias: ''
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const atualizarPerfil = async (updates: Partial<PerfilUsuario>) => {
-    if (!user) {
-      console.log('❌ No user available for profile update');
-      toast.error('User not authenticated');
+  const atualizarPerfil = async (dadosAtualizacao: any) => {
+    if (!user?.email || !perfil) {
+      console.error('🚫 Email do usuário ou perfil ausente na atualização');
       return false;
     }
 
     try {
-      // Try to use the existing PerfilService first, then fallback to UserProfileService
-      let data, error;
-      try {
-        const result = await PerfilService.atualizarPerfil(updates);
-        data = result.data;
-        error = result.error;
-      } catch {
-        // Fallback to UserProfileService if PerfilService fails
-        const result = await UserProfileService.atualizarPerfilUsuario(updates);
-        data = result.data;
-        error = result.error;
+      console.log('💾 Salvando dados do perfil:', dadosAtualizacao);
+      
+      const { data, error } = await PerfilService.atualizarPerfil(dadosAtualizacao);
+      
+      if (error) {
+        console.error('❌ Erro ao atualizar perfil:', error);
+        return false;
       }
 
-      if (error) {
-        toast.error('Erro ao atualizar perfil');
-        return false;
-      } else if (data) {
-        setPerfil(data);
-        toast.success('Perfil atualizado com sucesso!');
-        return true;
-      }
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      toast.error('Erro ao atualizar perfil');
+      // Update local state optimistically
+      setPerfil(prev => ({ ...prev, ...dadosAtualizacao }));
+      console.log('✅ Perfil atualizado com sucesso');
+      return true;
+    } catch (err) {
+      console.error('❌ Erro inesperado ao atualizar perfil:', err);
       return false;
     }
-    return false;
   };
 
   const salvarAvatar = async (file: File) => {
-    if (!user) {
-      toast.error('User not authenticated');
-      return false;
-    }
-
     try {
       const { data, error } = await PerfilService.salvarAvatar(file);
+      
       if (error) {
-        toast.error('Erro ao salvar avatar');
+        console.error('❌ Erro ao salvar avatar:', error);
         return false;
-      } else if (data) {
-        setPerfil(data);
-        toast.success('Avatar atualizado com sucesso!');
+      }
+
+      if (data?.avatar_url) {
+        setPerfil(prev => ({ ...prev, avatar_url: data.avatar_url }));
+        console.log('✅ Avatar salvo com sucesso');
         return true;
       }
-    } catch (error) {
-      console.error('Erro ao salvar avatar:', error);
-      toast.error('Erro ao salvar avatar');
+      
+      return false;
+    } catch (err) {
+      console.error('❌ Erro inesperado ao salvar avatar:', err);
       return false;
     }
-    return false;
   };
 
-  // Load profile when user changes
   useEffect(() => {
     carregarPerfil();
-  }, [user?.id]); // Use user.id instead of just user to avoid unnecessary re-renders
+  }, [user?.email]);
 
   return {
     perfil,

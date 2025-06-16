@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,7 +33,7 @@ export function useQuizData() {
       setLoading(true);
 
       try {
-        // Buscar dados das preferências usando user_email
+        // Try to get preferences with error handling
         const { data: preferencias, error: prefError } = await supabase
           .from('preferencias_usuario')
           .select('preferencias_alimentares, objetivo, restricoes_alimentares')
@@ -41,7 +42,10 @@ export function useQuizData() {
 
         if (prefError) {
           console.log('❌ Error fetching quiz data from preferences:', prefError);
-          setQuizData(null);
+          // Set basic quiz data from fallback
+          setQuizData({
+            dietaryRestrictions: ['nenhuma']
+          });
           setLoading(false);
           return;
         }
@@ -63,7 +67,6 @@ export function useQuizData() {
           const quizDataFromDB = preferencias.preferencias_alimentares as any;
           console.log('✅ Found quiz data in preferencias_alimentares:', quizDataFromDB);
           
-          // Map the quiz data to our expected structure
           const mappedQuizData: QuizData = {
             age: quizDataFromDB.age,
             gender: quizDataFromDB.gender,
@@ -79,15 +82,12 @@ export function useQuizData() {
           
           setQuizData(mappedQuizData);
         } else if (typeof preferencias.preferencias_alimentares === 'string') {
-          // If it's a string, it might be a simple preference like "vegano", "vegetariano", etc.
           console.log('ℹ️ Found string preference:', preferencias.preferencias_alimentares);
           
-          // Create a basic quiz data structure from the string preference
           const basicQuizData: QuizData = {
             dietaryRestrictions: [preferencias.preferencias_alimentares]
           };
           
-          // Add objetivo if available
           if (preferencias.objetivo) {
             if (preferencias.objetivo.includes('peso') || preferencias.objetivo.includes('weight')) {
               basicQuizData.healthGoals = ['weight-loss'];
