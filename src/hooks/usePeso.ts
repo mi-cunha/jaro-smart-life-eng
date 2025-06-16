@@ -4,7 +4,6 @@ import { PesoService } from '@/services/pesoService';
 import { PerfilService } from '@/services/perfilService';
 import { toast } from 'sonner';
 
-// Atualizada para corresponder ao schema atual
 interface HistoricoPeso {
   id: string;
   user_email: string;
@@ -22,66 +21,80 @@ export function usePeso() {
 
   const carregarDados = async () => {
     setLoading(true);
-    console.log('🔍 Loading weight data...');
+    console.log('🔍 Carregando dados de peso...');
     
     try {
+      // Load weight history and profile in parallel
       const [historicoRes, perfilRes] = await Promise.all([
         PesoService.buscarHistoricoPeso(30),
         PerfilService.buscarPerfil()
       ]);
 
-      console.log('📊 Weight history result:', { 
+      console.log('📊 Resultado histórico peso:', { 
         success: !historicoRes.error, 
         dataLength: historicoRes.data?.length || 0 
       });
-      console.log('👤 Profile result:', { 
+      
+      console.log('👤 Resultado perfil:', { 
         success: !perfilRes.error, 
         hasData: !!perfilRes.data 
       });
 
+      // Handle weight history
       if (historicoRes.error) {
-        console.error('❌ Error loading weight history:', historicoRes.error);
+        console.error('❌ Erro ao carregar histórico:', historicoRes.error);
         setHistoricoPeso([]);
       } else {
-        setHistoricoPeso(historicoRes.data || []);
-        if (historicoRes.data && historicoRes.data.length > 0) {
-          const latestWeight = historicoRes.data[0].peso;
+        const historico = historicoRes.data || [];
+        setHistoricoPeso(historico);
+        
+        // Set current weight from latest entry
+        if (historico.length > 0) {
+          const latestWeight = historico[0].peso;
           setPesoAtual(latestWeight);
-          console.log('✅ Current weight set from history:', latestWeight);
+          console.log('✅ Peso atual definido do histórico:', latestWeight);
         }
       }
 
+      // Handle profile data
       if (perfilRes.error) {
-        console.error('❌ Error loading profile:', perfilRes.error);
-        // Set default values
+        console.error('❌ Erro ao carregar perfil:', perfilRes.error);
+        // Set default values when profile fails to load
         setPesoMeta(70.0);
-        if (!pesoAtual && historicoRes.data?.length === 0) {
+        if (!pesoAtual && (!historicoRes.data || historicoRes.data.length === 0)) {
           setPesoAtual(78.0);
+          console.log('ℹ️ Usando peso atual padrão: 78.0');
         }
       } else if (perfilRes.data) {
-        // Check for peso_objetivo, peso_atual, or meta_peso in profile
-        const targetWeight = perfilRes.data.peso_objetivo || perfilRes.data.meta_peso;
-        if (targetWeight) {
-          setPesoMeta(targetWeight);
-          console.log('✅ Target weight set from profile:', targetWeight);
-        } else {
-          setPesoMeta(70.0);
-        }
+        // Use peso_objetivo as target weight
+        const targetWeight = perfilRes.data.peso_objetivo || perfilRes.data.meta_peso || 70.0;
+        setPesoMeta(targetWeight);
+        console.log('✅ Meta de peso definida:', targetWeight);
         
-        // If no weight history, check for peso_atual in profile
-        if (historicoRes.data?.length === 0 && perfilRes.data.peso_atual) {
+        // If no weight history and profile has current weight, use it
+        if ((!historicoRes.data || historicoRes.data.length === 0) && perfilRes.data.peso_atual) {
           setPesoAtual(perfilRes.data.peso_atual);
-          console.log('✅ Current weight set from profile:', perfilRes.data.peso_atual);
-        } else if (!pesoAtual && historicoRes.data?.length === 0) {
+          console.log('✅ Peso atual definido do perfil:', perfilRes.data.peso_atual);
+        } else if (!pesoAtual && (!historicoRes.data || historicoRes.data.length === 0)) {
+          // Fallback to default if no data anywhere
           setPesoAtual(78.0);
-          console.log('ℹ️ Using default current weight: 78.0');
+          console.log('ℹ️ Usando peso atual padrão: 78.0');
+        }
+      } else {
+        // No profile data, set defaults
+        setPesoMeta(70.0);
+        if (!pesoAtual && (!historicoRes.data || historicoRes.data.length === 0)) {
+          setPesoAtual(78.0);
+          console.log('ℹ️ Usando valores padrão - peso: 78.0, meta: 70.0');
         }
       }
     } catch (error) {
-      console.error('❌ Exception loading weight data:', error);
-      toast.error('Error loading weight data');
+      console.error('❌ Erro inesperado ao carregar dados:', error);
+      toast.error('Erro ao carregar dados de peso');
+      // Set fallback values
       setPesoAtual(78.0);
       setPesoMeta(70.0);
+      setHistoricoPeso([]);
     } finally {
       setLoading(false);
     }
@@ -89,20 +102,21 @@ export function usePeso() {
 
   const adicionarPeso = async (peso: number, observacoes?: string) => {
     try {
-      console.log('💾 Adding weight record:', peso);
+      console.log('💾 Adicionando registro de peso:', peso);
       const { error } = await PesoService.adicionarPeso(peso, observacoes);
       
       if (error) {
-        console.error('❌ Error adding weight record:', error);
-        toast.error('Error adding weight record');
+        console.error('❌ Erro ao adicionar peso:', error);
+        toast.error('Erro ao adicionar registro de peso');
         return;
       }
 
+      // Reload data after successful addition
       await carregarDados();
-      toast.success('Weight record added successfully!');
+      toast.success('Registro de peso adicionado com sucesso!');
     } catch (error) {
-      console.error('❌ Exception adding weight:', error);
-      toast.error('Error adding weight record');
+      console.error('❌ Erro inesperado ao adicionar peso:', error);
+      toast.error('Erro ao adicionar registro de peso');
     }
   };
 

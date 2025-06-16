@@ -15,8 +15,11 @@ export class PesoService {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user?.email) {
+        console.error('❌ Usuário não autenticado');
         return { data: [], error: new Error('User not authenticated') };
       }
+
+      console.log('🔍 Buscando histórico de peso para:', user.email);
 
       const { data, error } = await supabase
         .from('historico_peso')
@@ -26,13 +29,14 @@ export class PesoService {
         .limit(limite);
 
       if (error) {
-        console.error('Error fetching weight history:', error);
+        console.error('❌ Erro ao buscar histórico de peso:', error);
         return { data: [], error };
       }
 
+      console.log('✅ Histórico de peso encontrado:', data?.length, 'registros');
       return { data: data || [], error: null };
     } catch (error) {
-      console.error('Error in buscarHistoricoPeso:', error);
+      console.error('❌ Erro inesperado ao buscar histórico:', error);
       return { data: [], error };
     }
   }
@@ -43,6 +47,8 @@ export class PesoService {
       if (!user?.email) {
         return { data: null, error: new Error('User not authenticated') };
       }
+
+      console.log('💾 Adicionando peso:', peso, 'para:', user.email);
 
       const { data, error } = await supabase
         .from('historico_peso')
@@ -56,13 +62,14 @@ export class PesoService {
         .single();
 
       if (error) {
-        console.error('Error adding weight record:', error);
+        console.error('❌ Erro ao adicionar peso:', error);
         return { data: null, error };
       }
 
+      console.log('✅ Peso adicionado:', data);
       return { data, error: null };
     } catch (error) {
-      console.error('Error in adicionarPeso:', error);
+      console.error('❌ Erro inesperado ao adicionar peso:', error);
       return { data: null, error };
     }
   }
@@ -83,13 +90,13 @@ export class PesoService {
         .single();
 
       if (error) {
-        console.error('Error updating weight record:', error);
+        console.error('❌ Erro ao atualizar peso:', error);
         return { data: null, error };
       }
 
       return { data, error: null };
     } catch (error) {
-      console.error('Error in atualizarPeso:', error);
+      console.error('❌ Erro inesperado ao atualizar peso:', error);
       return { data: null, error };
     }
   }
@@ -108,13 +115,13 @@ export class PesoService {
         .eq('user_email', user.email);
 
       if (error) {
-        console.error('Error deleting weight record:', error);
+        console.error('❌ Erro ao deletar peso:', error);
         return { error };
       }
 
       return { error: null };
     } catch (error) {
-      console.error('Error in deletarPeso:', error);
+      console.error('❌ Erro inesperado ao deletar peso:', error);
       return { error };
     }
   }
