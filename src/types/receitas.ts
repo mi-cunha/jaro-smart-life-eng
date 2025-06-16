@@ -35,8 +35,18 @@ export interface ItemCompra {
   categoria?: string;
 }
 
+// Updated interface to match the actual database structure
 export interface PreferenciasUsuario {
-  alimentares: string;
-  restricoes: string[];
   objetivo: string;
+  alimentares: string; // This matches how it's stored in the database
+  restricoes: string[]; // This matches how it's stored in the database
+}
+
+// Helper type for the actual JSON structure in preferencias_alimentares column
+export interface PreferenciasAlimentaresJSON {
+  dietType?: string;
+  mealPreferences?: string[];
+  cookingStyle?: string;
+  dailyRoutine?: string;
+  [key: string]: any;
 }

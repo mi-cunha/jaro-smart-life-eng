@@ -20,13 +20,15 @@ export class PreferencesService {
     try {
       const user = await this.getAuthenticatedUser();
       
+      console.log('💾 PreferencesService: Salvando preferências:', preferencias);
+      
       const { data, error } = await supabase
         .from('preferencias_usuario')
         .upsert({
+          user_email: user.email,
           objetivo: preferencias.objetivo,
-          preferencias_alimentares: preferencias.alimentares,
-          restricoes_alimentares: preferencias.restricoes,
-          user_email: user.email
+          preferencias_alimentares: preferencias.alimentares, // Save as string
+          restricoes_alimentares: preferencias.restricoes
         })
         .select()
         .single();
@@ -36,6 +38,7 @@ export class PreferencesService {
         return { data: null, error };
       }
 
+      console.log('✅ PreferencesService: Preferências salvas:', data);
       return { data, error: null };
     } catch (error) {
       console.error('Erro ao salvar preferências:', error);
@@ -58,6 +61,7 @@ export class PreferencesService {
         return { data: null, error };
       }
 
+      console.log('📥 PreferencesService: Dados brutos:', data);
       return { data, error: null };
     } catch (error) {
       console.error('Erro ao buscar preferências:', error);

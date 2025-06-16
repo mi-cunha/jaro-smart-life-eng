@@ -52,14 +52,20 @@ const GeradorReceitas = () => {
     const ingredientesSelecionados = getIngredientesSelecionados(refeicao);
     const itensComprados = getItensCompradosPorRefeicao(refeicao);
     
+    console.log('🎯 Enviando preferências para geração de receitas:', {
+      alimentares: preferencias?.alimentares,
+      restricoes: preferencias?.restricoes,
+      objetivo: preferencias?.objetivo
+    });
+    
     // Prioritize purchased items from shopping list
     gerarNovasReceitas(
       refeicao, 
       ingredientesSelecionados, 
       itensComprados,
-      preferencias?.alimentares || "none",
+      preferencias?.alimentares || "nenhuma",
       preferencias?.restricoes || [],
-      preferencias?.objetivo || "healthy eating"
+      preferencias?.objetivo || "alimentação saudável"
     );
   };
 

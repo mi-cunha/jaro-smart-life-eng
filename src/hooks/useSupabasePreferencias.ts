@@ -1,7 +1,25 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { PreferenciasUsuario } from '@/types/receitas';
+import { PreferenciasUsuario, PreferenciasAlimentaresJSON } from '@/types/receitas';
+
+// Helper function to extract string from preferences JSON or return string directly
+function extractPreferenciasString(preferenciasData: any): string {
+  if (typeof preferenciasData === 'string') {
+    return preferenciasData;
+  }
+  
+  if (preferenciasData && typeof preferenciasData === 'object') {
+    // Try to extract a meaningful string from the object
+    return preferenciasData.dietType || 
+           preferenciasData.dailyRoutine || 
+           (Array.isArray(preferenciasData.mealPreferences) ? preferenciasData.mealPreferences.join(', ') : '') ||
+           'personalizada';
+  }
+  
+  return 'nenhuma';
+}
 
 export function useSupabasePreferencias() {
   const { user } = useAuth();
@@ -30,20 +48,24 @@ export function useSupabasePreferencias() {
       }
 
       if (data) {
-        const alimentaresValue =
-          typeof data.preferencias_alimentares === 'string'
-            ? data.preferencias_alimentares
-            : 'personalizada';
+        console.log('📥 Dados brutos do Supabase:', data);
+        
+        // Extract alimentares preference from the JSON structure or use as string
+        const alimentaresValue = extractPreferenciasString(data.preferencias_alimentares);
+        
+        // Ensure restricoes is an array
+        const restricoesValue = Array.isArray(data.restricoes_alimentares) 
+          ? data.restricoes_alimentares 
+          : [];
 
-        setPreferencias({
+        const preferenciasProcessadas = {
           objetivo: data.objetivo || 'Perda de peso',
           alimentares: alimentaresValue,
-          restricoes: Array.isArray(data.restricoes_alimentares)
-            ? data.restricoes_alimentares
-            : []
-        });
+          restricoes: restricoesValue
+        };
 
-        console.log('✅ Preferências carregadas:', data);
+        console.log('✅ Preferências processadas:', preferenciasProcessadas);
+        setPreferencias(preferenciasProcessadas);
       } else {
         console.warn('⚠️ Nenhum dado de preferência encontrado. Aplicando valores padrão.');
         setPreferencias({
@@ -71,12 +93,15 @@ export function useSupabasePreferencias() {
     }
 
     try {
+      console.log('💾 Salvando preferências:', novasPreferencias);
+      
+      // Save in the format expected by the database
       const { error } = await supabase
         .from('preferencias_usuario')
         .upsert({
           user_email: user.email,
           objetivo: novasPreferencias.objetivo,
-          preferencias_alimentares: novasPreferencias.alimentares,
+          preferencias_alimentares: novasPreferencias.alimentares, // Save as string
           restricoes_alimentares: novasPreferencias.restricoes
         });
 
