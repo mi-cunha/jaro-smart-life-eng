@@ -26,6 +26,32 @@ const Perfil = () => {
     }
   };
 
+  const handleToggleNotificacao = (notificacao: string) => {
+    if (perfil) {
+      const newValue = !perfil[notificacao];
+      handleInputChange(notificacao, newValue);
+    }
+  };
+
+  const handleTogglePreferencia = (preferencia: string) => {
+    if (perfil) {
+      const newValue = !perfil[preferencia];
+      handleInputChange(preferencia, newValue);
+    }
+  };
+
+  const handleChangeObjetivo = (objetivo: string, valor: string) => {
+    handleInputChange(objetivo, valor);
+  };
+
+  const handleChangeAlergias = (alergias: string) => {
+    handleInputChange('alergias', alergias);
+  };
+
+  const handleNomeChange = (nome: string) => {
+    handleInputChange('nome', nome);
+  };
+
   const handleSave = async () => {
     if (perfil) {
       const success = await atualizarPerfil(perfil);
@@ -57,7 +83,7 @@ const Perfil = () => {
         </div>
 
         <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-dark-bg border-white/10">
+          <TabsList className="grid w-full grid-cols-4 bg-dark-bg border-white/10">
             <TabsTrigger value="personal" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
               Personal
             </TabsTrigger>
@@ -70,53 +96,50 @@ const Perfil = () => {
             <TabsTrigger value="notifications" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
               Notifications
             </TabsTrigger>
-            <TabsTrigger value="privacy" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
-              Privacy
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="personal" className="space-y-6">
             <AvatarSection 
-              perfil={perfil} 
+              nome={perfil?.nome || ''} 
+              avatar_url={perfil?.avatar_url}
               onAvatarChange={salvarAvatar}
             />
             <PersonalInfoSection 
-              perfil={perfil} 
-              onInputChange={handleInputChange} 
+              nome={perfil?.nome || ''}
+              email={perfil?.email}
+              onNomeChange={handleNomeChange} 
             />
           </TabsContent>
 
           <TabsContent value="preferences" className="space-y-6">
             <PreferencesSection 
               perfil={perfil} 
-              onInputChange={handleInputChange} 
+              onTogglePreferencia={handleTogglePreferencia}
+              onChangeAlergias={handleChangeAlergias}
             />
           </TabsContent>
 
           <TabsContent value="objectives" className="space-y-6">
             <ObjectivesSection 
               perfil={perfil} 
-              onInputChange={handleInputChange} 
+              onChangeObjetivo={handleChangeObjetivo}
             />
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6">
             <NotificationsSection 
               perfil={perfil} 
-              onInputChange={handleInputChange} 
+              onToggleNotificacao={handleToggleNotificacao}
             />
-          </TabsContent>
-
-          <TabsContent value="privacy" className="space-y-6">
             <PrivacySection 
               perfil={perfil} 
-              onInputChange={handleInputChange} 
+              onToggleNotificacao={handleToggleNotificacao}
             />
           </TabsContent>
         </Tabs>
 
         {hasChanges && (
-          <SaveConfigBar onSave={handleSave} />
+          <SaveConfigBar onClick={handleSave} />
         )}
       </div>
     </Layout>
