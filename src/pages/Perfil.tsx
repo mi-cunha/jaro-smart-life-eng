@@ -2,137 +2,125 @@
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Camera, Bell, Shield, Link as LinkIcon, Save } from "lucide-react";
-import { useRef } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
 import { useSupabasePerfil } from "@/hooks/useSupabasePerfil";
-import { AvatarSection } from "./Perfil/AvatarSection";
 import { PersonalInfoSection } from "./Perfil/PersonalInfoSection";
 import { PreferencesSection } from "./Perfil/PreferencesSection";
 import { ObjectivesSection } from "./Perfil/ObjectivesSection";
 import { NotificationsSection } from "./Perfil/NotificationsSection";
-import { IntegrationsSection } from "./Perfil/IntegrationsSection";
-import { SaveConfigBar } from "./Perfil/SaveConfigBar";
 import { PrivacySection } from "./Perfil/PrivacySection";
-import { WeightUnitToggle } from "@/components/WeightUnitToggle";
+import { AvatarSection } from "./Perfil/AvatarSection";
+import { SaveConfigBar } from "./Perfil/SaveConfigBar";
+import { useState } from "react";
 
-const Profile = () => {
-  const { perfil, loading, atualizarPerfil, salvarAvatar, carregarPerfil } = useSupabasePerfil();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+const Perfil = () => {
+  const { perfil, loading, atualizarPerfil, salvarAvatar } = useSupabasePerfil();
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const handleInputChange = (field: string, value: any) => {
+    if (perfil) {
+      const updatedPerfil = { ...perfil, [field]: value };
+      atualizarPerfil({ [field]: value });
+      setHasChanges(true);
+    }
+  };
+
+  const handleSave = async () => {
+    if (perfil) {
+      const success = await atualizarPerfil(perfil);
+      if (success) {
+        toast.success('Perfil salvo com sucesso!');
+        setHasChanges(false);
+      } else {
+        toast.error('Erro ao salvar perfil');
+      }
+    }
+  };
 
   if (loading) {
     return (
-      <Layout title="Profile & Settings" breadcrumb={["Home", "Profile"]}>
+      <Layout title="Profile Settings" breadcrumb={["Profile", "Settings"]}>
         <div className="flex items-center justify-center min-h-64">
-          <div className="text-white">Loading profile...</div>
+          <div className="text-white">Carregando perfil...</div>
         </div>
       </Layout>
     );
   }
-
-  if (!perfil) {
-    return (
-      <Layout title="Profile & Settings" breadcrumb={["Home", "Profile"]}>
-        <div className="flex items-center justify-center min-h-64 flex-col">
-          <div className="text-white mb-4">Error loading profile</div>
-          <Button className="bg-neon-green text-black" onClick={carregarPerfil}>
-            Try Again
-          </Button>
-        </div>
-      </Layout>
-    );
-  }
-
-  const handleSalvarConfiguracao = () => {
-    // Data is already saved automatically
-  };
-
-  const handleTogglePreferencia = async (preferencia: string) => {
-    await atualizarPerfil({
-      [preferencia]: !perfil[preferencia as keyof typeof perfil]
-    });
-  };
-
-  const handleToggleNotificacao = async (notificacao: string) => {
-    await atualizarPerfil({
-      [notificacao]: !perfil[notificacao as keyof typeof perfil]
-    });
-  };
-
-  const handleToggleIntegracao = async (integracao: string) => {
-    await atualizarPerfil({
-      [integracao]: !perfil[integracao as keyof typeof perfil]
-    });
-  };
-
-  const handleChangeObjetivo = async (objetivo: string, valor: string) => {
-    await atualizarPerfil({
-      [objetivo]: parseFloat(valor) || 0
-    });
-  };
-
-  const handleChangeNome = async (nome: string) => {
-    await atualizarPerfil({ nome });
-  };
-
-  const handleChangeAlergias = async (alergias: string) => {
-    await atualizarPerfil({ alergias });
-  };
-
-  const handleAvatarChange = async (file: File) => {
-    await salvarAvatar(file);
-  };
 
   return (
-    <Layout title="Profile & Settings" breadcrumb={["Home", "Profile"]}>
+    <Layout title="Profile Settings" breadcrumb={["Profile", "Settings"]}>
       <div className="space-y-8">
-        {/* Weight Unit Toggle */}
-        <div className="flex justify-end">
-          <WeightUnitToggle />
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-white mb-2">Profile Settings</h1>
+          <p className="text-white/70">Manage your personal information and preferences</p>
         </div>
 
-        {/* Avatar and Info */}
-        <AvatarSection
-          nome={perfil.nome || ""}
-          avatar_url={perfil.avatar_url}
-          onAvatarChange={handleAvatarChange}
-        />
-        <PersonalInfoSection
-          nome={perfil.nome || ""}
-          email={perfil.email}
-          onNomeChange={handleChangeNome}
-        />
-        <PreferencesSection
-          perfil={perfil}
-          onTogglePreferencia={handleTogglePreferencia}
-          onChangeAlergias={handleChangeAlergias}
-        />
-        <ObjectivesSection
-          perfil={perfil}
-          onChangeObjetivo={handleChangeObjetivo}
-        />
-        <NotificationsSection
-          perfil={perfil}
-          onToggleNotificacao={handleToggleNotificacao}
-        />
-        <IntegrationsSection
-          perfil={perfil}
-          onToggleIntegracao={handleToggleIntegracao}
-        />
-        <SaveConfigBar onClick={handleSalvarConfiguracao} />
-        <PrivacySection
-          perfil={perfil}
-          onToggleNotificacao={handleToggleNotificacao}
-        />
+        <Tabs defaultValue="personal" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5 bg-dark-bg border-white/10">
+            <TabsTrigger value="personal" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
+              Personal
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
+              Dietary
+            </TabsTrigger>
+            <TabsTrigger value="objectives" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
+              Goals
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
+              Notifications
+            </TabsTrigger>
+            <TabsTrigger value="privacy" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
+              Privacy
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="personal" className="space-y-6">
+            <AvatarSection 
+              perfil={perfil} 
+              onAvatarChange={salvarAvatar}
+            />
+            <PersonalInfoSection 
+              perfil={perfil} 
+              onInputChange={handleInputChange} 
+            />
+          </TabsContent>
+
+          <TabsContent value="preferences" className="space-y-6">
+            <PreferencesSection 
+              perfil={perfil} 
+              onInputChange={handleInputChange} 
+            />
+          </TabsContent>
+
+          <TabsContent value="objectives" className="space-y-6">
+            <ObjectivesSection 
+              perfil={perfil} 
+              onInputChange={handleInputChange} 
+            />
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-6">
+            <NotificationsSection 
+              perfil={perfil} 
+              onInputChange={handleInputChange} 
+            />
+          </TabsContent>
+
+          <TabsContent value="privacy" className="space-y-6">
+            <PrivacySection 
+              perfil={perfil} 
+              onInputChange={handleInputChange} 
+            />
+          </TabsContent>
+        </Tabs>
+
+        {hasChanges && (
+          <SaveConfigBar onSave={handleSave} />
+        )}
       </div>
     </Layout>
   );
 };
 
-export default Profile;
+export default Perfil;

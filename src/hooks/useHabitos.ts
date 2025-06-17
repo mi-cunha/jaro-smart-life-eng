@@ -27,26 +27,45 @@ export function useHabitos() {
 
   const carregarHabitos = async () => {
     setLoading(true);
+    console.log('🔍 useHabitos: Carregando dados de hábitos...');
+    
     try {
       const [habitosRes, historicoRes] = await Promise.all([
         HabitosService.buscarHabitos(),
         HabitosService.buscarHistoricoHoje()
       ]);
 
+      console.log('📊 useHabitos: Resultado hábitos:', { 
+        success: !habitosRes.error, 
+        dataLength: habitosRes.data?.length || 0 
+      });
+      
+      console.log('📊 useHabitos: Resultado histórico:', { 
+        success: !historicoRes.error, 
+        dataLength: historicoRes.data?.length || 0 
+      });
+
       if (habitosRes.error) {
-        console.error('Erro ao carregar hábitos:', habitosRes.error);
+        console.error('❌ useHabitos: Erro ao carregar hábitos:', habitosRes.error);
+        toast.error('Erro ao carregar hábitos');
+        setHabitos([]);
       } else {
-        setHabitos(habitosRes.data);
+        setHabitos(habitosRes.data || []);
+        console.log('✅ useHabitos: Hábitos carregados:', habitosRes.data?.length || 0);
       }
 
       if (historicoRes.error) {
-        console.error('Erro ao carregar histórico:', historicoRes.error);
+        console.error('❌ useHabitos: Erro ao carregar histórico:', historicoRes.error);
+        setHistoricoHoje([]);
       } else {
-        setHistoricoHoje(historicoRes.data);
+        setHistoricoHoje(historicoRes.data || []);
+        console.log('✅ useHabitos: Histórico carregado:', historicoRes.data?.length || 0);
       }
     } catch (error) {
-      console.error('Erro ao carregar dados dos hábitos:', error);
-      toast.error('Error loading habits data');
+      console.error('❌ useHabitos: Erro inesperado ao carregar dados:', error);
+      toast.error('Erro ao carregar dados dos hábitos');
+      setHabitos([]);
+      setHistoricoHoje([]);
     } finally {
       setLoading(false);
     }
@@ -54,18 +73,22 @@ export function useHabitos() {
 
   const marcarHabito = async (habitoId: string, concluido: boolean) => {
     try {
+      console.log('💾 useHabitos: Marcando hábito:', habitoId, 'como', concluido ? 'concluído' : 'pendente');
+      
       const { error } = await HabitosService.marcarHabitoCompleto(habitoId, concluido);
 
       if (error) {
-        toast.error('Error updating habit');
+        console.error('❌ useHabitos: Erro ao marcar hábito:', error);
+        toast.error('Erro ao atualizar hábito');
         return;
       }
 
+      // Recarregar dados após sucesso
       await carregarHabitos();
-      toast.success(concluido ? 'Habit completed!' : 'Habit marked as pending');
+      toast.success(concluido ? 'Hábito marcado como concluído!' : 'Hábito desmarcado');
     } catch (error) {
-      console.error('Erro ao marcar hábito:', error);
-      toast.error('Error updating habit');
+      console.error('❌ useHabitos: Erro inesperado ao marcar hábito:', error);
+      toast.error('Erro ao atualizar hábito');
     }
   };
 
@@ -75,6 +98,7 @@ export function useHabitos() {
       return {
         id: habito.id,
         nome: habito.nome,
+        descricao: habito.descricao,
         concluido: historico?.concluido || false,
         meta_diaria: habito.meta_diaria
       };
@@ -86,7 +110,7 @@ export function useHabitos() {
       const { data, error } = await HabitosService.buscarProgressoSemanal();
 
       if (error || !data) {
-        console.error('Erro ao buscar histórico semanal:', error);
+        console.error('❌ useHabitos: Erro ao buscar histórico semanal:', error);
         return [];
       }
 
@@ -113,7 +137,7 @@ export function useHabitos() {
         };
       });
     } catch (error) {
-      console.error('Erro ao buscar histórico semanal:', error);
+      console.error('❌ useHabitos: Erro ao buscar histórico semanal:', error);
       return [];
     }
   };
@@ -124,8 +148,9 @@ export function useHabitos() {
     const total = habitosHoje.length;
     const percentual = total > 0 ? (concluidos / total) * 100 : 0;
 
+    // Calcular streak simples (se 100% hoje = streak de 1)
     const streakAtual = percentual === 100 ? 1 : 0;
-    const melhorStreak = 1;
+    const melhorStreak = streakAtual;
 
     return {
       concluidos,
