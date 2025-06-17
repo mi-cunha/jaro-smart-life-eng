@@ -25,18 +25,22 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
     }
 
     setIsGenerating(true);
-    toast.loading("Generating personalized recipe with AI...", { duration: 10000 });
+    console.log('🤖 useOpenAIRecipes - Starting AI recipe generation:', {
+      refeicao,
+      ingredientesSelecionados,
+      preferenciasAlimentares,
+      restricoesAlimentares,
+      objetivo,
+      itensComprados
+    });
+
+    // Show loading toast with longer duration for AI generation
+    const loadingToast = toast.loading("🤖 Generating personalized recipe with ChatGPT...", { 
+      duration: 15000,
+      description: "This may take a few moments..."
+    });
 
     try {
-      console.log('Starting AI recipe generation with params:', {
-        refeicao,
-        ingredientesSelecionados,
-        preferenciasAlimentares,
-        restricoesAlimentares,
-        objetivo,
-        itensComprados
-      });
-
       const recipeData = await OpenAIService.generateRecipe({
         ingredientes: ingredientesSelecionados,
         preferenciasAlimentares: preferenciasAlimentares || 'none',
@@ -47,10 +51,10 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
         itensComprados
       });
 
-      console.log('AI recipe generated successfully:', recipeData);
+      console.log('✅ useOpenAIRecipes - AI recipe generated successfully:', recipeData);
 
       const novaReceita: Receita = {
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         nome: recipeData.nome,
         tempo: recipeData.tempo,
         calorias: recipeData.calorias,
@@ -67,24 +71,44 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
 
       await onRecipeGenerated(novaReceita);
 
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+
       const tipoReceita = itensComprados && itensComprados.length > 0 
         ? "based on your purchased items" 
         : "personalized with your ingredients";
         
-      toast.success(`AI recipe ${tipoReceita} generated successfully! 🤖🍽️`);
+      toast.success(`🤖 AI recipe ${tipoReceita} generated successfully!`, {
+        description: `Created "${recipeData.nome}" with ChatGPT`
+      });
     } catch (error) {
-      console.error("Error generating AI recipe:", error);
+      console.error("🚨 useOpenAIRecipes - Error generating AI recipe:", error);
+      
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
       
       if (error instanceof Error) {
-        if (error.message.includes('API key')) {
-          toast.error("OpenAI API key not configured. Please check your settings.");
+        if (error.message.includes('API key not configured')) {
+          toast.error("🔑 OpenAI API Key Required", {
+            description: "Please configure OPENAI_API_KEY in Supabase Secrets to use AI recipe generation."
+          });
+        } else if (error.message.includes('Invalid OpenAI API key')) {
+          toast.error("🔑 Invalid API Key", {
+            description: "Your OpenAI API key appears to be invalid. Please check your configuration."
+          });
         } else if (error.message.includes('network') || error.message.includes('connection')) {
-          toast.error("Network error. Please check your connection and try again.");
+          toast.error("🌐 Network Error", {
+            description: "Please check your internet connection and try again."
+          });
         } else {
-          toast.error(`Recipe generation failed: ${error.message}`);
+          toast.error("🤖 AI Recipe Generation Failed", {
+            description: error.message
+          });
         }
       } else {
-        toast.error("Unknown error during recipe generation. Please try again.");
+        toast.error("❌ Unknown Error", {
+          description: "An unexpected error occurred during AI recipe generation."
+        });
       }
     } finally {
       setIsGenerating(false);

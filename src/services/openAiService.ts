@@ -25,7 +25,15 @@ interface RecipeResponse {
 export class OpenAIService {
   static async generateRecipe(request: RecipeRequest): Promise<RecipeResponse> {
     try {
-      console.log('Sending recipe generation request:', request);
+      console.log('🤖 OpenAI Service - Starting recipe generation request:', {
+        ingredientes: request.ingredientes,
+        preferenciasAlimentares: request.preferenciasAlimentares,
+        restricoesAlimentares: request.restricoesAlimentares,
+        tipoRefeicao: request.tipoRefeicao,
+        objetivo: request.objetivo,
+        tempoDisponivel: request.tempoDisponivel,
+        itensComprados: request.itensComprados?.length || 0
+      });
 
       // Call the Supabase Edge Function for recipe generation
       const { data, error } = await supabase.functions.invoke('generate-recipe', {
@@ -40,31 +48,44 @@ export class OpenAIService {
         }
       });
 
+      console.log('🤖 OpenAI Service - Edge function response:', { data, error });
+
       if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error(`Recipe generation failed: ${error.message}`);
+        console.error('🚨 Supabase function error:', error);
+        
+        // Provide specific error messages based on error content
+        if (error.message?.includes('API key')) {
+          throw new Error('OpenAI API key not configured in Supabase Secrets. Please configure OPENAI_API_KEY.');
+        } else if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+          throw new Error('Invalid OpenAI API key. Please check your API key configuration.');
+        } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+          throw new Error('Network error connecting to OpenAI. Please check your internet connection.');
+        } else {
+          throw new Error(`Recipe generation failed: ${error.message || 'Unknown error from Edge Function'}`);
+        }
       }
 
       if (!data) {
+        console.error('🚨 No data received from Edge Function');
         throw new Error('No data received from recipe generation service');
       }
 
-      console.log('Received recipe data:', data);
+      console.log('✅ OpenAI Service - Received recipe data:', data);
 
       // Validate and normalize the response with more strict checks
       const recipeResponse: RecipeResponse = {
-        nome: data.nome && data.nome.trim() ? data.nome.trim() : 'Healthy Recipe',
-        tempo: Math.max(Number(data.tempo) || 15, 5),
-        calorias: Math.max(Number(data.calorias) || 250, 50),
+        nome: data.nome && data.nome.trim() ? data.nome.trim() : 'Healthy AI Recipe',
+        tempo: Math.max(Number(data.tempo) || 20, 5),
+        calorias: Math.max(Number(data.calorias) || 300, 50),
         ingredientes: Array.isArray(data.ingredientes) && data.ingredientes.length > 0 
           ? data.ingredientes.filter(ing => ing && ing.trim()) 
-          : ['Basic ingredients'],
+          : ['Selected ingredients'],
         preparo: Array.isArray(data.preparo) && data.preparo.length > 0 
           ? data.preparo.filter(step => step && step.trim()) 
           : ['Follow basic preparation steps'],
-        proteinas: Math.max(Number(data.proteinas) || 10, 0),
-        carboidratos: Math.max(Number(data.carboidratos) || 20, 0),
-        gorduras: Math.max(Number(data.gorduras) || 5, 0)
+        proteinas: Math.max(Number(data.proteinas) || 15, 0),
+        carboidratos: Math.max(Number(data.carboidratos) || 25, 0),
+        gorduras: Math.max(Number(data.gorduras) || 8, 0)
       };
 
       // Final validation to ensure we have complete data
@@ -76,15 +97,15 @@ export class OpenAIService {
         throw new Error('Recipe generation returned no valid preparation steps');
       }
 
-      console.log('Validated recipe response:', recipeResponse);
+      console.log('✅ OpenAI Service - Validated recipe response:', recipeResponse);
       return recipeResponse;
     } catch (error) {
-      console.error('Error generating recipe with OpenAI:', error);
+      console.error('🚨 OpenAI Service - Error generating recipe:', error);
       
       // Provide more specific error messages
       if (error instanceof Error) {
         if (error.message.includes('API key')) {
-          throw new Error('OpenAI API key not configured. Please check your API key in Supabase settings.');
+          throw new Error('OpenAI API key not configured. Please check your API key in Supabase Secrets (OPENAI_API_KEY).');
         } else if (error.message.includes('network') || error.message.includes('fetch')) {
           throw new Error('Network error. Please check your internet connection and try again.');
         } else if (error.message.includes('Recipe generation failed')) {

@@ -48,14 +48,29 @@ const GeradorReceitas = () => {
     hasItensComprados
   } = useIntegracaoListaReceitas();
 
+  console.log('🍳 GeradorReceitas - Current state:', {
+    useAI,
+    preferencias: {
+      alimentares: preferencias?.alimentares,
+      restricoes: preferencias?.restricoes,
+      objetivo: preferencias?.objetivo
+    }
+  });
+
   const handleGerarReceitas = (refeicao: string) => {
     const ingredientesSelecionados = getIngredientesSelecionados(refeicao);
     const itensComprados = getItensCompradosPorRefeicao(refeicao);
     
-    console.log('🎯 Enviando preferências para geração de receitas:', {
-      alimentares: preferencias?.alimentares,
-      restricoes: preferencias?.restricoes,
-      objetivo: preferencias?.objetivo
+    console.log('🎯 GeradorReceitas - Starting recipe generation:', {
+      refeicao,
+      ingredientesSelecionados,
+      itensComprados,
+      useAI,
+      preferencias: {
+        alimentares: preferencias?.alimentares,
+        restricoes: preferencias?.restricoes,
+        objetivo: preferencias?.objetivo
+      }
     });
     
     // Prioritize purchased items from shopping list
@@ -88,7 +103,12 @@ const GeradorReceitas = () => {
                 </p>
                 {useAI && (
                   <p className="text-neon-green text-sm">
-                    🤖 AI mode active - OpenAI-powered personalized recipes
+                    🤖 AI mode active - ChatGPT-powered personalized recipes
+                  </p>
+                )}
+                {!useAI && (
+                  <p className="text-blue-400 text-sm">
+                    🔧 Traditional mode - Rule-based recipe generation
                   </p>
                 )}
               </div>

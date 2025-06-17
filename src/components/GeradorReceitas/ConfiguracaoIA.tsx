@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Settings, Bot, AlertCircle } from "lucide-react";
-import { useState, useEffect } from "react";
 import { useSupabasePreferencias } from "@/hooks/useSupabasePreferencias";
 
 interface ConfiguracaoIAProps {
@@ -14,22 +13,8 @@ interface ConfiguracaoIAProps {
 
 export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
   const { preferencias, atualizarPreferencias } = useSupabasePreferencias();
-  const [hasApiKey, setHasApiKey] = useState(false);
-
-  useEffect(() => {
-    const checkApiKey = async () => {
-      try {
-        const response = await fetch('/api/check-openai-key');
-        setHasApiKey(response.ok);
-      } catch (error) {
-        setHasApiKey(true); // fallback
-      }
-    };
-    checkApiKey();
-  }, []);
 
   const handleToggleAI = (checked: boolean) => {
-    if (checked && !hasApiKey) return;
     onToggleAI(checked);
   };
 
@@ -66,35 +51,30 @@ export function ConfiguracaoIA({ useAI, onToggleAI }: ConfiguracaoIAProps) {
               <Switch
                 checked={useAI}
                 onCheckedChange={handleToggleAI}
-                disabled={!hasApiKey}
                 className="data-[state=checked]:bg-neon-green"
               />
             </div>
 
-            {!hasApiKey && (
-              <div className="p-3 bg-orange-500/10 border border-orange-500/20 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-orange-400 mt-0.5" />
-                  <div className="text-sm">
-                    <p className="text-orange-400 font-medium">OpenAI API key not configured</p>
-                    <p className="text-orange-300 mt-1">
-                      Configure the OpenAI API key in Supabase Secrets to use ChatGPT for recipe generation.
-                    </p>
-                  </div>
+            <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <div className="flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-blue-400 mt-0.5" />
+                <div className="text-sm">
+                  <p className="text-blue-400 font-medium">OpenAI Integration</p>
+                  <p className="text-blue-300 mt-1">
+                    Make sure the OpenAI API key is configured in Supabase Secrets as "OPENAI_API_KEY" for AI recipe generation to work.
+                  </p>
                 </div>
               </div>
-            )}
+            </div>
 
-            {hasApiKey && (
-              <div className="text-sm text-white/60 space-y-2">
-                <p>
-                  <strong>Disabled:</strong> Uses internal generator based on rules and predefined variations.
-                </p>
-                <p>
-                  <strong>Enabled:</strong> Uses ChatGPT to create completely personalized recipes with specialized prompts.
-                </p>
-              </div>
-            )}
+            <div className="text-sm text-white/60 space-y-2">
+              <p>
+                <strong>Disabled:</strong> Uses internal generator based on rules and predefined variations.
+              </p>
+              <p>
+                <strong>Enabled:</strong> Uses ChatGPT to create completely personalized recipes with specialized prompts.
+              </p>
+            </div>
           </div>
 
           {/* Food Preferences */}
