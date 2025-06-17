@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, ShoppingCart } from "lucide-react";
+import { Plus, ShoppingCart, Bot, Loader2 } from "lucide-react";
 import { SelecaoIngredientes } from "./SelecaoIngredientes";
 import ReceitaCard from "@/components/ColecaoReceitas/ReceitaCard";
 import { Receita, Ingrediente } from "@/types/receitas";
@@ -18,6 +18,7 @@ interface RefeicaoSectionProps {
   onRemoverReceita: (receitaId: string) => void;
   itensComprados?: string[];
   temItensComprados?: boolean;
+  loading?: boolean;
 }
 
 export function RefeicaoSection({
@@ -30,7 +31,8 @@ export function RefeicaoSection({
   onGerarReceitas,
   onRemoverReceita,
   itensComprados = [],
-  temItensComprados = false
+  temItensComprados = false,
+  loading = false
 }: RefeicaoSectionProps) {
   return (
     <Card className="bg-dark-bg border-white/10">
@@ -67,13 +69,26 @@ export function RefeicaoSection({
 
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h4 className="text-white/80 font-medium">Recipes:</h4>
+            <div className="flex items-center gap-2">
+              <h4 className="text-white/80 font-medium">AI-Generated Recipes:</h4>
+              <Bot className="w-4 h-4 text-neon-green" />
+            </div>
             <Button
               onClick={onGerarReceitas}
-              className="bg-neon-green text-black hover:bg-neon-green/90"
+              disabled={loading}
+              className="bg-neon-green text-black hover:bg-neon-green/90 disabled:opacity-50"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Generate More Recipes
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Generating with AI...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Generate AI Recipe
+                </>
+              )}
             </Button>
           </div>
 

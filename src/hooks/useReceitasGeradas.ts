@@ -1,9 +1,7 @@
+
 import { useState } from "react";
 import { toast } from "sonner";
 import { Receita } from "@/types/receitas";
-import { receitasBase } from "@/data/receitasBase";
-import { selecionarReceitaInteligente } from "@/utils/receitaUtils";
-import { criarVariacaoReceita, gerarReceitaAdaptativa } from "@/utils/receitaVariacoes";
 import { useSupabaseReceitas } from "./useSupabaseReceitas";
 import { useOpenAIRecipes } from "./useOpenAIRecipes";
 
@@ -15,9 +13,6 @@ export function useReceitasGeradas() {
     removerReceita: removerReceitaSupabase,
     loading: loadingSupabase
   } = useSupabaseReceitas();
-
-  const [receitasJaGeradas, setReceitasJaGeradas] = useState<Set<string>>(new Set());
-  const [useAI, setUseAI] = useState(false);
 
   const { generateRecipeWithAI, isGenerating } = useOpenAIRecipes({
     onRecipeGenerated: salvarReceita
@@ -39,8 +34,7 @@ export function useReceitasGeradas() {
     restricoesAlimentares: string[] = [],
     objetivo: string = "alimentação saudável"
   ) => {
-    console.log('🔍 useReceitasGeradas - Iniciando geração de receitas');
-    console.log('🔍 useReceitasGeradas - useAI ativo?', useAI);
+    console.log('🔍 useReceitasGeradas - Iniciando geração de receitas com IA');
     console.log('🔍 useReceitasGeradas - Parâmetros:', {
       refeicao,
       ingredientesSelecionados,
@@ -56,82 +50,29 @@ export function useReceitasGeradas() {
       return;
     }
 
-    console.log('🍳 Gerando receitas com parâmetros:', {
+    console.log('🍳 Gerando receitas com IA:', {
       refeicao,
       ingredientesSelecionados,
       itensComprados,
-      useAI,
       preferenciasAlimentares,
       restricoesAlimentares,
       objetivo
     });
 
     try {
-      // If AI mode is enabled, use OpenAI
-      if (useAI) {
-        console.log('🤖 useReceitasGeradas - Modo IA ativado, chamando generateRecipeWithAI');
-        console.log('🤖 Usando modo IA - chamando generateRecipeWithAI');
-        await generateRecipeWithAI(
-          refeicao,
-          ingredientesSelecionados,
-          preferenciasAlimentares,
-          restricoesAlimentares,
-          objetivo,
-          itensComprados
-        );
-        return;
-      }
-
-      // Otherwise, use the original logic
-      console.log('🔧 useReceitasGeradas - Usando geração tradicional de receitas');
-      console.log('🔧 Usando geração tradicional de receitas');
-      toast.loading("Analyzing ingredients and generating personalized recipe...", { duration: 2500 });
-      
-      setTimeout(async () => {
-        try {
-          // Prioritize purchased items, but combine with selected ingredients
-          const todosIngredientes = [
-            ...(itensComprados || []),
-            ...ingredientesSelecionados
-          ].filter((item, index, arr) => arr.indexOf(item) === index); // Remove duplicates
-          
-          let novaReceita;
-          
-          // Try to select recipe from base first
-          const receitaSelecionada = selecionarReceitaInteligente(refeicao, todosIngredientes, receitasBase, receitasJaGeradas);
-          
-          if (receitaSelecionada && receitaSelecionada.compatibilidade?.score > 0.3) {
-            // Use base recipe with possible variation
-            novaReceita = criarVariacaoReceita(receitaSelecionada, todosIngredientes);
-            setReceitasJaGeradas(prev => new Set(prev).add(`${refeicao}-${receitaSelecionada.nome}`));
-          } else {
-            // Create completely adaptive recipe
-            novaReceita = gerarReceitaAdaptativa(refeicao, todosIngredientes);
-          }
-          
-          // Ensure unique ID and add meal type
-          if (!novaReceita.id) {
-            novaReceita.id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-          }
-          novaReceita.refeicao = refeicao;
-
-          // Save to Supabase
-          await salvarReceita(novaReceita);
-
-          const tipoReceita = itensComprados && itensComprados.length > 0 
-            ? "based on your purchased items" 
-            : "personalized with your ingredients";
-            
-          toast.success(`New recipe ${tipoReceita} generated successfully! 🍽️`);
-        } catch (error) {
-          console.error("Error generating recipe:", error);
-          toast.error("Error generating recipe. Please try again.");
-        }
-      }, 2500);
+      // Always use AI for recipe generation
+      console.log('🤖 useReceitasGeradas - Gerando receita com IA');
+      await generateRecipeWithAI(
+        refeicao,
+        ingredientesSelecionados,
+        preferenciasAlimentares,
+        restricoesAlimentares,
+        objetivo,
+        itensComprados
+      );
     } catch (error) {
-      console.error("🚨 useReceitasGeradas - Error in recipe generation:", error);
-      console.error("Error in recipe generation:", error);
-      toast.error("Error generating recipe. Please try again.");
+      console.error("🚨 useReceitasGeradas - Error in AI recipe generation:", error);
+      toast.error("Error generating recipe with AI. Please try again.");
     }
   };
 
@@ -140,8 +81,6 @@ export function useReceitasGeradas() {
     toggleFavorito,
     gerarNovasReceitas,
     removerReceita,
-    loading: loadingSupabase || isGenerating,
-    useAI,
-    setUseAI
+    loading: loadingSupabase || isGenerating
   };
 }

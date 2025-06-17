@@ -2,7 +2,7 @@
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Bot } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiltrosReceitas } from "@/components/GeradorReceitas/FiltrosReceitas";
@@ -12,7 +12,6 @@ import { useReceitasGeradas } from "@/hooks/useReceitasGeradas";
 import { useIngredientes } from "@/hooks/useIngredientes";
 import { useIntegracaoListaReceitas } from "@/hooks/useIntegracaoListaReceitas";
 import { Filtros } from "@/types/receitas";
-import { ConfiguracaoIA } from "@/components/GeradorReceitas/ConfiguracaoIA";
 import { useSupabasePreferencias } from "@/hooks/useSupabasePreferencias";
 
 const GeradorReceitas = () => {
@@ -39,8 +38,7 @@ const GeradorReceitas = () => {
     toggleFavorito,
     gerarNovasReceitas,
     removerReceita,
-    useAI,
-    setUseAI
+    loading
   } = useReceitasGeradas();
 
   const {
@@ -48,8 +46,7 @@ const GeradorReceitas = () => {
     hasItensComprados
   } = useIntegracaoListaReceitas();
 
-  console.log('🍳 GeradorReceitas - Current state:', {
-    useAI,
+  console.log('🍳 GeradorReceitas - AI mode sempre ativo:', {
     preferencias: {
       alimentares: preferencias?.alimentares,
       restricoes: preferencias?.restricoes,
@@ -61,11 +58,10 @@ const GeradorReceitas = () => {
     const ingredientesSelecionados = getIngredientesSelecionados(refeicao);
     const itensComprados = getItensCompradosPorRefeicao(refeicao);
     
-    console.log('🎯 GeradorReceitas - Starting recipe generation:', {
+    console.log('🎯 GeradorReceitas - Starting AI recipe generation:', {
       refeicao,
       ingredientesSelecionados,
       itensComprados,
-      useAI,
       preferencias: {
         alimentares: preferencias?.alimentares,
         restricoes: preferencias?.restricoes,
@@ -73,7 +69,7 @@ const GeradorReceitas = () => {
       }
     });
     
-    // Prioritize purchased items from shopping list
+    // Always generate with AI
     gerarNovasReceitas(
       refeicao, 
       ingredientesSelecionados, 
@@ -91,31 +87,24 @@ const GeradorReceitas = () => {
   const refeicoes = ["Breakfast", "Lunch", "Snack", "Dinner"];
 
   return (
-    <Layout title="Smart Recipe Generator" breadcrumb={["Home", "Recipe Generator"]}>
+    <Layout title="AI Recipe Generator" breadcrumb={["Home", "AI Recipe Generator"]}>
       <div className="space-y-8">
         <Card className="bg-gradient-to-r from-neon-green/10 to-transparent border-neon-green/30">
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Bot className="w-5 h-5 text-neon-green" />
+                  <span className="text-neon-green font-medium">AI-Powered Recipe Generation</span>
+                </div>
                 <p className="text-white/80 mb-2">
-                  Recipes are generated based on selected ingredients and purchased items from your Shopping List. 
-                  Each recipe is nutritionally balanced and recommended by health professionals.
+                  All recipes are generated using ChatGPT based on your selected ingredients and purchased items from your Shopping List. 
+                  Each recipe is personalized, nutritionally balanced and created with artificial intelligence.
                 </p>
-                {useAI && (
-                  <p className="text-neon-green text-sm">
-                    🤖 AI mode active - ChatGPT-powered personalized recipes
-                  </p>
-                )}
-                {!useAI && (
-                  <p className="text-blue-400 text-sm">
-                    🔧 Traditional mode - Rule-based recipe generation
-                  </p>
-                )}
+                <p className="text-neon-green text-sm">
+                  🤖 All recipes are generated with AI for maximum personalization and quality
+                </p>
               </div>
-              <ConfiguracaoIA 
-                useAI={useAI}
-                onToggleAI={setUseAI}
-              />
             </div>
           </CardContent>
         </Card>
@@ -144,6 +133,7 @@ const GeradorReceitas = () => {
               onRemoverReceita={(receitaId) => removerReceita(refeicao, receitaId)}
               itensComprados={itensComprados}
               temItensComprados={temItensComprados}
+              loading={loading}
             />
           );
         })}
