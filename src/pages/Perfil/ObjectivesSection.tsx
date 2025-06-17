@@ -15,16 +15,24 @@ export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectio
   const [displayWeight, setDisplayWeight] = useState("");
 
   useEffect(() => {
-    if (perfil.peso_objetivo) {
+    if (perfil?.peso_objetivo) {
       const converted = convertToDisplayWeight(perfil.peso_objetivo);
       setDisplayWeight(converted.toFixed(1));
     }
-  }, [perfil.peso_objetivo, unit]);
+  }, [perfil?.peso_objetivo, unit]);
 
   const handleWeightChange = (value: string) => {
     setDisplayWeight(value);
     const numValue = parseFloat(value);
-    if (!isNaN(numValue)) {
+    if (!isNaN(numValue) && numValue > 0) {
+      const storageWeight = convertToStorageWeight(numValue);
+      onChangeObjetivo('peso_objetivo', storageWeight.toString());
+    }
+  };
+
+  const handleWeightBlur = () => {
+    const numValue = parseFloat(displayWeight);
+    if (!isNaN(numValue) && numValue > 0) {
       const storageWeight = convertToStorageWeight(numValue);
       onChangeObjetivo('peso_objetivo', storageWeight.toString());
     }
@@ -44,8 +52,10 @@ export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectio
               type="number"
               value={displayWeight}
               onChange={(e) => handleWeightChange(e.target.value)}
+              onBlur={handleWeightBlur}
               className="bg-white/5 border-white/20 text-white"
               step="0.1"
+              min="0"
             />
           </div>
           <div className="space-y-2">
@@ -53,9 +63,10 @@ export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectio
             <Input
               id="habitosDiarios"
               type="number"
-              value={perfil.habitos_diarios}
+              value={perfil?.habitos_diarios || 8}
               onChange={(e) => onChangeObjetivo('habitos_diarios', e.target.value)}
               className="bg-white/5 border-white/20 text-white"
+              min="1"
             />
           </div>
           <div className="space-y-2">
@@ -63,9 +74,10 @@ export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectio
             <Input
               id="dosesCha"
               type="number"
-              value={perfil.doses_cha}
+              value={perfil?.doses_cha || 2}
               onChange={(e) => onChangeObjetivo('doses_cha', e.target.value)}
               className="bg-white/5 border-white/20 text-white"
+              min="1"
             />
           </div>
           <div className="space-y-2">
@@ -73,9 +85,10 @@ export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectio
             <Input
               id="caloriasDiarias"
               type="number"
-              value={perfil.calorias_diarias}
+              value={perfil?.calorias_diarias || 2000}
               onChange={(e) => onChangeObjetivo('calorias_diarias', e.target.value)}
               className="bg-white/5 border-white/20 text-white"
+              min="1000"
             />
           </div>
         </div>

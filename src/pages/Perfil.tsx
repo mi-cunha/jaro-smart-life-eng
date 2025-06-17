@@ -8,9 +8,7 @@ import { useSupabasePerfil } from "@/hooks/useSupabasePerfil";
 import { PersonalInfoSection } from "./Perfil/PersonalInfoSection";
 import { PreferencesSection } from "./Perfil/PreferencesSection";
 import { ObjectivesSection } from "./Perfil/ObjectivesSection";
-import { NotificationsSection } from "./Perfil/NotificationsSection";
 import { PrivacySection } from "./Perfil/PrivacySection";
-import { AvatarSection } from "./Perfil/AvatarSection";
 import { SaveConfigBar } from "./Perfil/SaveConfigBar";
 import { useState } from "react";
 
@@ -18,18 +16,17 @@ const Perfil = () => {
   const { perfil, loading, atualizarPerfil, salvarAvatar } = useSupabasePerfil();
   const [hasChanges, setHasChanges] = useState(false);
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = async (field: string, value: any) => {
     if (perfil) {
       const updatedPerfil = { ...perfil, [field]: value };
-      atualizarPerfil({ [field]: value });
-      setHasChanges(true);
-    }
-  };
-
-  const handleToggleNotificacao = (notificacao: string) => {
-    if (perfil) {
-      const newValue = !perfil[notificacao];
-      handleInputChange(notificacao, newValue);
+      const success = await atualizarPerfil({ [field]: value });
+      if (success) {
+        setHasChanges(false);
+        toast.success('Profile updated successfully!');
+      } else {
+        toast.error('Error updating profile');
+        setHasChanges(true);
+      }
     }
   };
 
@@ -52,14 +49,21 @@ const Perfil = () => {
     handleInputChange('nome', nome);
   };
 
+  const handleTogglePrivacy = (setting: string) => {
+    if (perfil) {
+      const newValue = !perfil[setting];
+      handleInputChange(setting, newValue);
+    }
+  };
+
   const handleSave = async () => {
     if (perfil) {
       const success = await atualizarPerfil(perfil);
       if (success) {
-        toast.success('Perfil salvo com sucesso!');
+        toast.success('Profile saved successfully!');
         setHasChanges(false);
       } else {
-        toast.error('Erro ao salvar perfil');
+        toast.error('Error saving profile');
       }
     }
   };
@@ -68,7 +72,7 @@ const Perfil = () => {
     return (
       <Layout title="Profile Settings" breadcrumb={["Profile", "Settings"]}>
         <div className="flex items-center justify-center min-h-64">
-          <div className="text-white">Carregando perfil...</div>
+          <div className="text-white">Loading profile...</div>
         </div>
       </Layout>
     );
@@ -83,7 +87,7 @@ const Perfil = () => {
         </div>
 
         <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-dark-bg border-white/10">
+          <TabsList className="grid w-full grid-cols-3 bg-dark-bg border-white/10">
             <TabsTrigger value="personal" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
               Personal
             </TabsTrigger>
@@ -93,21 +97,17 @@ const Perfil = () => {
             <TabsTrigger value="objectives" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
               Goals
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
-              Notifications
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="personal" className="space-y-6">
-            <AvatarSection 
-              nome={perfil?.nome || ''} 
-              avatar_url={perfil?.avatar_url}
-              onAvatarChange={salvarAvatar}
-            />
             <PersonalInfoSection 
               nome={perfil?.nome || ''}
               email={perfil?.email}
               onNomeChange={handleNomeChange} 
+            />
+            <PrivacySection 
+              perfil={perfil} 
+              onTogglePrivacy={handleTogglePrivacy}
             />
           </TabsContent>
 
@@ -123,17 +123,6 @@ const Perfil = () => {
             <ObjectivesSection 
               perfil={perfil} 
               onChangeObjetivo={handleChangeObjetivo}
-            />
-          </TabsContent>
-
-          <TabsContent value="notifications" className="space-y-6">
-            <NotificationsSection 
-              perfil={perfil} 
-              onToggleNotificacao={handleToggleNotificacao}
-            />
-            <PrivacySection 
-              perfil={perfil} 
-              onToggleNotificacao={handleToggleNotificacao}
             />
           </TabsContent>
         </Tabs>
