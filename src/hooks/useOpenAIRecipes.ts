@@ -19,7 +19,18 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
     objetivo: string,
     itensComprados?: string[]
   ) => {
+    console.log('🔍 useOpenAIRecipes - Iniciando geração com IA');
+    console.log('🔍 useOpenAIRecipes - Parâmetros recebidos:', {
+      refeicao,
+      ingredientesSelecionados,
+      preferenciasAlimentares,
+      restricoesAlimentares,
+      objetivo,
+      itensComprados
+    });
+
     if (ingredientesSelecionados.length === 0 && (!itensComprados || itensComprados.length === 0)) {
+      console.log('❌ useOpenAIRecipes - Nenhum ingrediente selecionado');
       toast.error("Please select at least one ingredient or have purchased items in your list!");
       return;
     }
@@ -41,6 +52,8 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
     });
 
     try {
+      console.log('🚀 useOpenAIRecipes - Chamando OpenAIService.generateRecipe');
+      
       const recipeData = await OpenAIService.generateRecipe({
         ingredientes: ingredientesSelecionados,
         preferenciasAlimentares: preferenciasAlimentares || 'none',
@@ -69,6 +82,7 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
         favorita: false
       };
 
+      console.log('💾 useOpenAIRecipes - Salvando receita gerada:', novaReceita);
       await onRecipeGenerated(novaReceita);
 
       // Dismiss loading toast
@@ -112,6 +126,7 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
       }
     } finally {
       setIsGenerating(false);
+      console.log('🏁 useOpenAIRecipes - Finalizando geração');
     }
   };
 

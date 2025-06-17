@@ -39,7 +39,19 @@ export function useReceitasGeradas() {
     restricoesAlimentares: string[] = [],
     objetivo: string = "alimentação saudável"
   ) => {
+    console.log('🔍 useReceitasGeradas - Iniciando geração de receitas');
+    console.log('🔍 useReceitasGeradas - useAI ativo?', useAI);
+    console.log('🔍 useReceitasGeradas - Parâmetros:', {
+      refeicao,
+      ingredientesSelecionados,
+      itensComprados,
+      preferenciasAlimentares,
+      restricoesAlimentares,
+      objetivo
+    });
+
     if (ingredientesSelecionados.length === 0 && (!itensComprados || itensComprados.length === 0)) {
+      console.log('❌ useReceitasGeradas - Nenhum ingrediente selecionado');
       toast.error("Please select at least one ingredient or have purchased items in your list!");
       return;
     }
@@ -57,6 +69,7 @@ export function useReceitasGeradas() {
     try {
       // If AI mode is enabled, use OpenAI
       if (useAI) {
+        console.log('🤖 useReceitasGeradas - Modo IA ativado, chamando generateRecipeWithAI');
         console.log('🤖 Usando modo IA - chamando generateRecipeWithAI');
         await generateRecipeWithAI(
           refeicao,
@@ -70,6 +83,7 @@ export function useReceitasGeradas() {
       }
 
       // Otherwise, use the original logic
+      console.log('🔧 useReceitasGeradas - Usando geração tradicional de receitas');
       console.log('🔧 Usando geração tradicional de receitas');
       toast.loading("Analyzing ingredients and generating personalized recipe...", { duration: 2500 });
       
@@ -115,6 +129,7 @@ export function useReceitasGeradas() {
         }
       }, 2500);
     } catch (error) {
+      console.error("🚨 useReceitasGeradas - Error in recipe generation:", error);
       console.error("Error in recipe generation:", error);
       toast.error("Error generating recipe. Please try again.");
     }

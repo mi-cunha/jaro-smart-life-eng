@@ -25,6 +25,7 @@ interface RecipeResponse {
 export class OpenAIService {
   static async generateRecipe(request: RecipeRequest): Promise<RecipeResponse> {
     try {
+      console.log('🔍 OpenAI Service - Iniciando generateRecipe');
       console.log('🤖 OpenAI Service - Starting recipe generation request:', {
         ingredientes: request.ingredientes,
         preferenciasAlimentares: request.preferenciasAlimentares,
@@ -35,6 +36,8 @@ export class OpenAIService {
         itensComprados: request.itensComprados?.length || 0
       });
 
+      console.log('📡 OpenAI Service - Chamando supabase.functions.invoke("generate-recipe")');
+      
       // Call the Supabase Edge Function for recipe generation
       const { data, error } = await supabase.functions.invoke('generate-recipe', {
         body: {
@@ -48,9 +51,11 @@ export class OpenAIService {
         }
       });
 
+      console.log('📨 OpenAI Service - Resposta da Edge Function recebida');
       console.log('🤖 OpenAI Service - Edge function response:', { data, error });
 
       if (error) {
+        console.error('🚨 OpenAI Service - Erro da função Supabase:', error);
         console.error('🚨 Supabase function error:', error);
         
         // Provide specific error messages based on error content
@@ -66,6 +71,7 @@ export class OpenAIService {
       }
 
       if (!data) {
+        console.error('🚨 OpenAI Service - Nenhum dado recebido da Edge Function');
         console.error('🚨 No data received from Edge Function');
         throw new Error('No data received from recipe generation service');
       }
