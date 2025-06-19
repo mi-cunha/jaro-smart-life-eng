@@ -70,7 +70,7 @@ export function RefeicaoSection({
         <div>
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-2">
-              <h4 className="text-white/80 font-medium">AI-Generated Recipes:</h4>
+              <h4 className="text-white/80 font-medium">Your Recipes:</h4>
               <Bot className="w-4 h-4 text-neon-green" />
             </div>
             <Button
@@ -81,12 +81,12 @@ export function RefeicaoSection({
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating with AI...
+                  Creating Recipe...
                 </>
               ) : (
                 <>
                   <Plus className="w-4 h-4 mr-2" />
-                  Generate AI Recipe
+                  Generate New Recipe
                 </>
               )}
             </Button>

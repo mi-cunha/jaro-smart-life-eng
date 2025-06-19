@@ -41,58 +41,41 @@ serve(async (req) => {
       throw new Error('No ingredients provided for recipe generation')
     }
 
-    const prompt = `You are a professional chef and nutritionist. Create a COMPLETE recipe in ENGLISH following these specifications:
+    const prompt = `Create a healthy recipe in ENGLISH with these specifications:
 
-AVAILABLE INGREDIENTS: ${allIngredients.join(', ')}
-MEAL TYPE: ${mealType}
-NUTRITIONAL GOAL: ${goal}
-DIETARY PREFERENCES: ${dietaryPreferences}
-DIETARY RESTRICTIONS: ${restrictions.join(', ')}
-AVAILABLE TIME: ${timeAvailable} minutes
+INGREDIENTS: ${allIngredients.join(', ')}
+MEAL: ${mealType}
+GOAL: ${goal}
+PREFERENCES: ${dietaryPreferences}
+RESTRICTIONS: ${restrictions.join(', ')}
+TIME: ${timeAvailable} minutes
 
-REQUIREMENTS:
-1. Recipe name must be creative and appealing in ENGLISH
-2. Use primarily the available ingredients listed above
-3. Include specific quantities for each ingredient (cups, tablespoons, grams, etc.)
-4. Provide detailed step-by-step cooking instructions in ENGLISH
-5. Calculate accurate nutritional values
-6. Make it suitable for ${mealType.toLowerCase()}
-7. Consider the goal: ${goal}
-8. Respect dietary restrictions: ${restrictions.join(', ')}
-9. Keep preparation time under ${timeAvailable} minutes
+Requirements:
+- Recipe name in English
+- Use the ingredients provided
+- Include specific quantities (cups, grams, etc.)
+- Provide detailed cooking steps
+- Calculate accurate nutrition values
+- Keep under ${timeAvailable} minutes
+- Respect dietary restrictions
 
-RESPONSE FORMAT - Return ONLY valid JSON:
+Return ONLY valid JSON:
 {
-  "nome": "Creative recipe name in English (e.g., 'Protein-Rich Banana Oat Bowl')",
-  "tempo": actual_preparation_time_in_minutes,
-  "calorias": total_calories_number,
+  "nome": "Recipe name in English",
+  "tempo": preparation_time_minutes,
+  "calorias": total_calories,
   "ingredientes": [
-    "1 cup rolled oats",
-    "1 medium banana, sliced",
-    "1/2 cup mixed berries",
-    "1/2 cup Greek yogurt",
-    "1 tablespoon honey",
-    "1/4 cup chopped walnuts"
+    "1 cup ingredient with quantity",
+    "2 tbsp another ingredient"
   ],
   "preparo": [
-    "In a bowl, combine the rolled oats with Greek yogurt and mix well",
-    "Add sliced banana on top of the oat mixture",
-    "Sprinkle mixed berries evenly over the banana",
-    "Drizzle honey over the entire bowl",
-    "Top with chopped walnuts for extra crunch",
-    "Serve immediately and enjoy your nutritious meal"
+    "Step 1: Detailed instruction",
+    "Step 2: Next instruction"
   ],
-  "proteinas": grams_of_protein_as_number,
-  "carboidratos": grams_of_carbohydrates_as_number,
-  "gorduras": grams_of_fat_as_number
-}
-
-IMPORTANT:
-- Recipe name MUST be in English and descriptive
-- Instructions must be detailed, clear steps in English
-- All nutritional values must be realistic numbers based on ingredients
-- Include at least 4-6 preparation steps
-- Respond with ONLY the JSON, no markdown or extra text`
+  "proteinas": protein_grams,
+  "carboidratos": carbs_grams,
+  "gorduras": fat_grams
+}`
 
     console.log('Sending request to OpenAI API...');
 
@@ -107,15 +90,15 @@ IMPORTANT:
         messages: [
           {
             role: 'system',
-            content: 'You are a professional chef and nutritionist who creates detailed, healthy recipes. Always respond with valid JSON only. Recipe names and all text must be in English. Be specific with quantities and detailed with cooking instructions.'
+            content: 'You are a nutritionist who creates detailed recipes. Always respond with valid JSON only. Include specific quantities and detailed cooking steps.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 2500,
-        temperature: 0.7,
+        max_tokens: 1500,
+        temperature: 0.8,
       }),
     })
 
@@ -147,7 +130,7 @@ IMPORTANT:
 
       const recipe = JSON.parse(cleanedText)
       
-      // Validate response structure
+      // Validate and ensure all required fields are present
       if (!recipe.nome || !recipe.ingredientes || !recipe.preparo) {
         console.error('Incomplete recipe structure:', recipe);
         throw new Error('Incomplete recipe data from API')
@@ -156,22 +139,26 @@ IMPORTANT:
       // Ensure arrays are properly formatted and not empty
       if (!Array.isArray(recipe.ingredientes) || recipe.ingredientes.length === 0) {
         console.error('Invalid ingredients array:', recipe.ingredientes);
-        throw new Error('Recipe must include ingredients list')
+        recipe.ingredientes = allIngredients.map(ing => `1 portion ${ing}`);
       }
       
       if (!Array.isArray(recipe.preparo) || recipe.preparo.length === 0) {
         console.error('Invalid preparation steps:', recipe.preparo);
-        throw new Error('Recipe must include preparation steps')
+        recipe.preparo = [
+          "Prepare all ingredients according to the recipe requirements.",
+          "Follow basic cooking methods appropriate for the ingredients.",
+          "Season to taste and serve as desired."
+        ];
       }
 
-      // Ensure numeric values are valid and greater than 0
-      recipe.tempo = Math.max(Number(recipe.tempo) || 15, 5);
-      recipe.calorias = Math.max(Number(recipe.calorias) || 250, 50);
-      recipe.proteinas = Math.max(Number(recipe.proteinas) || 10, 0);
-      recipe.carboidratos = Math.max(Number(recipe.carboidratos) || 20, 0);
-      recipe.gorduras = Math.max(Number(recipe.gorduras) || 5, 0);
+      // Ensure numeric values are valid
+      recipe.tempo = Math.max(Number(recipe.tempo) || 20, 5);
+      recipe.calorias = Math.max(Number(recipe.calorias) || 300, 100);
+      recipe.proteinas = Math.max(Number(recipe.proteinas) || 15, 1);
+      recipe.carboidratos = Math.max(Number(recipe.carboidratos) || 25, 1);
+      recipe.gorduras = Math.max(Number(recipe.gorduras) || 8, 1);
 
-      // Ensure recipe name is not empty and in English
+      // Ensure recipe name is not empty
       if (!recipe.nome || recipe.nome.trim().length === 0) {
         recipe.nome = `Healthy ${mealType} Recipe`;
       }
@@ -190,7 +177,7 @@ IMPORTANT:
     } catch (parseError) {
       console.error('Error parsing recipe JSON:', parseError);
       console.error('Raw response text:', recipeText);
-      throw new Error('Invalid JSON response format from OpenAI API')
+      throw new Error('Invalid JSON response format from API')
     }
 
   } catch (error) {

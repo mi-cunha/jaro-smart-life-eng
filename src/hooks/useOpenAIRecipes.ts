@@ -36,7 +36,7 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
     }
 
     setIsGenerating(true);
-    console.log('🤖 useOpenAIRecipes - Starting AI recipe generation:', {
+    console.log('🤖 useOpenAIRecipes - Starting recipe generation:', {
       refeicao,
       ingredientesSelecionados,
       preferenciasAlimentares,
@@ -45,10 +45,10 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
       itensComprados
     });
 
-    // Show loading toast with longer duration for AI generation
-    const loadingToast = toast.loading("🤖 Generating personalized recipe with ChatGPT...", { 
-      duration: 15000,
-      description: "This may take a few moments..."
+    // Show loading toast with simpler message
+    const loadingToast = toast.loading("🍳 Creating your personalized recipe...", { 
+      duration: 10000,
+      description: "Generating nutritious and delicious meal..."
     });
 
     try {
@@ -64,10 +64,10 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
         itensComprados
       });
 
-      console.log('✅ useOpenAIRecipes - AI recipe generated successfully:', recipeData);
+      console.log('✅ useOpenAIRecipes - Recipe generated successfully:', recipeData);
 
       const novaReceita: Receita = {
-        id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `recipe-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         nome: recipeData.nome,
         tempo: recipeData.tempo,
         calorias: recipeData.calorias,
@@ -89,39 +89,39 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
       toast.dismiss(loadingToast);
 
       const tipoReceita = itensComprados && itensComprados.length > 0 
-        ? "based on your purchased items" 
-        : "personalized with your ingredients";
+        ? "using your purchased items" 
+        : "with your selected ingredients";
         
-      toast.success(`🤖 AI recipe ${tipoReceita} generated successfully!`, {
-        description: `Created "${recipeData.nome}" with ChatGPT`
+      toast.success(`🍳 New recipe created successfully!`, {
+        description: `"${recipeData.nome}" - ${tipoReceita}`
       });
     } catch (error) {
-      console.error("🚨 useOpenAIRecipes - Error generating AI recipe:", error);
+      console.error("🚨 useOpenAIRecipes - Error generating recipe:", error);
       
       // Dismiss loading toast
       toast.dismiss(loadingToast);
       
       if (error instanceof Error) {
         if (error.message.includes('API key not configured')) {
-          toast.error("🔑 OpenAI API Key Required", {
-            description: "Please configure OPENAI_API_KEY in Supabase Secrets to use AI recipe generation."
+          toast.error("🔑 API Key Required", {
+            description: "Please configure your API key in settings to generate recipes."
           });
         } else if (error.message.includes('Invalid OpenAI API key')) {
           toast.error("🔑 Invalid API Key", {
-            description: "Your OpenAI API key appears to be invalid. Please check your configuration."
+            description: "Your API key appears to be invalid. Please check your configuration."
           });
         } else if (error.message.includes('network') || error.message.includes('connection')) {
-          toast.error("🌐 Network Error", {
+          toast.error("🌐 Connection Error", {
             description: "Please check your internet connection and try again."
           });
         } else {
-          toast.error("🤖 AI Recipe Generation Failed", {
-            description: error.message
+          toast.error("🍳 Recipe Generation Failed", {
+            description: "Unable to create recipe. Please try again with different ingredients."
           });
         }
       } else {
-        toast.error("❌ Unknown Error", {
-          description: "An unexpected error occurred during AI recipe generation."
+        toast.error("❌ Unexpected Error", {
+          description: "An unexpected error occurred. Please try again."
         });
       }
     } finally {

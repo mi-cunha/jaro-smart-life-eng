@@ -1,4 +1,3 @@
-
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,7 +45,7 @@ const GeradorReceitas = () => {
     hasItensComprados
   } = useIntegracaoListaReceitas();
 
-  console.log('🍳 GeradorReceitas - AI mode sempre ativo:', {
+  console.log('🍳 GeradorReceitas - Recipe generation active:', {
     preferencias: {
       alimentares: preferencias?.alimentares,
       restricoes: preferencias?.restricoes,
@@ -58,7 +57,7 @@ const GeradorReceitas = () => {
     const ingredientesSelecionados = getIngredientesSelecionados(refeicao);
     const itensComprados = getItensCompradosPorRefeicao(refeicao);
     
-    console.log('🎯 GeradorReceitas - Starting AI recipe generation:', {
+    console.log('🎯 GeradorReceitas - Starting recipe generation:', {
       refeicao,
       ingredientesSelecionados,
       itensComprados,
@@ -69,7 +68,6 @@ const GeradorReceitas = () => {
       }
     });
     
-    // Always generate with AI
     gerarNovasReceitas(
       refeicao, 
       ingredientesSelecionados, 
@@ -87,7 +85,7 @@ const GeradorReceitas = () => {
   const refeicoes = ["Breakfast", "Lunch", "Snack", "Dinner"];
 
   return (
-    <Layout title="AI Recipe Generator" breadcrumb={["Home", "AI Recipe Generator"]}>
+    <Layout title="Recipe Generator" breadcrumb={["Home", "Recipe Generator"]}>
       <div className="space-y-8">
         <Card className="bg-gradient-to-r from-neon-green/10 to-transparent border-neon-green/30">
           <CardContent className="p-6">
@@ -95,14 +93,14 @@ const GeradorReceitas = () => {
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Bot className="w-5 h-5 text-neon-green" />
-                  <span className="text-neon-green font-medium">AI-Powered Recipe Generation</span>
+                  <span className="text-neon-green font-medium">Smart Recipe Generation</span>
                 </div>
                 <p className="text-white/80 mb-2">
-                  All recipes are generated using ChatGPT based on your selected ingredients and purchased items from your Shopping List. 
-                  Each recipe is personalized, nutritionally balanced and created with artificial intelligence.
+                  Generate personalized recipes based on your selected ingredients and purchased items from your Shopping List. 
+                  Each recipe is tailored to your preferences and nutritionally balanced.
                 </p>
                 <p className="text-neon-green text-sm">
-                  🤖 All recipes are generated with AI for maximum personalization and quality
+                  🍳 Create unlimited variations with the same ingredients for meal diversity
                 </p>
               </div>
             </div>
