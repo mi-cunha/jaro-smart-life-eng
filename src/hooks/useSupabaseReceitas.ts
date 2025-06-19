@@ -4,25 +4,6 @@ import { RecipesService } from '@/services/recipesService';
 import { Receita } from '@/types/receitas';
 import { toast } from 'sonner';
 
-// Helper function to transform Supabase receita data to our Receita interface
-const transformSupabaseReceita = (supabaseReceita: any): Receita => {
-  return {
-    id: supabaseReceita.id,
-    nome: supabaseReceita.nome,
-    tempo: supabaseReceita.tempo,
-    calorias: supabaseReceita.calorias,
-    refeicao: supabaseReceita.refeicao,
-    ingredientes: supabaseReceita.ingredientes || [],
-    preparo: supabaseReceita.preparo || [],
-    macros: {
-      proteinas: supabaseReceita.proteinas || 0,
-      carboidratos: supabaseReceita.carboidratos || 0,
-      gorduras: supabaseReceita.gorduras || 0,
-    },
-    favorita: supabaseReceita.favorita || false
-  };
-};
-
 // Map English meal types to Portuguese and vice versa
 const mealTypeMap: { [key: string]: string } = {
   "Breakfast": "Café da Manhã",
@@ -68,20 +49,19 @@ export function useSupabaseReceitas() {
       if (error) {
         console.error('Error loading recipes:', error);
       } else {
-        // Group recipes by meal type
+        // Group recipes by meal type - data is already transformed by RecipesService
         data.forEach(receita => {
-          const transformedReceita = transformSupabaseReceita(receita);
-          const mealType = transformedReceita.refeicao;
+          const mealType = receita.refeicao;
           
           // Add to both the original key and mapped key if exists
           if (receitasPorRefeicao[mealType]) {
-            receitasPorRefeicao[mealType].push(transformedReceita);
+            receitasPorRefeicao[mealType].push(receita);
           }
           
           // Also add to the mapped key (English/Portuguese equivalent)
           const mappedMealType = mealTypeMap[mealType];
           if (mappedMealType && receitasPorRefeicao[mappedMealType]) {
-            receitasPorRefeicao[mappedMealType].push(transformedReceita);
+            receitasPorRefeicao[mappedMealType].push(receita);
           }
         });
       }
@@ -103,8 +83,8 @@ export function useSupabaseReceitas() {
         return;
       }
 
-      // Transform and update local state
-      const receitaTransformada = transformSupabaseReceita(data);
+      // Use the data returned from RecipesService directly (already transformed)
+      const receitaSalva = data;
       const mealType = receita.refeicao;
       
       setReceitas(prev => {
@@ -116,12 +96,12 @@ export function useSupabaseReceitas() {
         }
         
         // Add to the original meal type
-        newState[mealType] = [...newState[mealType], receitaTransformada];
+        newState[mealType] = [...newState[mealType], receitaSalva];
         
         // Also add to the mapped meal type if it exists
         const mappedMealType = mealTypeMap[mealType];
         if (mappedMealType && newState[mappedMealType]) {
-          newState[mappedMealType] = [...newState[mappedMealType], receitaTransformada];
+          newState[mappedMealType] = [...newState[mappedMealType], receitaSalva];
         }
         
         return newState;
