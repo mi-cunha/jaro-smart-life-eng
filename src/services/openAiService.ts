@@ -78,9 +78,21 @@ export class OpenAIService {
 
       console.log('✅ OpenAI Service - Received recipe data:', data);
 
+      // Log the raw data to debug macro values
+      console.log('🔍 OpenAI Service - Raw macro data:', {
+        proteinas: data.proteinas,
+        carboidratos: data.carboidratos,
+        gorduras: data.gorduras,
+        types: {
+          proteinas: typeof data.proteinas,
+          carboidratos: typeof data.carboidratos,
+          gorduras: typeof data.gorduras
+        }
+      });
+
       // Validate and normalize the response with more strict checks
       const recipeResponse: RecipeResponse = {
-        nome: data.nome && data.nome.trim() ? data.nome.trim() : 'Healthy AI Recipe',
+        nome: data.nome && data.nome.trim() ? data.nome.trim() : 'Healthy Recipe',
         tempo: Math.max(Number(data.tempo) || 20, 5),
         calorias: Math.max(Number(data.calorias) || 300, 50),
         ingredientes: Array.isArray(data.ingredientes) && data.ingredientes.length > 0 
@@ -89,10 +101,12 @@ export class OpenAIService {
         preparo: Array.isArray(data.preparo) && data.preparo.length > 0 
           ? data.preparo.filter(step => step && step.trim()) 
           : ['Follow basic preparation steps'],
-        proteinas: Math.max(Number(data.proteinas) || 15, 0),
-        carboidratos: Math.max(Number(data.carboidratos) || 25, 0),
-        gorduras: Math.max(Number(data.gorduras) || 8, 0)
+        proteinas: Number(data.proteinas) || 15,
+        carboidratos: Number(data.carboidratos) || 25,
+        gorduras: Number(data.gorduras) || 8
       };
+
+      console.log('✅ OpenAI Service - Final normalized recipe response:', recipeResponse);
 
       // Final validation to ensure we have complete data
       if (recipeResponse.ingredientes.length === 0) {
@@ -103,7 +117,6 @@ export class OpenAIService {
         throw new Error('Recipe generation returned no valid preparation steps');
       }
 
-      console.log('✅ OpenAI Service - Validated recipe response:', recipeResponse);
       return recipeResponse;
     } catch (error) {
       console.error('🚨 OpenAI Service - Error generating recipe:', error);

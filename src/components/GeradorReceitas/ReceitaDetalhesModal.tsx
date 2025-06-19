@@ -13,6 +13,19 @@ interface ReceitaDetalhesModalProps {
 export function ReceitaDetalhesModal({ receita, isOpen, onClose }: ReceitaDetalhesModalProps) {
   if (!receita) return null;
 
+  // Ensure we have valid instructions and macros
+  const instrucoes = receita.preparo && receita.preparo.length > 0 ? receita.preparo : [
+    "Prepare all ingredients according to the recipe requirements.",
+    "Follow basic cooking methods appropriate for the ingredients.",
+    "Season to taste and serve as desired."
+  ];
+
+  const macros = receita.macros || {
+    proteinas: 15,
+    carboidratos: 25,
+    gorduras: 8
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-dark-bg border-white/10 max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -59,7 +72,7 @@ export function ReceitaDetalhesModal({ receita, isOpen, onClose }: ReceitaDetalh
               Instructions:
             </h4>
             <div className="space-y-3">
-              {receita.preparo.map((passo, index) => (
+              {instrucoes.map((passo, index) => (
                 <div key={index} className="text-white/90 flex gap-4 text-base">
                   <span className="text-neon-green font-bold text-lg min-w-[32px] flex-shrink-0">
                     {index + 1}.
@@ -85,19 +98,19 @@ export function ReceitaDetalhesModal({ receita, isOpen, onClose }: ReceitaDetalh
               </div>
               <div className="bg-white/10 p-4 rounded-lg text-center border border-white/20">
                 <div className="text-2xl font-bold text-blue-400 mb-1">
-                  {receita.macros.proteinas}g
+                  {macros.proteinas}g
                 </div>
                 <div className="text-white/70 text-sm">Protein</div>
               </div>
               <div className="bg-white/10 p-4 rounded-lg text-center border border-white/20">
                 <div className="text-2xl font-bold text-yellow-400 mb-1">
-                  {receita.macros.carboidratos}g
+                  {macros.carboidratos}g
                 </div>
                 <div className="text-white/70 text-sm">Carbs</div>
               </div>
               <div className="bg-white/10 p-4 rounded-lg text-center border border-white/20">
                 <div className="text-2xl font-bold text-red-400 mb-1">
-                  {receita.macros.gorduras}g
+                  {macros.gorduras}g
                 </div>
                 <div className="text-white/70 text-sm">Fat</div>
               </div>
