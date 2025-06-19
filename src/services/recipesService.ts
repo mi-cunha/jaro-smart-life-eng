@@ -76,7 +76,9 @@ export class RecipesService {
             calorias: item.calorias || 300,
             refeicao: item.refeicao || 'Almoço',
             ingredientes: Array.isArray(item.ingredientes) ? item.ingredientes : [],
-            preparo: item.instrucoes ? item.instrucoes.split('\n').filter(step => step.trim()) : [],
+            preparo: item.instrucoes && item.instrucoes.trim() 
+              ? item.instrucoes.split('\n').filter(step => step.trim()) 
+              : [],
             macros: {
               proteinas: item.proteinas || 15,
               carboidratos: item.carboidratos || 25,

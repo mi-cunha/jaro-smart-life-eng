@@ -80,29 +80,25 @@ export class OpenAIService {
 
       console.log('✅ OpenAI Service - Received recipe data:', data);
 
-      // Log the raw data to debug macro values
-      console.log('🔍 OpenAI Service - Raw macro data:', {
-        proteinas: data.proteinas,
-        carboidratos: data.carboidratos,
-        gorduras: data.gorduras,
-        types: {
-          proteinas: typeof data.proteinas,
-          carboidratos: typeof data.carboidratos,
-          gorduras: typeof data.gorduras
-        }
+      // Log the raw data to debug preparation steps
+      console.log('🔍 OpenAI Service - Raw preparation data:', {
+        preparo: data.preparo,
+        type: typeof data.preparo,
+        isArray: Array.isArray(data.preparo),
+        length: data.preparo?.length
       });
 
-      // Validate and normalize the response with proper macros object structure
+      // Validate and normalize the response with proper data structure
       const recipeResponse: RecipeResponse = {
         nome: data.nome && data.nome.trim() ? data.nome.trim() : 'Healthy Recipe',
         tempo: Math.max(Number(data.tempo) || 20, 5),
         calorias: Math.max(Number(data.calorias) || 300, 50),
         ingredientes: Array.isArray(data.ingredientes) && data.ingredientes.length > 0 
-          ? data.ingredientes.filter(ing => ing && ing.trim()) 
+          ? data.ingredientes.filter(ing => ing && typeof ing === 'string' && ing.trim()) 
           : ['Selected ingredients'],
         preparo: Array.isArray(data.preparo) && data.preparo.length > 0 
-          ? data.preparo.filter(step => step && step.trim()) 
-          : ['Follow basic preparation steps'],
+          ? data.preparo.filter(step => step && typeof step === 'string' && step.trim()) 
+          : ['Prepare ingredients as directed', 'Cook according to recipe requirements', 'Season to taste and serve'],
         macros: {
           proteinas: Number(data.proteinas) || 15,
           carboidratos: Number(data.carboidratos) || 25,
@@ -111,6 +107,7 @@ export class OpenAIService {
       };
 
       console.log('✅ OpenAI Service - Final normalized recipe response:', recipeResponse);
+      console.log('🔍 OpenAI Service - Final preparation steps:', recipeResponse.preparo);
 
       // Final validation to ensure we have complete data
       if (recipeResponse.ingredientes.length === 0) {
@@ -118,7 +115,8 @@ export class OpenAIService {
       }
 
       if (recipeResponse.preparo.length === 0) {
-        throw new Error('Recipe generation returned no valid preparation steps');
+        console.warn('🚨 OpenAI Service - No preparation steps found, adding default steps');
+        recipeResponse.preparo = ['Prepare ingredients as directed', 'Cook according to recipe requirements', 'Season to taste and serve'];
       }
 
       return recipeResponse;
