@@ -74,11 +74,7 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
         refeicao,
         ingredientes: recipeData.ingredientes,
         preparo: recipeData.preparo,
-        macros: {
-          proteinas: recipeData.proteinas,
-          carboidratos: recipeData.carboidratos,
-          gorduras: recipeData.gorduras
-        },
+        macros: recipeData.macros,
         favorita: false
       };
 

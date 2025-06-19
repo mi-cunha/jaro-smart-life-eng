@@ -354,33 +354,48 @@ export type Database = {
       receitas: {
         Row: {
           calorias: number | null
+          carboidratos: number | null
           created_at: string
+          favorita: boolean | null
+          gorduras: number | null
           id: string
           ingredientes: Json | null
           instrucoes: string | null
           nome: string
+          proteinas: number | null
+          refeicao: string | null
           tempo_preparo: number | null
           updated_at: string
           user_email: string
         }
         Insert: {
           calorias?: number | null
+          carboidratos?: number | null
           created_at?: string
+          favorita?: boolean | null
+          gorduras?: number | null
           id?: string
           ingredientes?: Json | null
           instrucoes?: string | null
           nome: string
+          proteinas?: number | null
+          refeicao?: string | null
           tempo_preparo?: number | null
           updated_at?: string
           user_email: string
         }
         Update: {
           calorias?: number | null
+          carboidratos?: number | null
           created_at?: string
+          favorita?: boolean | null
+          gorduras?: number | null
           id?: string
           ingredientes?: Json | null
           instrucoes?: string | null
           nome?: string
+          proteinas?: number | null
+          refeicao?: string | null
           tempo_preparo?: number | null
           updated_at?: string
           user_email?: string

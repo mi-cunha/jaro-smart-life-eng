@@ -24,10 +24,15 @@ export class RecipesService {
         .from('receitas')
         .insert({
           nome: receita.nome,
-          tempo_preparo: receita.tempo, // Map tempo to tempo_preparo
+          tempo_preparo: receita.tempo,
           calorias: receita.calorias,
           ingredientes: receita.ingredientes,
-          instrucoes: receita.preparo?.join('\n') || '', // Map preparo array to instrucoes string
+          instrucoes: receita.preparo?.join('\n') || '',
+          proteinas: receita.macros?.proteinas || 15,
+          carboidratos: receita.macros?.carboidratos || 25,
+          gorduras: receita.macros?.gorduras || 8,
+          favorita: receita.favorita || false,
+          refeicao: receita.refeicao || 'Almoço',
           user_email: user.email
         })
         .select()
@@ -67,17 +72,17 @@ export class RecipesService {
           data: data.map(item => ({
             id: item.id,
             nome: item.nome,
-            tempo: item.tempo_preparo || 30, // Map tempo_preparo back to tempo
+            tempo: item.tempo_preparo || 30,
             calorias: item.calorias || 300,
-            refeicao: refeicao || 'Almoço', // Default refeicao since it's not in DB
+            refeicao: item.refeicao || 'Almoço',
             ingredientes: Array.isArray(item.ingredientes) ? item.ingredientes : [],
-            preparo: item.instrucoes ? item.instrucoes.split('\n') : [], // Map instrucoes back to preparo array
+            preparo: item.instrucoes ? item.instrucoes.split('\n').filter(step => step.trim()) : [],
             macros: {
-              proteinas: 25, // Default values since not in current DB schema
-              carboidratos: 30,
-              gorduras: 15
+              proteinas: item.proteinas || 15,
+              carboidratos: item.carboidratos || 25,
+              gorduras: item.gorduras || 8
             },
-            favorita: false // Default since not in current DB schema
+            favorita: item.favorita || false
           })),
           error: null
         };
@@ -94,23 +99,25 @@ export class RecipesService {
     try {
       const user = await this.getAuthenticatedUser();
       
-      const updateData: any = { ...updates };
+      const updateData: any = {};
       
       // Map frontend fields to database fields
-      if (updates.tempo) {
-        updateData.tempo_preparo = updates.tempo;
-        delete updateData.tempo;
+      if (updates.nome !== undefined) updateData.nome = updates.nome;
+      if (updates.tempo !== undefined) updateData.tempo_preparo = updates.tempo;
+      if (updates.calorias !== undefined) updateData.calorias = updates.calorias;
+      if (updates.ingredientes !== undefined) updateData.ingredientes = updates.ingredientes;
+      if (updates.refeicao !== undefined) updateData.refeicao = updates.refeicao;
+      if (updates.favorita !== undefined) updateData.favorita = updates.favorita;
+      
+      if (updates.preparo !== undefined) {
+        updateData.instrucoes = updates.preparo.join('\n');
       }
       
-      if (updates.preparo) {
-        updateData.instrucoes = updates.preparo.join('\n');
-        delete updateData.preparo;
+      if (updates.macros !== undefined) {
+        updateData.proteinas = updates.macros.proteinas;
+        updateData.carboidratos = updates.macros.carboidratos;
+        updateData.gorduras = updates.macros.gorduras;
       }
-
-      // Remove fields that don't exist in database
-      delete updateData.refeicao;
-      delete updateData.macros;
-      delete updateData.favorita;
 
       const { data, error } = await supabase
         .from('receitas')

@@ -17,9 +17,11 @@ interface RecipeResponse {
   calorias: number;
   ingredientes: string[];
   preparo: string[];
-  proteinas: number;
-  carboidratos: number;
-  gorduras: number;
+  macros: {
+    proteinas: number;
+    carboidratos: number;
+    gorduras: number;
+  };
 }
 
 export class OpenAIService {
@@ -90,7 +92,7 @@ export class OpenAIService {
         }
       });
 
-      // Validate and normalize the response with more strict checks
+      // Validate and normalize the response with proper macros object structure
       const recipeResponse: RecipeResponse = {
         nome: data.nome && data.nome.trim() ? data.nome.trim() : 'Healthy Recipe',
         tempo: Math.max(Number(data.tempo) || 20, 5),
@@ -101,9 +103,11 @@ export class OpenAIService {
         preparo: Array.isArray(data.preparo) && data.preparo.length > 0 
           ? data.preparo.filter(step => step && step.trim()) 
           : ['Follow basic preparation steps'],
-        proteinas: Number(data.proteinas) || 15,
-        carboidratos: Number(data.carboidratos) || 25,
-        gorduras: Number(data.gorduras) || 8
+        macros: {
+          proteinas: Number(data.proteinas) || 15,
+          carboidratos: Number(data.carboidratos) || 25,
+          gorduras: Number(data.gorduras) || 8
+        }
       };
 
       console.log('✅ OpenAI Service - Final normalized recipe response:', recipeResponse);
