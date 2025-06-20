@@ -37,6 +37,13 @@ export default function ReceitaCard({
 }: ReceitaCardProps) {
   const [showDetails, setShowDetails] = useState(false);
 
+  // Provide default values if macros is undefined
+  const macros = receita.macros || {
+    proteinas: 0,
+    carboidratos: 0,
+    gorduras: 0
+  };
+
   return (
     <>
       <Card className="bg-white/5 border-white/10 hover:border-white/20 transition-colors">
@@ -104,15 +111,15 @@ export default function ReceitaCard({
           <div className="grid grid-cols-3 gap-2 text-xs">
             <div className="text-center p-2 bg-white/5 rounded border border-white/10">
               <div className="text-white/60">Protein</div>
-              <div className="text-white font-medium">{receita.macros.proteinas}g</div>
+              <div className="text-white font-medium">{macros.proteinas}g</div>
             </div>
             <div className="text-center p-2 bg-white/5 rounded border border-white/10">
               <div className="text-white/60">Carbs</div>
-              <div className="text-white font-medium">{receita.macros.carboidratos}g</div>
+              <div className="text-white font-medium">{macros.carboidratos}g</div>
             </div>
             <div className="text-center p-2 bg-white/5 rounded border border-white/10">
               <div className="text-white/60">Fat</div>
-              <div className="text-white font-medium">{receita.macros.gorduras}g</div>
+              <div className="text-white font-medium">{macros.gorduras}g</div>
             </div>
           </div>
 
