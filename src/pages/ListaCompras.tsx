@@ -2,7 +2,7 @@
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Trash2, RotateCcw } from "lucide-react";
+import { ShoppingCart, Trash2, RotateCcw, Download } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ListaComprasStats } from "@/components/ListaCompras/ListaComprasStats";
@@ -44,6 +44,67 @@ const ListaCompras = () => {
     }
   };
 
+  const exportarPDF = () => {
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Shopping List</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            h1 { color: #10b981; text-align: center; }
+            .header { border-bottom: 2px solid #10b981; padding-bottom: 10px; margin-bottom: 20px; }
+            .total { font-size: 18px; font-weight: bold; color: #10b981; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            .category { font-weight: bold; color: #666; }
+            .price { text-align: right; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>🛒 Shopping List</h1>
+            <p class="total">Total Items: ${itensCompra.length} | Estimated Total: $${calcularTotal().toFixed(2)}</p>
+            <p><em>Generated from your favorite recipes</em></p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Category</th>
+                <th>Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itensCompra.map(item => `
+                <tr>
+                  <td>${item.nome}</td>
+                  <td>${item.quantidade}</td>
+                  <td class="category">${item.categoria || 'General'}</td>
+                  <td class="price">$${item.preco.toFixed(2)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <div style="margin-top: 20px; text-align: center; color: #666;">
+            <p>Generated on ${new Date().toLocaleDateString()}</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }
+  };
+
   return (
     <Layout title="Smart Shopping List" breadcrumb={["Home", "Shopping List"]}>
       <div className="space-y-8">
@@ -57,13 +118,9 @@ const ListaCompras = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <ListaComprasStats
             totalGeral={calcularTotal()}
-            onExportar={exportarLista}
+            onExportar={exportarPDF}
             onVoltarReceitas={() => navigate("/gerador-receitas")}
           />
-          
-          <div className="flex flex-wrap gap-2">
-            <GerarListaButton onAddItens={adicionarItensGerados} />
-          </div>
         </div>
 
         {/* Info about shopping list source */}
@@ -76,10 +133,13 @@ const ListaCompras = () => {
         <Card className="bg-dark-bg border-white/10">
           <CardHeader>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <CardTitle className="text-white flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-neon-green" />
-                Shopping List
-              </CardTitle>
+              <div className="flex items-center gap-4">
+                <CardTitle className="text-white flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5 text-neon-green" />
+                  Shopping List
+                </CardTitle>
+                <GerarListaButton onAddItens={adicionarItensGerados} />
+              </div>
               <div className="flex flex-wrap gap-2">
                 <SugerirItemModal
                   refeicoes={["General"]}

@@ -1,5 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
+import { Download } from "lucide-react";
 
 interface ListaComprasStatsProps {
   totalGeral: number;
@@ -21,9 +22,10 @@ export function ListaComprasStats({ totalGeral, onExportar, onVoltarReceitas }: 
           <div className="flex gap-2">
             <button
               onClick={onExportar}
-              className="border border-neon-green/30 text-neon-green hover:bg-neon-green/10 px-4 py-2 rounded-md transition-colors"
+              className="border border-neon-green/30 text-neon-green hover:bg-neon-green/10 px-4 py-2 rounded-md transition-colors flex items-center gap-2"
             >
-              📊 Export List
+              <Download className="w-4 h-4" />
+              Export PDF
             </button>
             <button
               onClick={onVoltarReceitas}
