@@ -1,3 +1,4 @@
+
 import { Layout } from "@/components/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -125,7 +126,7 @@ const GeradorReceitas = () => {
               ingredientes={ingredientesPorRefeicao[refeicao] || []}
               receitas={receitasGeradas[refeicao] || []}
               onToggleIngrediente={(index) => toggleIngrediente(refeicao, index)}
-              onToggleTodos={() => toggleTodosIngredientes(refeicao, index)}
+              onToggleTodos={() => toggleTodosIngredientes(refeicao)}
               onToggleFavorito={(receitaId) => toggleFavorito(refeicao, receitaId)}
               onGerarReceitas={() => handleGerarReceitas(refeicao)}
               onRemoverReceita={(receitaId) => removerReceita(refeicao, receitaId)}

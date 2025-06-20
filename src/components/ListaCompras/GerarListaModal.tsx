@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ShoppingCart, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useSupabaseReceitas } from "@/hooks/useSupabaseReceitas";
 
 interface ItemSugerido {
   nome: string;
@@ -31,84 +32,122 @@ export function GerarListaModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [itensSugeridos, setItensSugeridos] = useState<ItemSugerido[]>([]);
   const [showResults, setShowResults] = useState(false);
+  
+  const { receitas } = useSupabaseReceitas();
 
   const gerarLista = async () => {
     setIsGenerating(true);
     
-    // Use a shorter toast that will be replaced
-    const toastId = toast.loading("Generating personalized list...", { duration: 2000 });
+    const toastId = toast.loading("Generating list from your recipes...", { duration: 2000 });
     
     setTimeout(() => {
-      // Clear the loading toast first
       toast.dismiss(toastId);
       
       try {
-        // Simulation of generation based on meal and preferences
-        const itensBase = {
-          "Breakfast": [
-            { nome: "Organic Rolled Oats", quantidade: "500g", preco: 6.50, categoria: "cereals" },
-            { nome: "Organic Bananas", quantidade: "1kg", preco: 5.20, categoria: "fruits" },
-            { nome: "Natural Low-Fat Yogurt", quantidade: "500ml", preco: 7.80, categoria: "dairy" },
-            { nome: "Organic Honey", quantidade: "250ml", preco: 18.90, categoria: "sweeteners" },
-            { nome: "Chia Seeds", quantidade: "200g", preco: 15.60, categoria: "seeds" },
-            { nome: "Fresh Blueberries", quantidade: "200g", preco: 12.90, categoria: "fruits" },
-            { nome: "Almond Milk", quantidade: "1L", preco: 8.90, categoria: "beverages" }
-          ],
-          "Lunch": [
-            { nome: "Organic Chicken Breast", quantidade: "1kg", preco: 18.90, categoria: "proteins" },
-            { nome: "Tricolor Quinoa", quantidade: "500g", preco: 14.80, categoria: "grains" },
-            { nome: "Fresh Broccoli", quantidade: "500g", preco: 6.20, categoria: "vegetables" },
-            { nome: "Sweet Potato", quantidade: "1kg", preco: 7.50, categoria: "carbohydrates" },
-            { nome: "Extra Virgin Olive Oil", quantidade: "500ml", preco: 22.90, categoria: "oils" },
-            { nome: "Cherry Tomatoes", quantidade: "300g", preco: 5.80, categoria: "vegetables" },
-            { nome: "Natural Coconut Water", quantidade: "1L", preco: 4.50, categoria: "beverages" }
-          ],
-          "Snack": [
-            { nome: "Mixed Nuts", quantidade: "200g", preco: 24.90, categoria: "nuts" },
-            { nome: "Green Apples", quantidade: "1kg", preco: 8.90, categoria: "fruits" },
-            { nome: "Cottage Cheese", quantidade: "200g", preco: 9.80, categoria: "dairy" },
-            { nome: "Green Tea", quantidade: "20 bags", preco: 12.50, categoria: "beverages" },
-            { nome: "Whole Grain Crackers", quantidade: "200g", preco: 6.90, categoria: "snacks" }
-          ],
-          "Dinner": [
-            { nome: "Fresh Salmon", quantidade: "500g", preco: 34.90, categoria: "proteins" },
-            { nome: "Fresh Asparagus", quantidade: "300g", preco: 15.80, categoria: "vegetables" },
-            { nome: "Zucchini", quantidade: "500g", preco: 4.20, categoria: "vegetables" },
-            { nome: "Shiitake Mushrooms", quantidade: "200g", preco: 12.90, categoria: "vegetables" },
-            { nome: "Sicilian Lemon", quantidade: "500g", preco: 3.80, categoria: "fruits" },
-            { nome: "Fresh Herbs", quantidade: "1 bunch", preco: 2.90, categoria: "seasonings" },
-            { nome: "Mineral Water", quantidade: "1.5L", preco: 2.50, categoria: "beverages" }
-          ]
-        };
-
-        let itens = itensBase[refeicao as keyof typeof itensBase] || [];
+        // Get recipes for the specific meal
+        const receitasRefeicao = receitas[refeicao] || [];
         
-        // Adjust based on preferences
-        if (preferenciasAlimentares === "vegan") {
-          itens = itens.filter(item => !["dairy", "proteins"].includes(item.categoria) || 
-            item.nome.includes("Plant") || item.nome.includes("Tofu"));
+        if (receitasRefeicao.length === 0) {
+          toast.error(`No recipes found for ${refeicao}. Please create some recipes first!`);
+          setIsGenerating(false);
+          return;
         }
 
-        // Filter restrictions
-        restricoesAlimentares.forEach(restricao => {
-          if (restricao.toLowerCase().includes("lactose")) {
-            itens = itens.filter(item => item.categoria !== "dairy");
-          }
-          if (restricao.toLowerCase().includes("gluten")) {
-            itens = itens.filter(item => !item.nome.toLowerCase().includes("oats") && 
-              !item.nome.toLowerCase().includes("crackers"));
+        // Extract all ingredients from user's recipes for this meal
+        const ingredientesUnicos = new Set<string>();
+        receitasRefeicao.forEach(receita => {
+          if (receita.ingredientes && Array.isArray(receita.ingredientes)) {
+            receita.ingredientes.forEach(ingrediente => {
+              if (typeof ingrediente === 'string') {
+                ingredientesUnicos.add(ingrediente.trim());
+              }
+            });
           }
         });
 
-        const itensSelecionados = itens.slice(0, 7).map(item => ({
-          ...item,
-          selecionado: true
-        }));
+        if (ingredientesUnicos.size === 0) {
+          toast.error(`No ingredients found in ${refeicao} recipes.`);
+          setIsGenerating(false);
+          return;
+        }
 
-        setItensSugeridos(itensSelecionados);
+        // Convert ingredients to shopping list items
+        const itensGerados = Array.from(ingredientesUnicos).map(ingrediente => {
+          // Generate realistic quantities and prices based on ingredient type
+          let quantidade = "1 unit";
+          let preco = 5.0;
+          let categoria = "general";
+
+          // Smart categorization and pricing
+          const ingredienteLower = ingrediente.toLowerCase();
+          
+          if (ingredienteLower.includes("chicken") || ingredienteLower.includes("beef") || ingredienteLower.includes("fish") || ingredienteLower.includes("salmon")) {
+            quantidade = "500g";
+            preco = Math.floor(Math.random() * 20) + 15;
+            categoria = "proteins";
+          } else if (ingredienteLower.includes("rice") || ingredienteLower.includes("quinoa") || ingredienteLower.includes("oats")) {
+            quantidade = "1kg";
+            preco = Math.floor(Math.random() * 10) + 5;
+            categoria = "grains";
+          } else if (ingredienteLower.includes("tomato") || ingredienteLower.includes("onion") || ingredienteLower.includes("carrot") || ingredienteLower.includes("broccoli") || ingredienteLower.includes("lettuce")) {
+            quantidade = "500g";
+            preco = Math.floor(Math.random() * 8) + 3;
+            categoria = "vegetables";
+          } else if (ingredienteLower.includes("apple") || ingredienteLower.includes("banana") || ingredienteLower.includes("orange") || ingredienteLower.includes("berry")) {
+            quantidade = "1kg";
+            preco = Math.floor(Math.random() * 12) + 4;
+            categoria = "fruits";
+          } else if (ingredienteLower.includes("milk") || ingredienteLower.includes("cheese") || ingredienteLower.includes("yogurt")) {
+            quantidade = "500ml";
+            preco = Math.floor(Math.random() * 15) + 6;
+            categoria = "dairy";
+          } else if (ingredienteLower.includes("oil") || ingredienteLower.includes("olive")) {
+            quantidade = "500ml";
+            preco = Math.floor(Math.random() * 25) + 10;
+            categoria = "oils";
+          } else if (ingredienteLower.includes("salt") || ingredienteLower.includes("pepper") || ingredienteLower.includes("garlic") || ingredienteLower.includes("herb")) {
+            quantidade = "100g";
+            preco = Math.floor(Math.random() * 8) + 2;
+            categoria = "seasonings";
+          }
+
+          return {
+            nome: ingrediente,
+            quantidade,
+            preco,
+            categoria,
+            selecionado: true
+          };
+        });
+
+        // Filter based on dietary restrictions
+        let itensFiltrados = itensGerados;
+        
+        if (preferenciasAlimentares === "vegan") {
+          itensFiltrados = itensFiltrados.filter(item => 
+            !["dairy", "proteins"].includes(item.categoria) || 
+            item.nome.toLowerCase().includes("plant") || 
+            item.nome.toLowerCase().includes("tofu")
+          );
+        }
+
+        restricoesAlimentares.forEach(restricao => {
+          if (restricao.toLowerCase().includes("lactose")) {
+            itensFiltrados = itensFiltrados.filter(item => item.categoria !== "dairy");
+          }
+          if (restricao.toLowerCase().includes("gluten")) {
+            itensFiltrados = itensFiltrados.filter(item => 
+              !item.nome.toLowerCase().includes("wheat") && 
+              !item.nome.toLowerCase().includes("bread") &&
+              !item.nome.toLowerCase().includes("pasta")
+            );
+          }
+        });
+
+        setItensSugeridos(itensFiltrados);
         setShowResults(true);
         setIsGenerating(false);
-        toast.success("List generated successfully!");
+        toast.success(`Generated ${itensFiltrados.length} items from your recipes!`);
       } catch (error) {
         setIsGenerating(false);
         toast.error("Error generating list. Please try again.");
@@ -189,6 +228,11 @@ export function GerarListaModal({
                     </div>
                   )}
                 </div>
+                <div className="mt-3 p-3 bg-neon-green/10 rounded border border-neon-green/20">
+                  <p className="text-neon-green text-sm">
+                    📝 This will generate a shopping list based on ingredients from your existing {refeicao.toLowerCase()} recipes.
+                  </p>
+                </div>
               </div>
               
               <Button 
@@ -199,10 +243,10 @@ export function GerarListaModal({
                 {isGenerating ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Generating...
+                    Generating from recipes...
                   </>
                 ) : (
-                  "Generate Personalized List"
+                  "Generate List from Your Recipes"
                 )}
               </Button>
             </div>
@@ -211,14 +255,14 @@ export function GerarListaModal({
           {isGenerating && (
             <div className="text-center py-8">
               <Loader2 className="w-8 h-8 text-neon-green animate-spin mx-auto mb-4" />
-              <p className="text-white/80">Generating personalized list based on your preferences...</p>
+              <p className="text-white/80">Extracting ingredients from your {refeicao.toLowerCase()} recipes...</p>
             </div>
           )}
 
           {showResults && (
             <div className="space-y-4">
               <h4 className="text-white font-medium">
-                Suggested Items ({itensSugeridos.filter(item => item.selecionado).length}/{itensSugeridos.length}):
+                Ingredients from Your Recipes ({itensSugeridos.filter(item => item.selecionado).length}/{itensSugeridos.length}):
               </h4>
               
               <div className="space-y-2 max-h-64 overflow-y-auto">
