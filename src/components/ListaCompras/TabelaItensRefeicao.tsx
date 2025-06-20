@@ -2,6 +2,7 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit3 } from "lucide-react";
 import { useState } from "react";
 
@@ -11,6 +12,7 @@ interface ItemCompra {
   quantidade: string;
   preco: number;
   comprado: boolean;
+  categoria?: string;
 }
 
 interface TabelaItensRefeicaoProps {
@@ -56,6 +58,7 @@ export function TabelaItensRefeicao({
             <th className="text-left text-white/80 py-3 w-12"></th>
             <th className="text-left text-white/80 py-3">Item</th>
             <th className="text-left text-white/80 py-3">Quantity</th>
+            <th className="text-left text-white/80 py-3">Category</th>
             <th className="text-left text-white/80 py-3">Price</th>
             <th className="text-left text-white/80 py-3">Status</th>
             <th className="text-left text-white/80 py-3 w-16">Actions</th>
@@ -80,6 +83,13 @@ export function TabelaItensRefeicao({
                 {item.nome}
               </td>
               <td className="text-white/70 py-3">{item.quantidade}</td>
+              <td className="py-3">
+                {item.categoria && (
+                  <Badge variant="outline" className="border-blue-400/30 text-blue-400 text-xs">
+                    {item.categoria}
+                  </Badge>
+                )}
+              </td>
               <td className="py-3">
                 {editingPrice === item.id ? (
                   <div className="flex items-center gap-2">
@@ -122,7 +132,7 @@ export function TabelaItensRefeicao({
                       </span>
                     ) : (
                       <span className="text-white/40 text-sm italic">
-                        Click to set price
+                        $0.00
                       </span>
                     )}
                     {onUpdatePreco && (

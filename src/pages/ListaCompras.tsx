@@ -2,8 +2,7 @@
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ShoppingCart, Trash2 } from "lucide-react";
+import { ShoppingCart, Trash2, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ListaComprasStats } from "@/components/ListaCompras/ListaComprasStats";
@@ -12,7 +11,7 @@ import { EstatisticasRefeicao } from "@/components/ListaCompras/EstatisticasRefe
 import { ConfiguracoesPessoais } from "@/components/ListaCompras/ConfiguracoesPessoais";
 import { ResumoCompra } from "@/components/ListaCompras/ResumoCompra";
 import { DicasCompra } from "@/components/ListaCompras/DicasCompra";
-import { GerarListaModal } from "@/components/ListaCompras/GerarListaModal";
+import { GerarListaButton } from "@/components/ListaCompras/GerarListaButton";
 import { SugerirItemModal } from "@/components/GeradorReceitas/SugerirItemModal";
 import { useListaCompras } from "@/hooks/useListaCompras";
 
@@ -23,25 +22,26 @@ const ListaCompras = () => {
   const [restricoesAlimentares, setRestricoesAlimentares] = useState<string[]>([]);
   
   const {
-    itensPorRefeicao,
+    itensCompra,
     toggleItem,
     toggleTodosItens,
     updatePreco,
-    calcularTotalRefeicao,
-    calcularTotalGeral,
+    calcularTotal,
     exportarLista,
     adicionarItensGerados,
     adicionarItemSugerido,
     removerItem,
-    removerItensSelecionados
+    removerItensSelecionados,
+    limparLista
   } = useListaCompras();
 
-  const refeicoes = ["Breakfast", "Lunch", "Snack", "Dinner"];
+  const itensSelecionados = itensCompra.filter(item => item.comprado);
+  const temItensSelecionados = itensSelecionados.length > 0;
 
-  // Add items to all meals when generated
-  const handleAddItensGerados = (itens: any[]) => {
-    // Add items to Breakfast by default, but user can move them between meals
-    adicionarItensGerados("Breakfast", itens);
+  const handleLimparLista = async () => {
+    if (window.confirm("Are you sure you want to clear the entire shopping list?")) {
+      await limparLista();
+    }
   };
 
   return (
@@ -54,94 +54,103 @@ const ListaCompras = () => {
           setRestricoesAlimentares={setRestricoesAlimentares}
         />
 
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <ListaComprasStats
-            totalGeral={calcularTotalGeral()}
+            totalGeral={calcularTotal()}
             onExportar={exportarLista}
             onVoltarReceitas={() => navigate("/gerador-receitas")}
           />
           
-          <GerarListaModal onAddItens={handleAddItensGerados} />
+          <div className="flex flex-wrap gap-2">
+            <GerarListaButton onAddItens={adicionarItensGerados} />
+          </div>
         </div>
 
-        <Tabs defaultValue="Breakfast" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-dark-bg border border-white/10">
-            {refeicoes.map((refeicao) => (
-              <TabsTrigger
-                key={refeicao}
-                value={refeicao}
-                className="data-[state=active]:bg-neon-green data-[state=active]:text-black text-white"
-              >
-                {refeicao}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        {/* Info about shopping list source */}
+        <div className="p-4 bg-neon-green/10 rounded-lg border border-neon-green/20">
+          <p className="text-neon-green text-sm">
+            📋 Your shopping list is generated based on all your favorite recipes across all meals.
+          </p>
+        </div>
 
-          {refeicoes.map((refeicao) => {
-            const itensRefeicao = itensPorRefeicao[refeicao] || [];
-            const itensSelecionados = itensRefeicao.filter(item => item.comprado);
-            const temItensSelecionados = itensSelecionados.length > 0;
+        <Card className="bg-dark-bg border-white/10">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <CardTitle className="text-white flex items-center gap-2">
+                <ShoppingCart className="w-5 h-5 text-neon-green" />
+                Shopping List
+              </CardTitle>
+              <div className="flex flex-wrap gap-2">
+                <SugerirItemModal
+                  refeicoes={["General"]}
+                  onAddIngrediente={(_, item) => adicionarItemSugerido(item)}
+                />
+                <Button
+                  onClick={toggleTodosItens}
+                  variant="outline"
+                  size="sm"
+                  className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
+                >
+                  Select/Unselect All
+                </Button>
+                {temItensSelecionados && (
+                  <Button
+                    onClick={removerItensSelecionados}
+                    variant="outline"
+                    size="sm"
+                    className="border-red-400/30 text-red-400 hover:bg-red-400/10"
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Remove Selected
+                  </Button>
+                )}
+                {itensCompra.length > 0 && (
+                  <Button
+                    onClick={handleLimparLista}
+                    variant="outline"
+                    size="sm"
+                    className="border-orange-400/30 text-orange-400 hover:bg-orange-400/10"
+                  >
+                    <RotateCcw className="w-4 h-4 mr-1" />
+                    Clear All
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div className="text-neon-green font-medium">
+              Total items: {itensCompra.length} | Estimated total: ${calcularTotal().toFixed(2)}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {itensCompra.length === 0 ? (
+              <div className="text-center py-8">
+                <ShoppingCart className="w-12 h-12 text-white/20 mx-auto mb-4" />
+                <p className="text-white/60 mb-2">Your shopping list is empty</p>
+                <p className="text-white/40 text-sm">Generate a list from your favorite recipes or add items manually</p>
+              </div>
+            ) : (
+              <>
+                <TabelaItensRefeicao
+                  itens={itensCompra}
+                  onToggleItem={toggleItem}
+                  onRemoverItem={removerItem}
+                  onUpdatePreco={updatePreco}
+                />
 
-            return (
-              <TabsContent key={refeicao} value={refeicao} className="space-y-4">
-                <Card className="bg-dark-bg border-white/10">
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="text-white flex items-center gap-2">
-                        <ShoppingCart className="w-5 h-5 text-neon-green" />
-                        {refeicao}
-                      </CardTitle>
-                      <div className="flex gap-2">
-                        <SugerirItemModal
-                          refeicoes={[refeicao]}
-                          onAddIngrediente={(refeicaoSelecionada, item) => adicionarItemSugerido(refeicaoSelecionada, item)}
-                        />
-                        <Button
-                          onClick={() => toggleTodosItens(refeicao)}
-                          variant="outline"
-                          size="sm"
-                          className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
-                        >
-                          Select/Unselect All
-                        </Button>
-                        {temItensSelecionados && (
-                          <Button
-                            onClick={() => removerItensSelecionados(refeicao)}
-                            variant="outline"
-                            size="sm"
-                            className="border-red-400/30 text-red-400 hover:bg-red-400/10"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-neon-green font-medium">
-                      Estimated total: ${calcularTotalRefeicao(refeicao).toFixed(2)}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <TabelaItensRefeicao
-                      itens={itensRefeicao}
-                      onToggleItem={(itemId) => toggleItem(refeicao, itemId)}
-                      onRemoverItem={(itemId) => removerItem(refeicao, itemId)}
-                      onUpdatePreco={(itemId, novoPreco) => updatePreco(refeicao, itemId, novoPreco)}
-                    />
+                <EstatisticasRefeicao itens={itensCompra} />
+              </>
+            )}
+          </CardContent>
+        </Card>
 
-                    <EstatisticasRefeicao itens={itensRefeicao} />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            );
-          })}
-        </Tabs>
-
-        <ResumoCompra
-          refeicoes={refeicoes}
-          calcularTotalRefeicao={calcularTotalRefeicao}
-          calcularTotalGeral={calcularTotalGeral}
-          itensPorRefeicao={itensPorRefeicao}
-        />
+        {itensCompra.length > 0 && (
+          <ResumoCompra
+            refeicoes={["General"]}
+            calcularTotalRefeicao={() => calcularTotal()}
+            calcularTotalGeral={calcularTotal}
+            itensPorRefeicao={{ "General": itensCompra }}
+          />
+        )}
 
         <DicasCompra />
       </div>

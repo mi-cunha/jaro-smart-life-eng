@@ -16,18 +16,17 @@ export class ShoppingService {
     return user;
   }
 
-  static async salvarItemCompra(item: ItemCompra, refeicao: string) {
+  static async salvarItemCompra(item: ItemCompra) {
     try {
       const user = await this.getAuthenticatedUser();
       
       const { data, error } = await supabase
         .from('lista_compras')
         .insert({
-          item: item.nome, // Map nome to item
+          item: item.nome,
           quantidade: item.quantidade,
           comprado: item.comprado,
           user_email: user.email
-          // Note: preco, categoria, refeicao don't exist in current DB schema
         })
         .select()
         .single();
@@ -44,17 +43,15 @@ export class ShoppingService {
     }
   }
 
-  static async buscarItensCompra(refeicao?: string) {
+  static async buscarItensCompra() {
     try {
       const user = await this.getAuthenticatedUser();
       
-      let query = supabase
+      const { data, error } = await supabase
         .from('lista_compras')
         .select('*')
         .eq('user_email', user.email)
         .order('created_at', { ascending: false });
-
-      const { data, error } = await query;
       
       if (error) {
         console.error('Error fetching shopping items:', error);
@@ -64,11 +61,11 @@ export class ShoppingService {
       // Transform database items to frontend format
       const transformedData = (data || []).map(item => ({
         id: item.id,
-        nome: item.item, // Map item back to nome
+        nome: item.item,
         quantidade: item.quantidade || "1 unit",
-        preco: 5, // Default price since not in DB
+        preco: 0, // Always start with 0.00 for manual editing
         comprado: item.comprado || false,
-        categoria: undefined // Not in current DB schema
+        categoria: undefined // Will be set by categorization logic
       }));
 
       return { data: transformedData, error: null };
@@ -84,7 +81,6 @@ export class ShoppingService {
       
       const updateData: any = {};
       
-      // Map frontend fields to database fields
       if (updates.nome) {
         updateData.item = updates.nome;
       }
@@ -94,9 +90,6 @@ export class ShoppingService {
       if (updates.comprado !== undefined) {
         updateData.comprado = updates.comprado;
       }
-      
-      // Skip fields that don't exist in database
-      // preco, categoria are not in current schema
 
       const { data, error } = await supabase
         .from('lista_compras')

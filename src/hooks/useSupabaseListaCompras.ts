@@ -5,34 +5,19 @@ import { ItemCompra } from '@/types/receitas';
 import { toast } from 'sonner';
 
 export function useSupabaseListaCompras() {
-  const [itensCompra, setItensCompra] = useState<{ [key: string]: ItemCompra[] }>({
-    "Breakfast": [],
-    "Lunch": [],
-    "Snack": [],
-    "Dinner": []
-  });
+  const [itensCompra, setItensCompra] = useState<ItemCompra[]>([]);
   const [loading, setLoading] = useState(false);
 
   const carregarItens = async () => {
     setLoading(true);
     try {
-      const itensPorRefeicao: { [key: string]: ItemCompra[] } = {
-        "Breakfast": [],
-        "Lunch": [],
-        "Snack": [],
-        "Dinner": []
-      };
-
-      for (const refeicao of Object.keys(itensPorRefeicao)) {
-        const { data, error } = await ShoppingService.buscarItensCompra(refeicao);
-        if (error) {
-          console.error(`Error loading items for ${refeicao}:`, error);
-        } else {
-          itensPorRefeicao[refeicao] = data;
-        }
+      const { data, error } = await ShoppingService.buscarItensCompra();
+      if (error) {
+        console.error('Error loading items:', error);
+        toast.error('Error loading shopping list');
+      } else {
+        setItensCompra(data);
       }
-
-      setItensCompra(itensPorRefeicao);
     } catch (error) {
       console.error('Error loading items:', error);
       toast.error('Error loading shopping list');
@@ -41,20 +26,16 @@ export function useSupabaseListaCompras() {
     }
   };
 
-  const adicionarItem = async (refeicao: string, item: ItemCompra) => {
+  const adicionarItem = async (item: ItemCompra) => {
     try {
-      const { data, error } = await ShoppingService.salvarItemCompra(item, refeicao);
+      const { data, error } = await ShoppingService.salvarItemCompra(item);
       if (error) {
         toast.error('Error adding item');
         return;
       }
 
       // Update local state
-      setItensCompra(prev => ({
-        ...prev,
-        [refeicao]: [...(prev[refeicao] || []), { ...item, id: data?.id || Date.now().toString() }]
-      }));
-
+      setItensCompra(prev => [...prev, { ...item, id: data?.id || Date.now().toString() }]);
       toast.success('Item added!');
     } catch (error) {
       console.error('Error adding item:', error);
@@ -62,7 +43,22 @@ export function useSupabaseListaCompras() {
     }
   };
 
-  const atualizarItem = async (refeicao: string, itemId: string, updates: Partial<ItemCompra>) => {
+  const adicionarItensLote = async (itens: ItemCompra[]) => {
+    try {
+      for (const item of itens) {
+        const { data, error } = await ShoppingService.salvarItemCompra(item);
+        if (!error && data) {
+          setItensCompra(prev => [...prev, { ...item, id: data.id }]);
+        }
+      }
+      toast.success(`${itens.length} items added to shopping list!`);
+    } catch (error) {
+      console.error('Error adding items in batch:', error);
+      toast.error('Error adding items');
+    }
+  };
+
+  const atualizarItem = async (itemId: string, updates: Partial<ItemCompra>) => {
     try {
       const { error } = await ShoppingService.atualizarItemCompra(itemId, updates);
       if (error) {
@@ -71,19 +67,16 @@ export function useSupabaseListaCompras() {
       }
 
       // Update local state
-      setItensCompra(prev => ({
-        ...prev,
-        [refeicao]: (prev[refeicao] || []).map(item => 
-          item.id === itemId ? { ...item, ...updates } : item
-        )
-      }));
+      setItensCompra(prev => prev.map(item => 
+        item.id === itemId ? { ...item, ...updates } : item
+      ));
     } catch (error) {
       console.error('Error updating item:', error);
       toast.error('Error updating item');
     }
   };
 
-  const removerItem = async (refeicao: string, itemId: string) => {
+  const removerItem = async (itemId: string) => {
     try {
       const { error } = await ShoppingService.deletarItemCompra(itemId);
       if (error) {
@@ -92,15 +85,24 @@ export function useSupabaseListaCompras() {
       }
 
       // Update local state
-      setItensCompra(prev => ({
-        ...prev,
-        [refeicao]: (prev[refeicao] || []).filter(item => item.id !== itemId)
-      }));
-
+      setItensCompra(prev => prev.filter(item => item.id !== itemId));
       toast.success('Item removed!');
     } catch (error) {
       console.error('Error removing item:', error);
       toast.error('Error removing item');
+    }
+  };
+
+  const limparLista = async () => {
+    try {
+      for (const item of itensCompra) {
+        await ShoppingService.deletarItemCompra(item.id);
+      }
+      setItensCompra([]);
+      toast.success('Shopping list cleared!');
+    } catch (error) {
+      console.error('Error clearing list:', error);
+      toast.error('Error clearing list');
     }
   };
 
@@ -112,8 +114,10 @@ export function useSupabaseListaCompras() {
     itensCompra,
     loading,
     adicionarItem,
+    adicionarItensLote,
     atualizarItem,
     removerItem,
+    limparLista,
     carregarItens
   };
 }
