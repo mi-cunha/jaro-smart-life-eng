@@ -8,6 +8,7 @@ import { ShoppingCart, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useSupabaseReceitas } from "@/hooks/useSupabaseReceitas";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ItemSugerido {
   nome: string;
@@ -15,7 +16,8 @@ interface ItemSugerido {
   preco: number;
   categoria: string;
   selecionado: boolean;
-  aparicoes: number; // Quantas vezes aparece nas receitas
+  aparicoes: number;
+  ingredientesOriginais: string[];
 }
 
 interface GerarListaModalProps {
@@ -34,142 +36,111 @@ export function GerarListaModal({
   const [isGenerating, setIsGenerating] = useState(false);
   const [itensSugeridos, setItensSugeridos] = useState<ItemSugerido[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [optimizationStats, setOptimizationStats] = useState<{
+    originalCount: number;
+    optimizedCount: number;
+    consolidationRate: number;
+  } | null>(null);
   
   const { receitas } = useSupabaseReceitas();
 
   const gerarLista = async () => {
     setIsGenerating(true);
     
-    const toastId = toast.loading("Generating optimized list from your recipes...", { duration: 2000 });
+    const loadingToast = toast.loading("🤖 AI optimizing your shopping list...", { 
+      duration: 15000,
+      description: "Consolidating ingredients and calculating smart quantities..."
+    });
     
-    setTimeout(() => {
-      toast.dismiss(toastId);
+    try {
+      // Get recipes for the specific meal
+      const receitasRefeicao = receitas[refeicao] || [];
       
-      try {
-        // Get recipes for the specific meal
-        const receitasRefeicao = receitas[refeicao] || [];
-        
-        if (receitasRefeicao.length === 0) {
-          toast.error(`No recipes found for ${refeicao}. Please create some recipes first!`);
-          setIsGenerating(false);
-          return;
-        }
-
-        // Extract and count ingredients from user's recipes for this meal
-        const ingredientesContador = new Map<string, number>();
-        
-        receitasRefeicao.forEach(receita => {
-          if (receita.ingredientes && Array.isArray(receita.ingredientes)) {
-            receita.ingredientes.forEach(ingrediente => {
-              if (typeof ingrediente === 'string') {
-                const ingredienteLimpo = ingrediente.trim().toLowerCase();
-                ingredientesContador.set(
-                  ingredienteLimpo, 
-                  (ingredientesContador.get(ingredienteLimpo) || 0) + 1
-                );
-              }
-            });
-          }
-        });
-
-        if (ingredientesContador.size === 0) {
-          toast.error(`No ingredients found in ${refeicao} recipes.`);
-          setIsGenerating(false);
-          return;
-        }
-
-        // Convert ingredients to optimized shopping list items
-        const itensGerados = Array.from(ingredientesContador.entries()).map(([ingrediente, aparicoes]) => {
-          // Smart categorization based on ingredient type
-          let categoria = "general";
-          let quantidadeSugerida = "1 unit";
-
-          const ingredienteLower = ingrediente.toLowerCase();
-          
-          if (ingredienteLower.includes("chicken") || ingredienteLower.includes("beef") || 
-              ingredienteLower.includes("fish") || ingredienteLower.includes("salmon") || 
-              ingredienteLower.includes("egg") || ingredienteLower.includes("ovo")) {
-            quantidadeSugerida = aparicoes > 2 ? "1kg" : "500g";
-            categoria = "proteins";
-          } else if (ingredienteLower.includes("rice") || ingredienteLower.includes("quinoa") || 
-                     ingredienteLower.includes("oats") || ingredienteLower.includes("arroz")) {
-            quantidadeSugerida = "1kg";
-            categoria = "grains";
-          } else if (ingredienteLower.includes("tomato") || ingredienteLower.includes("onion") || 
-                     ingredienteLower.includes("carrot") || ingredienteLower.includes("broccoli") || 
-                     ingredienteLower.includes("lettuce") || ingredienteLower.includes("cebola") ||
-                     ingredienteLower.includes("tomate")) {
-            quantidadeSugerida = aparicoes > 2 ? "1kg" : "500g";
-            categoria = "vegetables";
-          } else if (ingredienteLower.includes("apple") || ingredienteLower.includes("banana") || 
-                     ingredienteLower.includes("orange") || ingredienteLower.includes("berry") ||
-                     ingredienteLower.includes("maçã")) {
-            quantidadeSugerida = aparicoes > 3 ? "2kg" : "1kg";
-            categoria = "fruits";
-          } else if (ingredienteLower.includes("milk") || ingredienteLower.includes("cheese") || 
-                     ingredienteLower.includes("yogurt") || ingredienteLower.includes("leite")) {
-            quantidadeSugerida = aparicoes > 1 ? "1L" : "500ml";
-            categoria = "dairy";
-          } else if (ingredienteLower.includes("oil") || ingredienteLower.includes("olive") ||
-                     ingredienteLower.includes("óleo")) {
-            quantidadeSugerida = "500ml";
-            categoria = "oils";
-          } else if (ingredienteLower.includes("salt") || ingredienteLower.includes("pepper") || 
-                     ingredienteLower.includes("garlic") || ingredienteLower.includes("herb") ||
-                     ingredienteLower.includes("sal") || ingredienteLower.includes("alho")) {
-            quantidadeSugerida = "100g";
-            categoria = "seasonings";
-          }
-
-          // Capitalize first letter for display
-          const nomeFormatado = ingrediente.charAt(0).toUpperCase() + ingrediente.slice(1);
-
-          return {
-            nome: nomeFormatado,
-            quantidade: quantidadeSugerida,
-            preco: 0, // User will fill this
-            categoria,
-            selecionado: true,
-            aparicoes
-          };
-        });
-
-        // Filter based on dietary restrictions
-        let itensFiltrados = itensGerados;
-        
-        if (preferenciasAlimentares === "vegan") {
-          itensFiltrados = itensFiltrados.filter(item => 
-            !["dairy", "proteins"].includes(item.categoria) || 
-            item.nome.toLowerCase().includes("plant") || 
-            item.nome.toLowerCase().includes("tofu")
-          );
-        }
-
-        restricoesAlimentares.forEach(restricao => {
-          if (restricao.toLowerCase().includes("lactose")) {
-            itensFiltrados = itensFiltrados.filter(item => item.categoria !== "dairy");
-          }
-          if (restricao.toLowerCase().includes("gluten")) {
-            itensFiltrados = itensFiltrados.filter(item => 
-              !item.nome.toLowerCase().includes("wheat") && 
-              !item.nome.toLowerCase().includes("bread") &&
-              !item.nome.toLowerCase().includes("pasta")
-            );
-          }
-        });
-
-        // Sort by number of appearances (most used first)
-        itensFiltrados.sort((a, b) => b.aparicoes - a.aparicoes);
-
-        setItensSugeridos(itensFiltrados);
-        setShowResults(true);
+      if (receitasRefeicao.length === 0) {
+        toast.dismiss(loadingToast);
+        toast.error(`No recipes found for ${refeicao}. Please create some recipes first!`);
         setIsGenerating(false);
-        toast.success(`Generated optimized list with ${itensFiltrados.length} unique ingredients!`);
-      } catch (error) {
-        setIsGenerating(false);
-        toast.error("Error generating list. Please try again.");
+        return;
       }
-    }, 2000);
+
+      console.log('🍳 Calling AI optimization for shopping list:', {
+        refeicao,
+        receitasCount: receitasRefeicao.length,
+        preferenciasAlimentares,
+        restricoesAlimentares
+      });
+
+      // Call the edge function for AI optimization
+      const { data, error } = await supabase.functions.invoke('optimize-shopping-list', {
+        body: {
+          receitas: receitasRefeicao.map(receita => ({
+            nome: receita.nome,
+            ingredientes: receita.ingredientes || []
+          })),
+          preferenciasAlimentares: preferenciasAlimentares || 'none',
+          restricoesAlimentares: restricoesAlimentares || [],
+          refeicao
+        }
+      });
+
+      if (error) {
+        console.error('❌ Error calling optimization function:', error);
+        throw new Error('Failed to optimize shopping list');
+      }
+
+      console.log('✅ AI optimization completed:', data);
+
+      const { optimizedItems, originalCount, optimizedCount, consolidationRate } = data;
+
+      if (!optimizedItems || optimizedItems.length === 0) {
+        toast.dismiss(loadingToast);
+        toast.error(`No ingredients found in ${refeicao} recipes.`);
+        setIsGenerating(false);
+        return;
+      }
+
+      // Convert to frontend format
+      const itensGerados: ItemSugerido[] = optimizedItems.map((item: any) => ({
+        nome: item.nome,
+        quantidade: item.quantidade,
+        preco: 0, // Always start with 0 for user input
+        categoria: item.categoria || 'general',
+        selecionado: true,
+        aparicoes: item.aparicoes || 1,
+        ingredientesOriginais: item.ingredientesOriginais || []
+      }));
+
+      setItensSugeridos(itensGerados);
+      setOptimizationStats({ originalCount, optimizedCount, consolidationRate });
+      setShowResults(true);
+      
+      toast.dismiss(loadingToast);
+      toast.success(`🧠 AI optimized your list!`, {
+        description: `Consolidated ${originalCount} ingredients into ${optimizedCount} items (${consolidationRate}% reduction)`
+      });
+
+    } catch (error) {
+      console.error('🚨 Error generating optimized list:', error);
+      toast.dismiss(loadingToast);
+      
+      if (error instanceof Error) {
+        if (error.message.includes('API key not configured')) {
+          toast.error("🔑 API Key Required", {
+            description: "Please configure your OpenAI API key in settings to generate optimized lists."
+          });
+        } else {
+          toast.error("🤖 AI Optimization Failed", {
+            description: "Unable to optimize list. Please try again."
+          });
+        }
+      } else {
+        toast.error("❌ Unexpected Error", {
+          description: "An unexpected error occurred. Please try again."
+        });
+      }
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const toggleItem = (index: number) => {
@@ -193,14 +164,16 @@ export function GerarListaModal({
     }
     
     onAddItens(itensSelecionados);
-    toast.success(`${itensSelecionados.length} items added to ${refeicao} list!`);
+    toast.success(`${itensSelecionados.length} optimized items added to ${refeicao} list!`);
     setShowResults(false);
     setItensSugeridos([]);
+    setOptimizationStats(null);
   };
 
   const resetModal = () => {
     setShowResults(false);
     setItensSugeridos([]);
+    setOptimizationStats(null);
     setIsGenerating(false);
   };
 
@@ -213,19 +186,19 @@ export function GerarListaModal({
           className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
         >
           <ShoppingCart className="w-4 h-4 mr-2" />
-          Generate List
+          AI Optimize List
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-dark-bg border-white/10 max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-white">Smart Shopping List for {refeicao}</DialogTitle>
+          <DialogTitle className="text-white">🤖 AI-Powered Shopping List for {refeicao}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
           {!showResults && !isGenerating && (
             <div className="space-y-4">
               <div className="p-4 bg-white/5 rounded-lg">
-                <h4 className="text-white font-medium mb-2">Settings:</h4>
+                <h4 className="text-white font-medium mb-2">AI Optimization Settings:</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex gap-2">
                     <span className="text-white/60">Meal:</span>
@@ -254,7 +227,7 @@ export function GerarListaModal({
                 </div>
                 <div className="mt-3 p-3 bg-neon-green/10 rounded border border-neon-green/20">
                   <p className="text-neon-green text-sm">
-                    🧠 AI will optimize your list by consolidating duplicate ingredients and suggesting smart quantities based on recipe frequency.
+                    🧠 AI will analyze your recipes, consolidate similar ingredients, and suggest optimized quantities for maximum efficiency and cost savings.
                   </p>
                 </div>
               </div>
@@ -267,10 +240,10 @@ export function GerarListaModal({
                 {isGenerating ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Optimizing ingredients...
+                    AI is optimizing...
                   </>
                 ) : (
-                  "Generate Optimized Shopping List"
+                  "🤖 Generate AI-Optimized List"
                 )}
               </Button>
             </div>
@@ -279,15 +252,31 @@ export function GerarListaModal({
           {isGenerating && (
             <div className="text-center py-8">
               <Loader2 className="w-8 h-8 text-neon-green animate-spin mx-auto mb-4" />
-              <p className="text-white/80">Analyzing and optimizing ingredients from your {refeicao.toLowerCase()} recipes...</p>
+              <p className="text-white/80">AI is analyzing and optimizing ingredients from your {refeicao.toLowerCase()} recipes...</p>
+              <p className="text-white/60 text-sm mt-2">Consolidating duplicates and calculating smart quantities...</p>
             </div>
           )}
 
           {showResults && (
             <div className="space-y-4">
-              <h4 className="text-white font-medium">
-                Optimized Ingredients ({itensSugeridos.filter(item => item.selecionado).length}/{itensSugeridos.length} selected):
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-white font-medium">
+                  AI-Optimized Ingredients ({itensSugeridos.filter(item => item.selecionado).length}/{itensSugeridos.length} selected):
+                </h4>
+                {optimizationStats && (
+                  <Badge className="bg-neon-green/20 text-neon-green border-neon-green/30">
+                    {optimizationStats.consolidationRate}% consolidation
+                  </Badge>
+                )}
+              </div>
+              
+              {optimizationStats && (
+                <div className="p-3 bg-white/5 rounded-lg">
+                  <p className="text-white/80 text-sm">
+                    🎯 Optimized {optimizationStats.originalCount} original ingredients into {optimizationStats.optimizedCount} consolidated items
+                  </p>
+                </div>
+              )}
               
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {itensSugeridos.map((item, index) => (
@@ -307,6 +296,12 @@ export function GerarListaModal({
                         )}
                       </div>
                       <div className="text-white/60 text-sm">{item.quantidade}</div>
+                      {item.ingredientesOriginais && item.ingredientesOriginais.length > 1 && (
+                        <div className="text-white/40 text-xs mt-1">
+                          Consolidated: {item.ingredientesOriginais.slice(0, 3).join(', ')}
+                          {item.ingredientesOriginais.length > 3 && ` +${item.ingredientesOriginais.length - 3} more`}
+                        </div>
+                      )}
                     </div>
                     <Badge variant="outline" className="border-blue-400/30 text-blue-400 text-xs">
                       {item.categoria}
@@ -316,7 +311,7 @@ export function GerarListaModal({
                       <Input
                         type="number"
                         placeholder="0.00"
-                        value={item.preco || ""}
+                        value={item.preco > 0 ? item.preco.toString() : ""}
                         onChange={(e) => updatePreco(index, e.target.value)}
                         className="w-20 h-8 bg-white/10 border-white/20 text-white text-sm"
                         step="0.01"

@@ -31,7 +31,7 @@ export function TabelaItensRefeicao({
 
   const handleEditPrice = (itemId: string, currentPrice: number) => {
     setEditingPrice(itemId);
-    setTempPrice(currentPrice.toString());
+    setTempPrice(currentPrice > 0 ? currentPrice.toString() : "");
   };
 
   const handleSavePrice = (itemId: string) => {
@@ -91,6 +91,7 @@ export function TabelaItensRefeicao({
                       className="w-20 h-8 bg-white/10 border-white/20 text-white text-sm"
                       step="0.01"
                       min="0"
+                      placeholder="0.00"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') handleSavePrice(item.id);
                         if (e.key === 'Escape') handleCancelEdit();
@@ -121,7 +122,7 @@ export function TabelaItensRefeicao({
                       </span>
                     ) : (
                       <span className="text-white/40 text-sm italic">
-                        No price set
+                        Click to set price
                       </span>
                     )}
                     {onUpdatePreco && (
