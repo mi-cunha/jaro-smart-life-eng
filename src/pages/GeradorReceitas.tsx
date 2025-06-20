@@ -87,20 +87,20 @@ const GeradorReceitas = () => {
 
   return (
     <Layout title="Recipe Generator" breadcrumb={["Home", "Recipe Generator"]}>
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8">
         <Card className="bg-gradient-to-r from-neon-green/10 to-transparent border-neon-green/30">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-start">
-              <div>
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+              <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <Bot className="w-5 h-5 text-neon-green" />
-                  <span className="text-neon-green font-medium">Smart Recipe Generation</span>
+                  <Bot className="w-4 h-4 md:w-5 md:h-5 text-neon-green flex-shrink-0" />
+                  <span className="text-neon-green font-medium text-sm md:text-base">Smart Recipe Generation</span>
                 </div>
-                <p className="text-white/80 mb-2">
+                <p className="text-white/80 mb-2 text-sm md:text-base leading-relaxed">
                   Generate personalized recipes based on your selected ingredients and purchased items from your Shopping List. 
                   Each recipe is tailored to your preferences and nutritionally balanced.
                 </p>
-                <p className="text-neon-green text-sm">
+                <p className="text-neon-green text-xs md:text-sm">
                   🍳 Create unlimited variations with the same ingredients for meal diversity
                 </p>
               </div>
@@ -108,41 +108,46 @@ const GeradorReceitas = () => {
           </CardContent>
         </Card>
 
-        <FiltrosReceitas
-          objetivo={filtros.objetivo}
-          caloriesMax={filtros.caloriesMax}
-          onObjetivoChange={(value) => setFiltros(prev => ({ ...prev, objetivo: value }))}
-          onCaloriesMaxChange={(value) => setFiltros(prev => ({ ...prev, caloriesMax: value }))}
-        />
+        <div className="px-1">
+          <FiltrosReceitas
+            objetivo={filtros.objetivo}
+            caloriesMax={filtros.caloriesMax}
+            onObjetivoChange={(value) => setFiltros(prev => ({ ...prev, objetivo: value }))}
+            onCaloriesMaxChange={(value) => setFiltros(prev => ({ ...prev, caloriesMax: value }))}
+          />
+        </div>
 
-        {refeicoes.map((refeicao) => {
-          const itensComprados = getItensCompradosPorRefeicao(refeicao);
-          const temItensComprados = hasItensComprados(refeicao);
+        <div className="space-y-6 md:space-y-8">
+          {refeicoes.map((refeicao) => {
+            const itensComprados = getItensCompradosPorRefeicao(refeicao);
+            const temItensComprados = hasItensComprados(refeicao);
 
-          return (
-            <RefeicaoSection
-              key={refeicao}
-              refeicao={refeicao}
-              ingredientes={ingredientesPorRefeicao[refeicao] || []}
-              receitas={receitasGeradas[refeicao] || []}
-              onToggleIngrediente={(index) => toggleIngrediente(refeicao, index)}
-              onToggleTodos={() => toggleTodosIngredientes(refeicao)}
-              onToggleFavorito={(receitaId) => toggleFavorito(refeicao, receitaId)}
-              onGerarReceitas={() => handleGerarReceitas(refeicao)}
-              onRemoverReceita={(receitaId) => removerReceita(refeicao, receitaId)}
-              onAddIngrediente={(ingrediente) => handleAdicionarIngrediente(refeicao, ingrediente)}
-              itensComprados={itensComprados}
-              temItensComprados={temItensComprados}
-              loading={loading}
-            />
-          );
-        })}
+            return (
+              <div key={refeicao} className="px-1">
+                <RefeicaoSection
+                  refeicao={refeicao}
+                  ingredientes={ingredientesPorRefeicao[refeicao] || []}
+                  receitas={receitasGeradas[refeicao] || []}
+                  onToggleIngrediente={(index) => toggleIngrediente(refeicao, index)}
+                  onToggleTodos={() => toggleTodosIngredientes(refeicao)}
+                  onToggleFavorito={(receitaId) => toggleFavorito(refeicao, receitaId)}
+                  onGerarReceitas={() => handleGerarReceitas(refeicao)}
+                  onRemoverReceita={(receitaId) => removerReceita(refeicao, receitaId)}
+                  onAddIngrediente={(ingrediente) => handleAdicionarIngrediente(refeicao, ingrediente)}
+                  itensComprados={itensComprados}
+                  temItensComprados={temItensComprados}
+                  loading={loading}
+                />
+              </div>
+            );
+          })}
+        </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col gap-3 px-1">
           <Button
             onClick={() => navigate("/lista-compras")}
             variant="outline"
-            className="border-neon-green/30 text-neon-green hover:bg-neon-green/10 flex-1"
+            className="border-neon-green/30 text-neon-green hover:bg-neon-green/10 w-full sm:w-auto"
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
             View Shopping List

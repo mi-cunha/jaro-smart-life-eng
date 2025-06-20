@@ -62,6 +62,26 @@ export function useAuth() {
     try {
       console.log('🔍 Checking subscription for email:', email);
       
+      // First, try to check subscription via edge function
+      try {
+        const { data: checkResult, error: checkError } = await supabase.functions.invoke('check-subscription', {
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        });
+
+        if (checkError) {
+          console.error('❌ Error calling check-subscription function:', checkError);
+        } else if (checkResult) {
+          console.log('✅ Subscription check result:', checkResult);
+          setIsSubscribed(checkResult.subscribed || false);
+          return checkResult.subscribed || false;
+        }
+      } catch (funcError) {
+        console.error('❌ Edge function call failed:', funcError);
+      }
+      
+      // Fallback to direct database check
       const { data: subscriber, error: subError } = await supabase
         .from('subscribers')
         .select('*')
