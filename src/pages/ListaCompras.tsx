@@ -107,15 +107,17 @@ const ListaCompras = () => {
 
   return (
     <Layout title="Smart Shopping List" breadcrumb={["Home", "Shopping List"]}>
-      <div className="space-y-8">
-        <ConfiguracoesPessoais
-          preferenciasAlimentares={preferenciasAlimentares}
-          setPreferenciasAlimentares={setPreferenciasAlimentares}
-          restricoesAlimentares={restricoesAlimentares}
-          setRestricoesAlimentares={setRestricoesAlimentares}
-        />
+      <div className="space-y-4 md:space-y-8 px-2 md:px-0">
+        <div className="hidden md:block">
+          <ConfiguracoesPessoais
+            preferenciasAlimentares={preferenciasAlimentares}
+            setPreferenciasAlimentares={setPreferenciasAlimentares}
+            restricoesAlimentares={restricoesAlimentares}
+            setRestricoesAlimentares={setRestricoesAlimentares}
+          />
+        </div>
 
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col gap-4">
           <ListaComprasStats
             totalGeral={calcularTotal()}
             onExportar={exportarPDF}
@@ -124,22 +126,25 @@ const ListaCompras = () => {
         </div>
 
         {/* Info about shopping list source */}
-        <div className="p-4 bg-neon-green/10 rounded-lg border border-neon-green/20">
-          <p className="text-neon-green text-sm">
+        <div className="p-3 md:p-4 bg-neon-green/10 rounded-lg border border-neon-green/20">
+          <p className="text-neon-green text-xs md:text-sm">
             📋 Your shopping list is generated based on all your favorite recipes across all meals.
           </p>
         </div>
 
         <Card className="bg-dark-bg border-white/10">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div className="flex items-center gap-4">
-                <CardTitle className="text-white flex items-center gap-2">
-                  <ShoppingCart className="w-5 h-5 text-neon-green" />
-                  Shopping List
-                </CardTitle>
-                <GerarListaButton onAddItens={adicionarItensGerados} />
+          <CardHeader className="pb-4">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <CardTitle className="text-white flex items-center gap-2 text-lg md:text-xl">
+                    <ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-neon-green" />
+                    Shopping List
+                  </CardTitle>
+                  <GerarListaButton onAddItens={adicionarItensGerados} />
+                </div>
               </div>
+              
               <div className="flex flex-wrap gap-2">
                 <SugerirItemModal
                   refeicoes={["General"]}
@@ -149,7 +154,7 @@ const ListaCompras = () => {
                   onClick={toggleTodosItens}
                   variant="outline"
                   size="sm"
-                  className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
+                  className="border-neon-green/30 text-neon-green hover:bg-neon-green/10 text-xs md:text-sm"
                 >
                   Select/Unselect All
                 </Button>
@@ -158,9 +163,9 @@ const ListaCompras = () => {
                     onClick={removerItensSelecionados}
                     variant="outline"
                     size="sm"
-                    className="border-red-400/30 text-red-400 hover:bg-red-400/10"
+                    className="border-red-400/30 text-red-400 hover:bg-red-400/10 text-xs md:text-sm"
                   >
-                    <Trash2 className="w-4 h-4 mr-1" />
+                    <Trash2 className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                     Remove Selected
                   </Button>
                 )}
@@ -169,24 +174,24 @@ const ListaCompras = () => {
                     onClick={handleLimparLista}
                     variant="outline"
                     size="sm"
-                    className="border-orange-400/30 text-orange-400 hover:bg-orange-400/10"
+                    className="border-orange-400/30 text-orange-400 hover:bg-orange-400/10 text-xs md:text-sm"
                   >
-                    <RotateCcw className="w-4 h-4 mr-1" />
+                    <RotateCcw className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                     Clear All
                   </Button>
                 )}
               </div>
             </div>
-            <div className="text-neon-green font-medium">
+            <div className="text-neon-green font-medium text-sm md:text-base">
               Total items: {itensCompra.length} | Estimated total: ${calcularTotal().toFixed(2)}
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 md:p-6">
             {itensCompra.length === 0 ? (
-              <div className="text-center py-8">
-                <ShoppingCart className="w-12 h-12 text-white/20 mx-auto mb-4" />
-                <p className="text-white/60 mb-2">Your shopping list is empty</p>
-                <p className="text-white/40 text-sm">Generate a list from your favorite recipes or add items manually</p>
+              <div className="text-center py-6 md:py-8">
+                <ShoppingCart className="w-10 h-10 md:w-12 md:h-12 text-white/20 mx-auto mb-4" />
+                <p className="text-white/60 mb-2 text-sm md:text-base">Your shopping list is empty</p>
+                <p className="text-white/40 text-xs md:text-sm">Generate a list from your favorite recipes or add items manually</p>
               </div>
             ) : (
               <>
@@ -197,7 +202,9 @@ const ListaCompras = () => {
                   onUpdatePreco={updatePreco}
                 />
 
-                <EstatisticasRefeicao itens={itensCompra} />
+                <div className="mt-4 md:mt-6">
+                  <EstatisticasRefeicao itens={itensCompra} />
+                </div>
               </>
             )}
           </CardContent>
