@@ -38,6 +38,12 @@ const ListaCompras = () => {
 
   const refeicoes = ["Breakfast", "Lunch", "Snack", "Dinner"];
 
+  // Add items to all meals when generated
+  const handleAddItensGerados = (itens: any[]) => {
+    // Add items to Breakfast by default, but user can move them between meals
+    adicionarItensGerados("Breakfast", itens);
+  };
+
   return (
     <Layout title="Smart Shopping List" breadcrumb={["Home", "Shopping List"]}>
       <div className="space-y-8">
@@ -48,11 +54,15 @@ const ListaCompras = () => {
           setRestricoesAlimentares={setRestricoesAlimentares}
         />
 
-        <ListaComprasStats
-          totalGeral={calcularTotalGeral()}
-          onExportar={exportarLista}
-          onVoltarReceitas={() => navigate("/gerador-receitas")}
-        />
+        <div className="flex justify-between items-center">
+          <ListaComprasStats
+            totalGeral={calcularTotalGeral()}
+            onExportar={exportarLista}
+            onVoltarReceitas={() => navigate("/gerador-receitas")}
+          />
+          
+          <GerarListaModal onAddItens={handleAddItensGerados} />
+        </div>
 
         <Tabs defaultValue="Breakfast" className="w-full">
           <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-dark-bg border border-white/10">
@@ -82,12 +92,6 @@ const ListaCompras = () => {
                         {refeicao}
                       </CardTitle>
                       <div className="flex gap-2">
-                        <GerarListaModal
-                          refeicao={refeicao}
-                          preferenciasAlimentares={preferenciasAlimentares}
-                          restricoesAlimentares={restricoesAlimentares}
-                          onAddItens={(itens) => adicionarItensGerados(refeicao, itens)}
-                        />
                         <SugerirItemModal
                           refeicoes={[refeicao]}
                           onAddIngrediente={(refeicaoSelecionada, item) => adicionarItemSugerido(refeicaoSelecionada, item)}
