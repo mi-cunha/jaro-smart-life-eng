@@ -54,7 +54,7 @@ Requirements:
 - Recipe name in English
 - Use the ingredients provided
 - Include specific quantities (cups, grams, etc.)
-- Provide detailed cooking steps
+- Provide detailed cooking steps WITHOUT "Step 1:", "Step 2:" prefixes (just the actual instructions)
 - Calculate accurate nutrition values
 - Keep under ${timeAvailable} minutes
 - Respect dietary restrictions
@@ -69,8 +69,8 @@ Return ONLY valid JSON:
     "2 tbsp another ingredient"
   ],
   "preparo": [
-    "Step 1: Detailed instruction",
-    "Step 2: Next instruction"
+    "In a skillet, heat 1 tablespoon of olive oil over medium heat.",
+    "Add the chopped spinach and sauté for 2-3 minutes until wilted."
   ],
   "proteinas": protein_grams,
   "carboidratos": carbs_grams,
@@ -90,7 +90,7 @@ Return ONLY valid JSON:
         messages: [
           {
             role: 'system',
-            content: 'You are a nutritionist who creates detailed recipes. Always respond with valid JSON only. Include specific quantities and detailed cooking steps.'
+            content: 'You are a nutritionist who creates detailed recipes. Always respond with valid JSON only. Include specific quantities and detailed cooking steps WITHOUT "Step X:" prefixes.'
           },
           {
             role: 'user',
@@ -151,6 +151,11 @@ Return ONLY valid JSON:
         ];
       }
 
+      // Clean up any remaining "Step X:" prefixes that might have slipped through
+      recipe.preparo = recipe.preparo.map((step: string) => {
+        return step.replace(/^Step\s*\d+:\s*/i, '').trim();
+      });
+
       // Ensure numeric values are valid
       recipe.tempo = Math.max(Number(recipe.tempo) || 20, 5);
       recipe.calorias = Math.max(Number(recipe.calorias) || 300, 100);
@@ -164,6 +169,16 @@ Return ONLY valid JSON:
       }
 
       console.log('Successfully parsed and validated recipe:', recipe);
+
+      // Final validation to ensure we have complete data
+      if (recipe.ingredientes.length === 0) {
+        throw new Error('Recipe generation returned no valid ingredients');
+      }
+
+      if (recipe.preparo.length === 0) {
+        console.warn('No preparation steps found, adding default steps');
+        recipe.preparo = ['Prepare ingredients as directed', 'Cook according to recipe requirements', 'Season to taste and serve'];
+      }
 
       return new Response(
         JSON.stringify(recipe),

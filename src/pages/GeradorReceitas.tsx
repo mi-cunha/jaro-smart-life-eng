@@ -125,10 +125,11 @@ const GeradorReceitas = () => {
               ingredientes={ingredientesPorRefeicao[refeicao] || []}
               receitas={receitasGeradas[refeicao] || []}
               onToggleIngrediente={(index) => toggleIngrediente(refeicao, index)}
-              onToggleTodos={() => toggleTodosIngredientes(refeicao)}
+              onToggleTodos={() => toggleTodosIngredientes(refeicao, index)}
               onToggleFavorito={(receitaId) => toggleFavorito(refeicao, receitaId)}
               onGerarReceitas={() => handleGerarReceitas(refeicao)}
               onRemoverReceita={(receitaId) => removerReceita(refeicao, receitaId)}
+              onAddIngrediente={(ingrediente) => handleAdicionarIngrediente(refeicao, ingrediente)}
               itensComprados={itensComprados}
               temItensComprados={temItensComprados}
               loading={loading}
@@ -145,11 +146,6 @@ const GeradorReceitas = () => {
             <ShoppingCart className="w-4 h-4 mr-2" />
             View Shopping List
           </Button>
-
-          <SugerirItemModal 
-            refeicoes={refeicoes}
-            onAddIngrediente={handleAdicionarIngrediente}
-          />
         </div>
       </div>
     </Layout>

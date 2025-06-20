@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ShoppingCart, Bot, Loader2 } from "lucide-react";
 import { SelecaoIngredientes } from "./SelecaoIngredientes";
+import { SugerirItemModal } from "./SugerirItemModal";
 import ReceitaCard from "@/components/ColecaoReceitas/ReceitaCard";
 import { Receita, Ingrediente } from "@/types/receitas";
 
@@ -16,6 +17,7 @@ interface RefeicaoSectionProps {
   onToggleFavorito: (receitaId: string) => void;
   onGerarReceitas: () => void;
   onRemoverReceita: (receitaId: string) => void;
+  onAddIngrediente?: (ingrediente: string) => void;
   itensComprados?: string[];
   temItensComprados?: boolean;
   loading?: boolean;
@@ -30,6 +32,7 @@ export function RefeicaoSection({
   onToggleFavorito,
   onGerarReceitas,
   onRemoverReceita,
+  onAddIngrediente,
   itensComprados = [],
   temItensComprados = false,
   loading = false
@@ -60,12 +63,26 @@ export function RefeicaoSection({
         )}
       </CardHeader>
       <CardContent className="space-y-6">
-        <SelecaoIngredientes
-          refeicao={refeicao}
-          ingredientes={ingredientes}
-          onToggleIngrediente={onToggleIngrediente}
-          onToggleTodos={onToggleTodos}
-        />
+        <div className="flex justify-between items-start">
+          <div className="flex-1">
+            <SelecaoIngredientes
+              refeicao={refeicao}
+              ingredientes={ingredientes}
+              onToggleIngrediente={onToggleIngrediente}
+              onToggleTodos={onToggleTodos}
+            />
+          </div>
+          <div className="ml-4">
+            <SugerirItemModal 
+              refeicoes={[refeicao]}
+              onAddIngrediente={(refeicaoSelecionada, item) => {
+                if (onAddIngrediente) {
+                  onAddIngrediente(item);
+                }
+              }}
+            />
+          </div>
+        </div>
 
         <div>
           <div className="flex justify-between items-center mb-4">
