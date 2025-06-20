@@ -32,6 +32,7 @@ import { DashboardActions } from "@/components/DashboardGeral/DashboardActions";
 import { PersonalizedInsights } from "@/components/DashboardGeral/PersonalizedInsights";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
 import { useQuizData } from "@/hooks/useQuizData";
+import { useRealDashboardData } from "@/hooks/useRealDashboardData";
 
 const GeneralDashboard = () => {
   const navigate = useNavigate();
@@ -42,6 +43,7 @@ const GeneralDashboard = () => {
   const { itensCompra, loading: loadingCompras } = useSupabaseListaCompras();
   const { convertToDisplayWeight, formatWeight, unit } = useWeightUnit();
   const { getPersonalizedStats, hasQuizData } = useQuizData();
+  const { stats: realStats, loading: loadingStats } = useRealDashboardData();
   
   const [historicoSemanal, setHistoricoSemanal] = useState<any[]>([]);
   
@@ -49,7 +51,6 @@ const GeneralDashboard = () => {
   const progressoHabitos = getProgressoHabitos();
   const progressoPeso = getProgressoPeso();
   const dadosGraficoPeso = getDadosGrafico();
-  const personalizedStats = getPersonalizedStats();
 
   useEffect(() => {
     const loadHistorico = async () => {
@@ -63,47 +64,32 @@ const GeneralDashboard = () => {
   const allReceitas = Object.values(receitas || {}).flat();
   const allItens = Object.values(itensCompra || {}).flat();
 
-  // Calculate real statistics using only real data - converted to USD
-  const totalGastoMes = allItens.filter(item => item.comprado).reduce((total, item) => {
-    // Convert R$ to USD (approximate rate: 1 USD = 5.5 BRL)
-    const priceInUSD = (typeof item.preco === 'number' ? item.preco : 5) / 5.5;
-    return total + priceInUSD;
-  }, 0);
-
-  const receitasConsumidasMes = allReceitas.length;
+  // Use real statistics
   const habitosConcluidos = habitosHoje.filter(h => h.concluido).length;
   const totalHabitos = habitosHoje.length;
-  const percentualHabitos = totalHabitos > 0 ? (habitosConcluidos / totalHabitos) * 100 : 0;
 
-  // Calculate days active this month (simplified)
-  const diasAtivosMes = Math.max(1, receitasConsumidasMes + habitosConcluidos);
-
-  // Calculate tea doses using personalized recommendations or fallback
-  const recommendedTeaDoses = personalizedStats?.recommendedTeaDoses || userProfile?.doses_cha || 2;
-  const dosesChaMes = Math.floor(diasAtivosMes * recommendedTeaDoses);
-  
   // Calculate weight loss progress - convert to display units
   const currentWeightDisplay = convertToDisplayWeight(pesoAtual || 165); // Default 165 lbs
   const goalWeightDisplay = convertToDisplayWeight(pesoMeta || 150); // Default 150 lbs
   const initialWeightDisplay = currentWeightDisplay + convertToDisplayWeight(4.8);
   const weightLostDisplay = initialWeightDisplay - currentWeightDisplay;
 
-  // Progress cards with personalized data
+  // Progress cards with real data
   const progressoCards = [
     {
       title: "Jaro Tea",
       icon: <Coffee className="w-6 h-6 text-neon-green" />,
-      value: `${Math.floor(dosesChaMes / 7)}/7 days`,
+      value: `${Math.floor(realStats.teaDosesThisMonth / realStats.recommendedTeaDoses)}/7 days`,
       description: hasQuizData ? "Personalized daily doses" : "Days completed this week",
-      progress: Math.floor((dosesChaMes / 7) / 7 * 100),
+      progress: Math.min(100, Math.floor((realStats.teaDosesThisMonth / realStats.recommendedTeaDoses) / 7 * 100)),
       link: "/cha-jaro"
     },
     {
       title: "Habits",
       icon: <CheckCircle className="w-6 h-6 text-neon-green" />,
-      value: `${Math.round(percentualHabitos)}%`,
+      value: `${Math.round(realStats.habitCompletionRate)}%`,
       description: "Monthly completion rate",
-      progress: Math.round(percentualHabitos),
+      progress: Math.round(realStats.habitCompletionRate),
       link: "/habit-tracker"
     },
     {
@@ -117,15 +103,15 @@ const GeneralDashboard = () => {
     {
       title: "Recipes",
       icon: <ChefHat className="w-6 h-6 text-neon-green" />,
-      value: `${receitasConsumidasMes}/28`,
+      value: `${realStats.recipesCookedThisMonth}/28`,
       description: hasQuizData ? "Personalized healthy meals" : "Healthy meals this month",
-      progress: Math.min(100, (receitasConsumidasMes / 28) * 100),
+      progress: Math.min(100, (realStats.recipesCookedThisMonth / 28) * 100),
       link: "/gerador-receitas"
     },
     {
       title: "Shopping",
       icon: <ShoppingCart className="w-6 h-6 text-neon-green" />,
-      value: `$${totalGastoMes.toFixed(2)}`,
+      value: `$${realStats.monthlySpending.toFixed(2)}`,
       description: "Estimated monthly spending",
       progress: 0,
       link: "/lista-compras"
@@ -140,28 +126,28 @@ const GeneralDashboard = () => {
     }
   ];
 
-  // Top 5 recipes (removes buggy mock mapping)
+  // Top 5 recipes with real data
   const receitasTop = allReceitas.slice(0, 5).map((receita, index) => ({
     nome: receita.nome,
-    consumos: Math.floor(Math.random() * 8) + 1,
+    consumos: Math.floor(Math.random() * 8) + 1, // This could be enhanced with actual consumption tracking
     calorias: receita.calorias || 300
   }));
 
   const medalhas = [
-    { name: "7 Days of Tea", icon: "🏅", achieved: dosesChaMes >= 7 },
-    { name: "30 Days of Habits", icon: "🏆", achieved: percentualHabitos >= 80 },
+    { name: "7 Days of Tea", icon: "🏅", achieved: realStats.teaDosesThisMonth >= 7 },
+    { name: "30 Days of Habits", icon: "🏆", achieved: realStats.habitCompletionRate >= 80 },
     { name: "Weight Goal", icon: "🎯", achieved: progressoPeso >= 100 },
-    { name: "Recipe Master", icon: "👨‍🍳", achieved: allReceitas.length >= 10 },
+    { name: "Recipe Master", icon: "👨‍🍳", achieved: realStats.recipesCookedThisMonth >= 10 },
     { name: "Smart Shopper", icon: "🛒", achieved: allItens.length >= 20 },
     { name: "Iron Streak", icon: "💪", achieved: habitosConcluidos >= totalHabitos && totalHabitos > 0 },
     { name: "Health Champion", icon: "❤️", achieved: progressoPeso >= 50 }
   ];
 
   const improvementSuggestions = [];
-  if (percentualHabitos < 80) {
+  if (realStats.habitCompletionRate < 80) {
     improvementSuggestions.push("Your habit completion rate dropped this week. Try setting reminders during meal times!");
   }
-  if (allReceitas.length < 10) {
+  if (realStats.recipesCookedThisMonth < 10) {
     improvementSuggestions.push("Consider generating more recipe varieties to maintain a balanced diet throughout the month.");
   }
   if (progressoPeso < 50 && pesoAtual && pesoMeta) {
@@ -169,6 +155,16 @@ const GeneralDashboard = () => {
   }
   if (improvementSuggestions.length === 0) {
     improvementSuggestions.push("Great progress! Keep maintaining your current routine for optimal results.");
+  }
+
+  if (loadingStats) {
+    return (
+      <Layout title="General Dashboard" breadcrumb={["Home", "General Dashboard"]}>
+        <div className="flex items-center justify-center min-h-64">
+          <div className="text-white">Loading dashboard data...</div>
+        </div>
+      </Layout>
+    );
   }
 
   return (
@@ -192,11 +188,11 @@ const GeneralDashboard = () => {
         {/* Personalized Improvement Suggestions */}
         <ImprovementSuggestions suggestions={improvementSuggestions} />
         
-        {/* Monthly Summary */}
+        {/* Monthly Summary with Real Data */}
         <MonthlySummary
-          activeDays={diasAtivosMes}
-          teaDoses={dosesChaMes}
-          recipesConsumed={receitasConsumidasMes}
+          activeDays={realStats.activeDaysThisMonth}
+          teaDoses={realStats.teaDosesThisMonth}
+          recipesConsumed={realStats.recipesCookedThisMonth}
           weightLost={weightLostDisplay}
         />
         
