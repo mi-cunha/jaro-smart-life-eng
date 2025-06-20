@@ -26,6 +26,7 @@ const ListaCompras = () => {
     itensPorRefeicao,
     toggleItem,
     toggleTodosItens,
+    updatePreco,
     calcularTotalRefeicao,
     calcularTotalGeral,
     exportarLista,
@@ -120,6 +121,7 @@ const ListaCompras = () => {
                       itens={itensRefeicao}
                       onToggleItem={(itemId) => toggleItem(refeicao, itemId)}
                       onRemoverItem={(itemId) => removerItem(refeicao, itemId)}
+                      onUpdatePreco={(itemId, novoPreco) => updatePreco(refeicao, itemId, novoPreco)}
                     />
 
                     <EstatisticasRefeicao itens={itensRefeicao} />
