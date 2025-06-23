@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Receita } from '@/types/receitas';
 
@@ -20,6 +19,28 @@ export class RecipesService {
     try {
       const user = await this.getAuthenticatedUser();
       
+      console.log('🔍 RecipesService - Salvando receita com dados:', {
+        nome: receita.nome,
+        macros: receita.macros,
+        preparo: receita.preparo?.length || 0,
+        ingredientes: receita.ingredientes?.length || 0
+      });
+
+      // Ensure we have valid macros from the recipe
+      const macrosData = receita.macros || { proteinas: 15, carboidratos: 25, gorduras: 8 };
+      
+      // Ensure we have valid preparation steps
+      const preparoInstrucoes = receita.preparo && receita.preparo.length > 0 
+        ? receita.preparo.join('\n') 
+        : 'Prepare ingredients as directed\nCook according to recipe requirements\nSeason to taste and serve';
+
+      console.log('🔍 RecipesService - Dados processados para salvar:', {
+        proteinas: macrosData.proteinas,
+        carboidratos: macrosData.carboidratos,
+        gorduras: macrosData.gorduras,
+        instrucoes: preparoInstrucoes.substring(0, 100) + '...'
+      });
+
       const { data, error } = await supabase
         .from('receitas')
         .insert({
@@ -27,10 +48,10 @@ export class RecipesService {
           tempo_preparo: receita.tempo,
           calorias: receita.calorias,
           ingredientes: receita.ingredientes,
-          instrucoes: receita.preparo?.join('\n') || '',
-          proteinas: receita.macros?.proteinas || 15,
-          carboidratos: receita.macros?.carboidratos || 25,
-          gorduras: receita.macros?.gorduras || 8,
+          instrucoes: preparoInstrucoes,
+          proteinas: macrosData.proteinas,
+          carboidratos: macrosData.carboidratos,
+          gorduras: macrosData.gorduras,
           favorita: receita.favorita || false,
           refeicao: receita.refeicao || 'Almoço',
           user_email: user.email
@@ -39,13 +60,14 @@ export class RecipesService {
         .single();
 
       if (error) {
-        console.error('Error saving recipe:', error);
+        console.error('🚨 RecipesService - Error saving recipe:', error);
         return { data: null, error };
       }
 
+      console.log('✅ RecipesService - Receita salva com sucesso:', data);
       return { data, error: null };
     } catch (error) {
-      console.error('Erro ao salvar receita:', error);
+      console.error('🚨 RecipesService - Erro ao salvar receita:', error);
       return { data: null, error };
     }
   }
@@ -63,13 +85,13 @@ export class RecipesService {
       const { data, error } = await query;
       
       if (error) {
-        console.error('Error fetching recipes:', error);
+        console.error('🚨 RecipesService - Error fetching recipes:', error);
         return { data: [], error };
       }
       
       if (data) {
-        return {
-          data: data.map(item => ({
+        const receitasProcessadas = data.map(item => {
+          const receita = {
             id: item.id,
             nome: item.nome,
             tempo: item.tempo_preparo || 30,
@@ -78,21 +100,33 @@ export class RecipesService {
             ingredientes: Array.isArray(item.ingredientes) ? item.ingredientes : [],
             preparo: item.instrucoes && item.instrucoes.trim() 
               ? item.instrucoes.split('\n').filter(step => step.trim()) 
-              : [],
+              : ['Prepare ingredients as directed', 'Cook according to recipe requirements', 'Season to taste and serve'],
             macros: {
               proteinas: item.proteinas || 15,
               carboidratos: item.carboidratos || 25,
               gorduras: item.gorduras || 8
             },
             favorita: item.favorita || false
-          })),
+          };
+
+          console.log('🔍 RecipesService - Receita processada:', {
+            nome: receita.nome,
+            macros: receita.macros,
+            preparoSteps: receita.preparo.length
+          });
+
+          return receita;
+        });
+
+        return {
+          data: receitasProcessadas,
           error: null
         };
       }
 
       return { data: [], error: null };
     } catch (error) {
-      console.error('Erro ao buscar receitas:', error);
+      console.error('🚨 RecipesService - Erro ao buscar receitas:', error);
       return { data: [], error };
     }
   }

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { OpenAIService } from '@/services/openAiService';
@@ -65,6 +64,14 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
       });
 
       console.log('✅ useOpenAIRecipes - Recipe generated successfully:', recipeData);
+      
+      // Debug the received data structure
+      console.log('🔍 useOpenAIRecipes - Dados recebidos da IA:', {
+        nome: recipeData.nome,
+        macros: recipeData.macros,
+        preparoSteps: recipeData.preparo?.length || 0,
+        ingredientes: recipeData.ingredientes?.length || 0
+      });
 
       const novaReceita: Receita = {
         id: `recipe-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -78,7 +85,13 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
         favorita: false
       };
 
-      console.log('💾 useOpenAIRecipes - Salvando receita gerada:', novaReceita);
+      console.log('💾 useOpenAIRecipes - Receita final preparada para salvar:', {
+        nome: novaReceita.nome,
+        macros: novaReceita.macros,
+        preparoSteps: novaReceita.preparo?.length || 0,
+        ingredientes: novaReceita.ingredientes?.length || 0
+      });
+
       await onRecipeGenerated(novaReceita);
 
       // Dismiss loading toast

@@ -80,7 +80,14 @@ export class OpenAIService {
 
       console.log('✅ OpenAI Service - Received recipe data:', data);
 
-      // Log the raw data to debug preparation steps
+      // Log the raw data to debug macros and preparation steps
+      console.log('🔍 OpenAI Service - Raw macros data:', {
+        proteinas: data.proteinas,
+        carboidratos: data.carboidratos,
+        gorduras: data.gorduras,
+        type: typeof data.proteinas
+      });
+
       console.log('🔍 OpenAI Service - Raw preparation data:', {
         preparo: data.preparo,
         type: typeof data.preparo,
@@ -108,6 +115,7 @@ export class OpenAIService {
 
       console.log('✅ OpenAI Service - Final normalized recipe response:', recipeResponse);
       console.log('🔍 OpenAI Service - Final preparation steps:', recipeResponse.preparo);
+      console.log('🔍 OpenAI Service - Final macros:', recipeResponse.macros);
 
       // Final validation to ensure we have complete data
       if (recipeResponse.ingredientes.length === 0) {
@@ -117,6 +125,16 @@ export class OpenAIService {
       if (recipeResponse.preparo.length === 0) {
         console.warn('🚨 OpenAI Service - No preparation steps found, adding default steps');
         recipeResponse.preparo = ['Prepare ingredients as directed', 'Cook according to recipe requirements', 'Season to taste and serve'];
+      }
+
+      // Validate macros are valid numbers
+      if (isNaN(recipeResponse.macros.proteinas) || isNaN(recipeResponse.macros.carboidratos) || isNaN(recipeResponse.macros.gorduras)) {
+        console.warn('🚨 OpenAI Service - Invalid macros detected, using defaults');
+        recipeResponse.macros = {
+          proteinas: 15,
+          carboidratos: 25,
+          gorduras: 8
+        };
       }
 
       return recipeResponse;
