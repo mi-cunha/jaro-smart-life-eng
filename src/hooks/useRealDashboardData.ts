@@ -87,18 +87,16 @@ export function useRealDashboardData() {
         const daysInMonth = now.getDate();
         const teaDosesThisMonth = Math.floor(daysInMonth * recommendations.recommendedTeaDoses * (habitCompletionRate / 100));
 
-        // Get shopping expenses this month
+        // Get shopping items count (no price calculation since column doesn't exist)
         const { data: shoppingItems } = await supabase
           .from('lista_compras')
-          .select('preco, comprado')
+          .select('id, comprado')
           .eq('user_email', user.email)
           .eq('comprado', true)
           .gte('updated_at', startOfMonth.toISOString());
 
-        const monthlySpending = shoppingItems?.reduce((total, item) => {
-          const price = typeof item.preco === 'number' ? item.preco : 0;
-          return total + (price / 5.5); // Convert R$ to USD
-        }, 0) || 0;
+        // For now, set monthly spending to 0 since we don't have price data in the table
+        const monthlySpending = 0;
 
         setStats({
           activeDaysThisMonth,
