@@ -23,27 +23,34 @@ export function useAuth() {
       if (error || !session?.user) {
         setUser(null);
         setSession(null);
+        setIsSubscribed(null);
         setLoading(false);
         return;
       }
 
       setUser(session.user);
       setSession(session);
-      await checkSubscription(session.user.email);
+      
+      // Check subscription after setting user
+      const subscriptionStatus = await checkSubscription(session.user.email);
+      setIsSubscribed(subscriptionStatus);
       setLoading(false);
     };
 
     getSessionAndUser();
 
     // Listen to auth changes
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('🔐 Auth state change:', _event, session?.user?.email);
+      
       if (session?.user) {
         setUser(session.user);
         setSession(session);
-        // Defer Supabase calls to avoid recursion
-        setTimeout(() => {
-          checkSubscription(session.user.email);
-        }, 0);
+        // Defer subscription check to avoid recursion
+        setTimeout(async () => {
+          const subscriptionStatus = await checkSubscription(session.user.email);
+          setIsSubscribed(subscriptionStatus);
+        }, 100);
       } else {
         setUser(null);
         setSession(null);
@@ -58,7 +65,7 @@ export function useAuth() {
     };
   }, []);
 
-  const checkSubscription = async (email: string) => {
+  const checkSubscription = async (email: string): Promise<boolean> => {
     try {
       console.log('🔍 Checking subscription for email:', email);
       
@@ -73,30 +80,34 @@ export function useAuth() {
         if (checkError) {
           console.error('❌ Error calling check-subscription function:', checkError);
         } else if (checkResult) {
-          console.log('✅ Subscription check result:', checkResult);
-          setIsSubscribed(checkResult.subscribed || false);
-          return checkResult.subscribed || false;
+          console.log('✅ Subscription check result from edge function:', checkResult);
+          const subscribed = checkResult.subscribed || false;
+          if (subscribed && email) {
+            setTimeout(() => {
+              loadUserProfile(email);
+            }, 0);
+          }
+          return subscribed;
         }
       } catch (funcError) {
         console.error('❌ Edge function call failed:', funcError);
       }
       
       // Fallback to direct database check
+      console.log('🔄 Falling back to direct database check');
       const { data: subscriber, error: subError } = await supabase
         .from('subscribers')
         .select('*')
         .eq('email', email)
-        .single();
+        .maybeSingle();
 
-      if (subError && subError.code !== 'PGRST116') {
+      if (subError) {
         console.error('❌ Error fetching subscriber:', subError);
-        setIsSubscribed(false);
         return false;
       }
 
       if (!subscriber) {
         console.log('❌ No subscriber found for email:', email);
-        setIsSubscribed(false);
         return false;
       }
 
@@ -116,7 +127,6 @@ export function useAuth() {
       }
       
       console.log('✅ Final subscription status:', isSubbed);
-      setIsSubscribed(isSubbed);
 
       if (isSubbed && email) {
         setTimeout(() => {
@@ -127,7 +137,6 @@ export function useAuth() {
       return isSubbed;
     } catch (error) {
       console.error('❌ Unexpected error checking subscription:', error);
-      setIsSubscribed(false);
       return false;
     }
   };
@@ -138,7 +147,7 @@ export function useAuth() {
         .from('perfil_usuario')
         .select('*')
         .eq('email', userEmail)
-        .single();
+        .maybeSingle();
 
       const { data: pesoAtual, error: pesoError } = await supabase
         .from('historico_peso')
@@ -146,13 +155,13 @@ export function useAuth() {
         .eq('user_email', userEmail)
         .order('data', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       const { data: preferencias, error: prefError } = await supabase
         .from('preferencias_usuario')
         .select('*')
         .eq('user_email', userEmail)
-        .single();
+        .maybeSingle();
 
       const profileData = {
         ...perfil,
