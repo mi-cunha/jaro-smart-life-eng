@@ -77,8 +77,7 @@ const HabitTracker = () => {
       'Healthy Eating': <Apple className="w-6 h-6" />,
       'Quality Sleep': <Moon className="w-6 h-6" />,
       'Exercise': <Dumbbell className="w-6 h-6" />,
-      'Meditation': <Heart className="w-6 h-6" />,
-      'Supplementation': <CheckCircle className="w-6 h-6" />
+      'Meditation': <Heart className="w-6 h-6" />
     };
     return iconMap[nome] || <CheckCircle className="w-6 h-6" />;
   };
@@ -137,10 +136,10 @@ const HabitTracker = () => {
           <CardContent className="space-y-4">
             {habitosHoje.length === 0 ? (
               <div className="text-center py-8">
-                <div className="text-white/60">No habits configured yet</div>
+                <div className="text-white/60 mb-4">No habits configured yet</div>
                 <Button
                   onClick={() => navigate("/perfil")}
-                  className="mt-4 bg-neon-green text-black hover:bg-neon-green/90"
+                  className="bg-neon-green text-black hover:bg-neon-green/90"
                 >
                   Configure Habits
                 </Button>
@@ -170,6 +169,11 @@ const HabitTracker = () => {
                       <h3 className={`font-medium ${habit.concluido ? 'text-neon-green' : 'text-white'}`}>
                         {habit.nome}
                       </h3>
+                      {habit.descricao && (
+                        <p className="text-sm text-white/60 mt-1">
+                          {habit.descricao}
+                        </p>
+                      )}
                     </div>
                     
                     {habit.concluido && (
