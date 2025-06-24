@@ -15,14 +15,19 @@ import {
   Heart,
   CheckCircle,
   Trophy,
-  Flame
+  Flame,
+  Plus
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useHabitos } from "@/hooks/useHabitos";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const HabitTracker = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { 
     getHabitosHoje, 
     getProgressoHabitos, 
@@ -32,6 +37,8 @@ const HabitTracker = () => {
   } = useHabitos();
 
   const [historicoSemanal, setHistoricoSemanal] = useState<any[]>([]);
+  const [showAddHabit, setShowAddHabit] = useState(false);
+  const [newHabitName, setNewHabitName] = useState('');
 
   const habitosHoje = getHabitosHoje();
   const progresso = getProgressoHabitos();
@@ -51,6 +58,36 @@ const HabitTracker = () => {
     const habito = habitosHoje.find(h => h.id === habitoId);
     if (habito) {
       await marcarHabito(habitoId, !habito.concluido);
+    }
+  };
+
+  const handleAddHabit = async () => {
+    if (!newHabitName.trim() || !user) return;
+
+    try {
+      const { error } = await supabase
+        .from('habitos')
+        .insert({
+          nome: newHabitName.trim(),
+          user_email: user.email,
+          descricao: '',
+          meta_diaria: 1,
+          ativo: true
+        });
+
+      if (error) {
+        console.error('Error adding habit:', error);
+        toast.error('Erro ao adicionar hábito');
+        return;
+      }
+
+      toast.success('Hábito adicionado com sucesso!');
+      setNewHabitName('');
+      setShowAddHabit(false);
+      // Recarregar dados será feito automaticamente pelo hook useHabitos
+    } catch (error) {
+      console.error('Unexpected error adding habit:', error);
+      toast.error('Erro inesperado ao adicionar hábito');
     }
   };
 
@@ -127,22 +164,59 @@ const HabitTracker = () => {
 
         {/* Habits List */}
         <Card className="bg-dark-bg border-white/10">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-white flex items-center gap-2">
               <CheckCircle className="w-6 h-6 text-neon-green" />
               Today's Habits
             </CardTitle>
+            <Button
+              onClick={() => setShowAddHabit(!showAddHabit)}
+              className="bg-neon-green text-black hover:bg-neon-green/90"
+              size="sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Habit
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
+            {showAddHabit && (
+              <div className="p-4 bg-white/5 rounded-lg border border-white/10">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter habit name..."
+                    value={newHabitName}
+                    onChange={(e) => setNewHabitName(e.target.value)}
+                    className="flex-1 bg-transparent border border-white/20 rounded px-3 py-2 text-white placeholder-white/50 focus:outline-none focus:border-neon-green"
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddHabit()}
+                  />
+                  <Button
+                    onClick={handleAddHabit}
+                    className="bg-neon-green text-black hover:bg-neon-green/90"
+                    disabled={!newHabitName.trim()}
+                  >
+                    Add
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowAddHabit(false);
+                      setNewHabitName('');
+                    }}
+                    variant="outline"
+                    className="border-white/20 text-white/70 hover:bg-white/5"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {habitosHoje.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-white/60 mb-4">No habits configured yet</div>
-                <Button
-                  onClick={() => navigate("/perfil")}
-                  className="bg-neon-green text-black hover:bg-neon-green/90"
-                >
-                  Configure Habits
-                </Button>
+                <div className="text-sm text-white/40">
+                  Click "Add Habit" above to create your first habit
+                </div>
               </div>
             ) : (
               habitosHoje.map((habit) => (

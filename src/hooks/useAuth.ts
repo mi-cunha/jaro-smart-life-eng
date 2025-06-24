@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -69,6 +68,25 @@ export function useAuth() {
     try {
       console.log('🔍 Checking subscription for email:', email);
       
+      // Sempre tentar inserir/atualizar o registro do usuário primeiro
+      const { error: upsertError } = await supabase
+        .from('subscribers')
+        .upsert({
+          email: email,
+          user_id: session?.user?.id,
+          subscribed: false, // Default to false, will be updated if subscription is found
+          updated_at: new Date().toISOString(),
+        }, { 
+          onConflict: 'email',
+          ignoreDuplicates: false 
+        });
+
+      if (upsertError) {
+        console.error('❌ Error upserting subscriber:', upsertError);
+      } else {
+        console.log('✅ Subscriber record created/updated');
+      }
+
       // First, try to check subscription via edge function
       try {
         const { data: checkResult, error: checkError } = await supabase.functions.invoke('check-subscription', {
