@@ -422,6 +422,7 @@ export type Database = {
           subscription_tier: string | null
           updated_at: string
           user_email: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
@@ -434,6 +435,7 @@ export type Database = {
           subscription_tier?: string | null
           updated_at?: string
           user_email: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
@@ -446,6 +448,7 @@ export type Database = {
           subscription_tier?: string | null
           updated_at?: string
           user_email?: string
+          user_id?: string | null
         }
         Relationships: [
           {

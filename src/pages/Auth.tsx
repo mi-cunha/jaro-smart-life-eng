@@ -53,17 +53,6 @@ const Auth = () => {
         navigate('/pricing');
         return;
       }
-
-      // If subscription status is still loading (null), wait a bit then default to pricing
-      if (isSubscribed === null) {
-        console.log('⏳ Subscription status unknown, waiting...');
-        setTimeout(() => {
-          if (isSubscribed === null) {
-            console.log('⏳ Subscription check timeout, redirecting to pricing');
-            navigate('/pricing');
-          }
-        }, 3000);
-      }
     }
   }, [user, loading, isSubscribed, navigate, planFromUrl]);
 
@@ -78,9 +67,13 @@ const Auth = () => {
   }
 
   return (
-    <AuthCard>
-      <AuthForm />
-    </AuthCard>
+    <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4">
+      <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
+        <AuthCard>
+          <AuthForm />
+        </AuthCard>
+      </div>
+    </div>
   );
 };
 

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -73,7 +74,8 @@ export function useAuth() {
         .from('subscribers')
         .upsert({
           email: email,
-          user_email: email, // Use email for both fields as per schema
+          user_email: email,
+          user_id: user?.id || null,
           subscribed: false, // Default to false, will be updated if subscription is found
           updated_at: new Date().toISOString(),
         }, { 
@@ -193,9 +195,51 @@ export function useAuth() {
     }
   };
 
+  const checkUserExists = async (email: string): Promise<boolean> => {
+    try {
+      // Check if user already exists in auth.users
+      const { data: existingUser, error } = await supabase.auth.admin.getUserByEmail(email);
+      
+      if (error && error.message !== 'User not found') {
+        console.error('❌ Error checking existing user:', error);
+        return false;
+      }
+      
+      return !!existingUser;
+    } catch (error) {
+      // Fallback: try to sign in to check if user exists
+      try {
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password: 'dummy-password-check'
+        });
+        
+        // If we get "Invalid login credentials", user exists but password is wrong
+        // If we get "Email not confirmed", user exists but needs confirmation
+        if (signInError?.message.includes('Invalid login credentials') || 
+            signInError?.message.includes('Email not confirmed')) {
+          return true;
+        }
+        
+        return false;
+      } catch (fallbackError) {
+        console.error('❌ Fallback user check failed:', fallbackError);
+        return false;
+      }
+    }
+  };
+
   const signUp = async (email: string, password: string, nome?: string) => {
     try {
       console.log('🚀 Starting signup process for:', email);
+      
+      // Check if user already exists
+      const userExists = await checkUserExists(email);
+      if (userExists) {
+        console.log('👤 User already exists:', email);
+        toast.error('Já existe uma conta com este email. Faça login ou redefina sua senha.');
+        return { error: { message: 'User already exists' } };
+      }
       
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -222,6 +266,7 @@ export function useAuth() {
         .upsert({
           email: email,
           user_email: email,
+          user_id: data.user?.id || null,
           subscribed: false,
           updated_at: new Date().toISOString(),
         }, { 

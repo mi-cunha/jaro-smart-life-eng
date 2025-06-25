@@ -26,9 +26,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
       console.log('🔐 AuthWrapper - Processing auth state:', {
         hasUser: !!user,
         isSubscribed,
-        currentPath: location.pathname,
-        shouldRedirectToAuth: !user && location.pathname !== '/auth',
-        shouldRedirectToPricing: user && isSubscribed === false && location.pathname !== '/pricing' && location.pathname !== '/auth'
+        currentPath: location.pathname
       });
 
       // If user is not authenticated and not on auth page, redirect to auth
@@ -61,47 +59,13 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
         <div className="text-center">
           <Loader2 className="w-8 h-8 text-neon-green animate-spin mx-auto mb-4" />
           <p className="text-white/60">
-            {loading ? 'Loading authentication...' : 'Checking subscription...'}
+            {loading ? 'Carregando...' : 'Verificando assinatura...'}
           </p>
         </div>
       </div>
     );
   }
 
-  // Show auth page if user is not authenticated and on auth route
-  if (!user && location.pathname === '/auth') {
-    return <>{children}</>;
-  }
-
-  // Show pricing page if user is authenticated but not subscribed and on pricing route
-  if (user && isSubscribed === false && location.pathname === '/pricing') {
-    return <>{children}</>;
-  }
-
-  // Show loading if user is not authenticated and not on auth route (redirect in progress)
-  if (!user && location.pathname !== '/auth') {
-    return (
-      <div className="min-h-screen bg-dark-bg flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 text-neon-green animate-spin mx-auto mb-4" />
-          <p className="text-white/60">Redirecting to login...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show loading if user is authenticated but not subscribed and not on pricing route (redirect in progress)
-  if (user && isSubscribed === false && location.pathname !== '/pricing') {
-    return (
-      <div className="min-h-screen bg-dark-bg flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 text-neon-green animate-spin mx-auto mb-4" />
-          <p className="text-white/60">Redirecting to pricing...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // User is authenticated and subscribed (or subscription check is null but we allow access), show protected content
+  // Always render children for authenticated pages
   return <>{children}</>;
 }
