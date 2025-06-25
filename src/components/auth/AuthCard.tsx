@@ -11,12 +11,15 @@ export function AuthCard({ children }: AuthCardProps) {
     <div className="w-full space-y-6">
       {/* Logo Section */}
       <div className="text-center">
-        <EnhancedLogo className="mx-auto mb-4" />
+        <EnhancedLogo 
+          className="mx-auto mb-4" 
+          alt="Jaro Smart Logo" 
+        />
         <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">
-          Bem-vindo ao Jaro Smart
+          Welcome to Jaro Smart
         </h1>
         <p className="text-white/70 text-sm lg:text-base">
-          Sua jornada de bem-estar começa aqui
+          Your wellness journey starts here
         </p>
       </div>
 

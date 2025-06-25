@@ -16,21 +16,21 @@ export function AuthLoadingState({ type }: AuthLoadingStateProps) {
         <div className="flex items-center justify-center space-x-3">
           <Loader2 className="w-8 h-8 text-neon-green animate-spin" />
           <span className="text-white text-lg">
-            {type === 'loading' ? 'Carregando...' : 'Redirecionando...'}
+            {type === 'loading' ? 'Loading...' : 'Redirecting...'}
           </span>
         </div>
         
         {type === 'redirecting' && (
           <div className="space-y-3">
             <p className="text-white/60 text-sm">
-              Se o redirecionamento não funcionar, clique no botão abaixo
+              If the redirect doesn't work, click the button below
             </p>
             <Button
               onClick={() => navigate('/auth')}
               variant="outline"
               className="border-neon-green/30 text-neon-green hover:bg-neon-green/10"
             >
-              Voltar ao Login
+              Back to Login
             </Button>
           </div>
         )}

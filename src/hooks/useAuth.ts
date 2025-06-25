@@ -75,7 +75,6 @@ export function useAuth() {
         .upsert({
           email: email,
           user_email: email,
-          user_id: user?.id || null,
           subscribed: false, // Default to false, will be updated if subscription is found
           updated_at: new Date().toISOString(),
         }, { 
@@ -191,27 +190,29 @@ export function useAuth() {
 
       setUserProfile(profileData);
     } catch (error) {
-      console.error('Erro ao carregar perfil do usuário:', error);
+      console.error('Error loading user profile:', error);
     }
   };
 
   const checkUserExists = async (email: string): Promise<boolean> => {
     try {
-      // Check if user already exists in auth.users
-      const { data: existingUser, error } = await supabase.auth.admin.getUserByEmail(email);
+      // Try to check if user exists by querying subscribers table first
+      const { data: existingSubscriber, error: subError } = await supabase
+        .from('subscribers')
+        .select('email')
+        .eq('email', email)
+        .maybeSingle();
       
-      if (error && error.message !== 'User not found') {
-        console.error('❌ Error checking existing user:', error);
-        return false;
+      if (!subError && existingSubscriber) {
+        console.log('👤 User found in subscribers table:', email);
+        return true;
       }
-      
-      return !!existingUser;
-    } catch (error) {
+
       // Fallback: try to sign in to check if user exists
       try {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
-          password: 'dummy-password-check'
+          password: 'dummy-password-check-123'
         });
         
         // If we get "Invalid login credentials", user exists but password is wrong
@@ -226,6 +227,9 @@ export function useAuth() {
         console.error('❌ Fallback user check failed:', fallbackError);
         return false;
       }
+    } catch (error) {
+      console.error('❌ Error checking if user exists:', error);
+      return false;
     }
   };
 
@@ -237,7 +241,7 @@ export function useAuth() {
       const userExists = await checkUserExists(email);
       if (userExists) {
         console.log('👤 User already exists:', email);
-        toast.error('Já existe uma conta com este email. Faça login ou redefina sua senha.');
+        toast.error('An account with this email already exists. Please sign in or reset your password.');
         return { error: { message: 'User already exists' } };
       }
       
@@ -247,7 +251,7 @@ export function useAuth() {
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            nome: nome || 'Usuário'
+            nome: nome || 'User'
           }
         }
       });
@@ -266,7 +270,6 @@ export function useAuth() {
         .upsert({
           email: email,
           user_email: email,
-          user_id: data.user?.id || null,
           subscribed: false,
           updated_at: new Date().toISOString(),
         }, { 
@@ -280,11 +283,11 @@ export function useAuth() {
         console.log('✅ Subscriber record created for new user');
       }
 
-      toast.success('Conta criada com sucesso! Verifique seu email.');
+      toast.success('Account created successfully! Please check your email.');
       return { data };
     } catch (error) {
       console.error('❌ Unexpected signup error:', error);
-      toast.error('Erro inesperado ao criar conta');
+      toast.error('Unexpected error creating account');
       return { error };
     }
   };
@@ -311,12 +314,12 @@ export function useAuth() {
       const subscribed = await checkSubscription(email);
       
       console.log('🎯 Final login result - subscribed:', subscribed);
-      toast.success('Login realizado com sucesso!');
+      toast.success('Login successful!');
       
       return { data, subscribed };
     } catch (error) {
       console.error('❌ Unexpected sign in error:', error);
-      toast.error('Erro inesperado ao fazer login');
+      toast.error('Unexpected error signing in');
       return { error };
     }
   };
@@ -334,10 +337,10 @@ export function useAuth() {
       setIsSubscribed(null);
       setUserProfile(null);
 
-      toast.success('Logout realizado com sucesso!');
+      toast.success('Logout successful!');
       return { error: null };
     } catch (error) {
-      toast.error('Erro inesperado ao fazer logout');
+      toast.error('Unexpected error signing out');
       return { error };
     }
   };

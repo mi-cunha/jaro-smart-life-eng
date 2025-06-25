@@ -59,7 +59,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
         <div className="text-center">
           <Loader2 className="w-8 h-8 text-neon-green animate-spin mx-auto mb-4" />
           <p className="text-white/60">
-            {loading ? 'Carregando...' : 'Verificando assinatura...'}
+            {loading ? 'Loading...' : 'Checking subscription...'}
           </p>
         </div>
       </div>
