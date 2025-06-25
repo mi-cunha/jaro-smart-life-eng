@@ -2,7 +2,9 @@
 import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { AuthService } from '@/services/authService';
+import { SubscriptionService } from '@/services/subscriptionService';
+import { UserService } from '@/services/userService';
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -32,8 +34,17 @@ export function useAuth() {
       setSession(session);
       
       // Check subscription after setting user
-      const subscriptionStatus = await checkSubscription(session.user.email);
+      const subscriptionStatus = await SubscriptionService.checkSubscription(session.user.email, session);
       setIsSubscribed(subscriptionStatus);
+      
+      // Load user profile if subscribed
+      if (subscriptionStatus && session.user.email) {
+        setTimeout(async () => {
+          const profile = await UserService.loadUserProfile(session.user.email);
+          setUserProfile(profile);
+        }, 0);
+      }
+      
       setLoading(false);
     };
 
@@ -48,8 +59,14 @@ export function useAuth() {
         setSession(session);
         // Defer subscription check to avoid recursion
         setTimeout(async () => {
-          const subscriptionStatus = await checkSubscription(session.user.email);
+          const subscriptionStatus = await SubscriptionService.checkSubscription(session.user.email, session);
           setIsSubscribed(subscriptionStatus);
+          
+          // Load user profile if subscribed
+          if (subscriptionStatus && session.user.email) {
+            const profile = await UserService.loadUserProfile(session.user.email);
+            setUserProfile(profile);
+          }
         }, 100);
       } else {
         setUser(null);
@@ -65,284 +82,27 @@ export function useAuth() {
     };
   }, []);
 
-  const checkSubscription = async (email: string): Promise<boolean> => {
-    try {
-      console.log('🔍 Checking subscription for email:', email);
-      
-      // Always try to insert/update the user record first
-      const { error: upsertError } = await supabase
-        .from('subscribers')
-        .upsert({
-          email: email,
-          user_email: email,
-          subscribed: false, // Default to false, will be updated if subscription is found
-          updated_at: new Date().toISOString(),
-        }, { 
-          onConflict: 'email',
-          ignoreDuplicates: false 
-        });
-
-      if (upsertError) {
-        console.error('❌ Error upserting subscriber:', upsertError);
-      } else {
-        console.log('✅ Subscriber record created/updated');
-      }
-
-      // First, try to check subscription via edge function
-      try {
-        const { data: checkResult, error: checkError } = await supabase.functions.invoke('check-subscription', {
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-        });
-
-        if (checkError) {
-          console.error('❌ Error calling check-subscription function:', checkError);
-        } else if (checkResult) {
-          console.log('✅ Subscription check result from edge function:', checkResult);
-          const subscribed = checkResult.subscribed || false;
-          if (subscribed && email) {
-            setTimeout(() => {
-              loadUserProfile(email);
-            }, 0);
-          }
-          return subscribed;
-        }
-      } catch (funcError) {
-        console.error('❌ Edge function call failed:', funcError);
-      }
-      
-      // Fallback to direct database check
-      console.log('🔄 Falling back to direct database check');
-      const { data: subscriber, error: subError } = await supabase
-        .from('subscribers')
-        .select('*')
-        .eq('email', email)
-        .maybeSingle();
-
-      if (subError) {
-        console.error('❌ Error fetching subscriber:', subError);
-        return false;
-      }
-
-      if (!subscriber) {
-        console.log('❌ No subscriber found for email:', email);
-        return false;
-      }
-
-      console.log('✅ Subscriber found:', subscriber);
-      console.log('📊 Raw subscribed value:', subscriber.subscribed, 'Type:', typeof subscriber.subscribed);
-      
-      // Handle different possible boolean representations
-      let isSubbed = false;
-      const subscribedValue = subscriber.subscribed;
-      
-      if (subscribedValue === true) {
-        isSubbed = true;
-      } else if (typeof subscribedValue === 'string' && subscribedValue === 'true') {
-        isSubbed = true;
-      } else if (typeof subscribedValue === 'number' && subscribedValue === 1) {
-        isSubbed = true;
-      }
-      
-      console.log('✅ Final subscription status:', isSubbed);
-
-      if (isSubbed && email) {
-        setTimeout(() => {
-          loadUserProfile(email);
-        }, 0);
-      }
-
-      return isSubbed;
-    } catch (error) {
-      console.error('❌ Unexpected error checking subscription:', error);
-      return false;
-    }
-  };
-
-  const loadUserProfile = async (userEmail: string) => {
-    try {
-      const { data: perfil, error: perfilError } = await supabase
-        .from('perfil_usuario')
-        .select('*')
-        .eq('email', userEmail)
-        .maybeSingle();
-
-      const { data: pesoAtual, error: pesoError } = await supabase
-        .from('historico_peso')
-        .select('peso')
-        .eq('user_email', userEmail)
-        .order('data', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const { data: preferencias, error: prefError } = await supabase
-        .from('preferencias_usuario')
-        .select('*')
-        .eq('user_email', userEmail)
-        .maybeSingle();
-
-      const profileData = {
-        ...perfil,
-        peso_atual: pesoAtual?.peso || perfil?.peso_atual,
-        preferencias
-      };
-
-      setUserProfile(profileData);
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-    }
-  };
-
-  const checkUserExists = async (email: string): Promise<boolean> => {
-    try {
-      // Try to check if user exists by querying subscribers table first
-      const { data: existingSubscriber, error: subError } = await supabase
-        .from('subscribers')
-        .select('email')
-        .eq('email', email)
-        .maybeSingle();
-      
-      if (!subError && existingSubscriber) {
-        console.log('👤 User found in subscribers table:', email);
-        return true;
-      }
-
-      // Fallback: try to sign in to check if user exists
-      try {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password: 'dummy-password-check-123'
-        });
-        
-        // If we get "Invalid login credentials", user exists but password is wrong
-        // If we get "Email not confirmed", user exists but needs confirmation
-        if (signInError?.message.includes('Invalid login credentials') || 
-            signInError?.message.includes('Email not confirmed')) {
-          return true;
-        }
-        
-        return false;
-      } catch (fallbackError) {
-        console.error('❌ Fallback user check failed:', fallbackError);
-        return false;
-      }
-    } catch (error) {
-      console.error('❌ Error checking if user exists:', error);
-      return false;
-    }
-  };
-
   const signUp = async (email: string, password: string, nome?: string) => {
-    try {
-      console.log('🚀 Starting signup process for:', email);
-      
-      // Check if user already exists
-      const userExists = await checkUserExists(email);
-      if (userExists) {
-        console.log('👤 User already exists:', email);
-        toast.error('An account with this email already exists. Please sign in or reset your password.');
-        return { error: { message: 'User already exists' } };
-      }
-      
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            nome: nome || 'User'
-          }
-        }
-      });
-
-      if (error) {
-        console.error('❌ Signup error:', error);
-        toast.error(error.message);
-        return { error };
-      }
-
-      console.log('✅ Signup successful, creating subscriber record...');
-      
-      // Create subscriber record immediately after signup
-      const { error: subscriberError } = await supabase
-        .from('subscribers')
-        .upsert({
-          email: email,
-          user_email: email,
-          subscribed: false,
-          updated_at: new Date().toISOString(),
-        }, { 
-          onConflict: 'email',
-          ignoreDuplicates: false 
-        });
-
-      if (subscriberError) {
-        console.error('❌ Error creating subscriber record:', subscriberError);
-      } else {
-        console.log('✅ Subscriber record created for new user');
-      }
-
-      toast.success('Account created successfully! Please check your email.');
-      return { data };
-    } catch (error) {
-      console.error('❌ Unexpected signup error:', error);
-      toast.error('Unexpected error creating account');
-      return { error };
-    }
+    return await AuthService.signUp(email, password, nome);
   };
 
   const signIn = async (email: string, password: string) => {
-    try {
-      console.log('🔑 Attempting sign in for:', email);
-      
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        console.error('❌ Sign in error:', error);
-        toast.error(error.message);
-        return { error };
-      }
-
-      console.log('✅ Sign in successful, checking subscription...');
-      
-      // Wait a bit and then check subscription
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const subscribed = await checkSubscription(email);
-      
-      console.log('🎯 Final login result - subscribed:', subscribed);
-      toast.success('Login successful!');
-      
-      return { data, subscribed };
-    } catch (error) {
-      console.error('❌ Unexpected sign in error:', error);
-      toast.error('Unexpected error signing in');
-      return { error };
-    }
+    return await AuthService.signIn(email, password, session);
   };
 
   const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast.error(error.message);
-        return { error };
-      }
-
+    const result = await AuthService.signOut();
+    if (!result.error) {
       setUser(null);
       setSession(null);
       setIsSubscribed(null);
       setUserProfile(null);
-
-      toast.success('Logout successful!');
-      return { error: null };
-    } catch (error) {
-      toast.error('Unexpected error signing out');
-      return { error };
     }
+    return result;
+  };
+
+  const checkSubscription = async (email: string) => {
+    return await SubscriptionService.checkSubscription(email, session);
   };
 
   return {
