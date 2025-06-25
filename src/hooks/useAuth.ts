@@ -68,12 +68,12 @@ export function useAuth() {
     try {
       console.log('🔍 Checking subscription for email:', email);
       
-      // Sempre tentar inserir/atualizar o registro do usuário primeiro
+      // Always try to insert/update the user record first
       const { error: upsertError } = await supabase
         .from('subscribers')
         .upsert({
           email: email,
-          user_id: session?.user?.id,
+          user_email: email, // Use email for both fields as per schema
           subscribed: false, // Default to false, will be updated if subscription is found
           updated_at: new Date().toISOString(),
         }, { 
