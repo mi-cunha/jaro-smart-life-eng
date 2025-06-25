@@ -195,6 +195,8 @@ export function useAuth() {
 
   const signUp = async (email: string, password: string, nome?: string) => {
     try {
+      console.log('🚀 Starting signup process for:', email);
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -207,13 +209,36 @@ export function useAuth() {
       });
 
       if (error) {
+        console.error('❌ Signup error:', error);
         toast.error(error.message);
         return { error };
+      }
+
+      console.log('✅ Signup successful, creating subscriber record...');
+      
+      // Create subscriber record immediately after signup
+      const { error: subscriberError } = await supabase
+        .from('subscribers')
+        .upsert({
+          email: email,
+          user_email: email,
+          subscribed: false,
+          updated_at: new Date().toISOString(),
+        }, { 
+          onConflict: 'email',
+          ignoreDuplicates: false 
+        });
+
+      if (subscriberError) {
+        console.error('❌ Error creating subscriber record:', subscriberError);
+      } else {
+        console.log('✅ Subscriber record created for new user');
       }
 
       toast.success('Conta criada com sucesso! Verifique seu email.');
       return { data };
     } catch (error) {
+      console.error('❌ Unexpected signup error:', error);
       toast.error('Erro inesperado ao criar conta');
       return { error };
     }
