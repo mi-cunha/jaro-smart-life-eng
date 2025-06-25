@@ -63,16 +63,18 @@ Deno.serve(async (req) => {
       )
     }
 
-    // Check if subscription is active
+    // Simplified subscription check logic
+    // For perpetual subscriptions (no end date), only check the subscribed field
+    // For subscriptions with end dates, check both subscribed field and end date
     const isSubscribed = subscriber.subscribed === true
-    const hasValidSubscription = subscriber.subscription_end ? 
-      new Date(subscriber.subscription_end) > new Date() : false
-
-    const finalStatus = isSubscribed && (hasValidSubscription || !subscriber.subscription_end)
+    const hasValidEndDate = !subscriber.subscription_end || new Date(subscriber.subscription_end) > new Date()
+    
+    const finalStatus = isSubscribed && hasValidEndDate
 
     console.log('✅ Subscription check result:', {
       subscribed: subscriber.subscribed,
       subscription_end: subscriber.subscription_end,
+      hasValidEndDate,
       final_status: finalStatus
     })
 

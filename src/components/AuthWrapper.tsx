@@ -36,6 +36,13 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
         return;
       }
 
+      // If user is authenticated and subscribed but on pricing page, redirect to home
+      if (user && isSubscribed === true && location.pathname === '/pricing') {
+        console.log('🔐 Redirecting to / - subscribed user on pricing page');
+        navigate('/');
+        return;
+      }
+
       // If user is authenticated but not subscribed, redirect to pricing (unless already on pricing or auth)
       if (user && isSubscribed === false && location.pathname !== '/pricing' && location.pathname !== '/auth') {
         console.log('🔐 Redirecting to /pricing - user not subscribed');

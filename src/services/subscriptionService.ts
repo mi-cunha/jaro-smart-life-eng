@@ -38,6 +38,16 @@ export class SubscriptionService {
         } else if (checkResult) {
           console.log('✅ Subscription check result from edge function:', checkResult);
           const subscribed = checkResult.subscribed || false;
+          
+          // If user is subscribed, update the database to ensure consistency
+          if (subscribed) {
+            console.log('🔄 Updating subscription status in database');
+            await supabase
+              .from('subscribers')
+              .update({ subscribed: true, updated_at: new Date().toISOString() })
+              .eq('email', email);
+          }
+          
           return subscribed;
         }
       } catch (funcError) {
@@ -69,18 +79,40 @@ export class SubscriptionService {
       let isSubbed = false;
       const subscribedValue = subscriber.subscribed;
       
-      if (subscribedValue === true) {
-        isSubbed = true;
-      } else if (typeof subscribedValue === 'string' && subscribedValue === 'true') {
-        isSubbed = true;
-      } else if (typeof subscribedValue === 'number' && subscribedValue === 1) {
+      if (subscribedValue === true || subscribedValue === 'true' || subscribedValue === 1) {
         isSubbed = true;
       }
       
-      console.log('✅ Final subscription status:', isSubbed);
+      console.log('✅ Final subscription status from database:', isSubbed);
       return isSubbed;
     } catch (error) {
       console.error('❌ Unexpected error checking subscription:', error);
+      return false;
+    }
+  }
+
+  // Helper method to manually fix subscription status for testing
+  static async fixSubscriptionStatus(email: string): Promise<boolean> {
+    try {
+      console.log('🔧 Fixing subscription status for:', email);
+      
+      const { error } = await supabase
+        .from('subscribers')
+        .update({ 
+          subscribed: true, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('email', email);
+
+      if (error) {
+        console.error('❌ Error fixing subscription status:', error);
+        return false;
+      }
+
+      console.log('✅ Subscription status fixed successfully');
+      return true;
+    } catch (error) {
+      console.error('❌ Unexpected error fixing subscription status:', error);
       return false;
     }
   }

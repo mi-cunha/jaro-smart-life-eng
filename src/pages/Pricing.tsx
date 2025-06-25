@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Star } from 'lucide-react';
+import { Check, Star, CheckCircle } from 'lucide-react';
 import { JaroSmartLogo } from '@/components/JaroSmartLogo';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -11,7 +12,7 @@ import { toast } from 'sonner';
 const Pricing = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading } = useAuth();
+  const { user, loading, isSubscribed } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   // Check for plan from URL params or localStorage on component mount
@@ -21,8 +22,15 @@ const Pricing = () => {
       localStorage.setItem('selectedPlan', planFromUrl);
     }
 
+    // If user is logged in and subscribed, redirect to home
+    if (user && isSubscribed === true) {
+      console.log('User is already subscribed, redirecting to home');
+      navigate('/');
+      return;
+    }
+
     // If user is logged in and there's a stored plan, proceed to checkout
-    if (user && !loading) {
+    if (user && !loading && isSubscribed === false) {
       const storedPlan = localStorage.getItem('selectedPlan');
       if (storedPlan) {
         console.log('User is logged in with stored plan:', storedPlan);
@@ -30,7 +38,7 @@ const Pricing = () => {
         handleChoosePlan(storedPlan);
       }
     }
-  }, [user, loading, searchParams]);
+  }, [user, loading, searchParams, isSubscribed]);
 
   const plans = [
     {
@@ -124,6 +132,46 @@ const Pricing = () => {
     }
   };
 
+  // If user is already subscribed, show different content
+  if (user && isSubscribed === true) {
+    return (
+      <div className="min-h-screen bg-dark-bg">
+        <div className="bg-dark-bg border-b border-white/10 px-4 py-4">
+          <div className="flex items-center justify-between max-w-7xl mx-auto">
+            <JaroSmartLogo size="md" />
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/')}
+              className="text-white/60 hover:text-white"
+            >
+              Back to Dashboard
+            </Button>
+          </div>
+        </div>
+
+        <div className="px-4 py-12">
+          <div className="max-w-4xl mx-auto text-center">
+            <div className="flex items-center justify-center mb-6">
+              <CheckCircle className="w-16 h-16 text-neon-green mr-4" />
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+              You're All Set!
+            </h1>
+            <p className="text-white/70 text-lg mb-8">
+              Your subscription is active and you have full access to all features.
+            </p>
+            <Button
+              onClick={() => navigate('/')}
+              className="bg-neon-green text-black hover:bg-neon-green/90 font-medium py-3 px-8"
+            >
+              Go to Dashboard
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-dark-bg">
       {/* Header */}
@@ -132,10 +180,10 @@ const Pricing = () => {
           <JaroSmartLogo size="md" />
           <Button
             variant="ghost"
-            onClick={() => navigate('/auth')}
+            onClick={() => user ? navigate('/') : navigate('/auth')}
             className="text-white/60 hover:text-white"
           >
-            Back to Login
+            {user ? 'Back to Dashboard' : 'Back to Login'}
           </Button>
         </div>
       </div>
