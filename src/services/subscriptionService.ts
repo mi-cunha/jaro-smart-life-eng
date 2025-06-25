@@ -75,11 +75,20 @@ export class SubscriptionService {
       console.log('✅ Subscriber found:', subscriber);
       console.log('📊 Raw subscribed value:', subscriber.subscribed, 'Type:', typeof subscriber.subscribed);
       
-      // Handle different possible boolean representations
+      // Handle different possible boolean representations from database
       let isSubbed = false;
       const subscribedValue = subscriber.subscribed;
       
-      if (subscribedValue === true || subscribedValue === 'true' || subscribedValue === 1) {
+      // Direct boolean check
+      if (subscribedValue === true) {
+        isSubbed = true;
+      }
+      // Handle string representations (in case database returns string)
+      else if (typeof subscribedValue === 'string' && subscribedValue === 'true') {
+        isSubbed = true;
+      }
+      // Handle number representations (in case database returns number)
+      else if (typeof subscribedValue === 'number' && subscribedValue === 1) {
         isSubbed = true;
       }
       
