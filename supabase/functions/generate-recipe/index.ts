@@ -41,7 +41,7 @@ serve(async (req) => {
       throw new Error('No ingredients provided for recipe generation')
     }
 
-    const prompt = `Create a healthy recipe in ENGLISH with these specifications:
+    const prompt = `Create a detailed healthy recipe in ENGLISH with these specifications:
 
 INGREDIENTS: ${allIngredients.join(', ')}
 MEAL: ${mealType}
@@ -51,30 +51,32 @@ RESTRICTIONS: ${restrictions.join(', ')}
 TIME: ${timeAvailable} minutes
 
 Requirements:
-- Recipe name in English
-- Use the ingredients provided
-- Include specific quantities (cups, grams, etc.)
-- Provide detailed cooking steps WITHOUT "Step 1:", "Step 2:" prefixes (just the actual instructions)
-- Calculate accurate nutrition values
-- Keep under ${timeAvailable} minutes
-- Respect dietary restrictions
+- Recipe name in English (creative but descriptive)
+- Use the ingredients provided with specific quantities
+- Provide 6-8 detailed cooking steps (clear, actionable instructions)
+- Calculate accurate nutrition values based on ingredients
+- Keep preparation time under ${timeAvailable} minutes
+- Respect dietary restrictions strictly
+- Make it delicious and nutritious
 
 Return ONLY valid JSON:
 {
-  "nome": "Recipe name in English",
-  "tempo": preparation_time_minutes,
-  "calorias": total_calories,
+  "nome": "Creative Recipe Name",
+  "tempo": preparation_time_in_minutes,
+  "calorias": realistic_total_calories,
   "ingredientes": [
-    "1 cup ingredient with quantity",
-    "2 tbsp another ingredient"
+    "specific quantity + ingredient (e.g., '2 cups fresh spinach, chopped')",
+    "1 tbsp olive oil"
   ],
   "preparo": [
-    "In a skillet, heat 1 tablespoon of olive oil over medium heat.",
-    "Add the chopped spinach and sauté for 2-3 minutes until wilted."
+    "Detailed step 1 with specific instructions and timing",
+    "Detailed step 2 explaining technique and what to look for",
+    "Detailed step 3 with temperature and timing specifics",
+    "Continue with 6-8 clear, actionable steps total"
   ],
-  "proteinas": protein_grams,
-  "carboidratos": carbs_grams,
-  "gorduras": fat_grams
+  "proteinas": realistic_protein_grams,
+  "carboidratos": realistic_carbs_grams,
+  "gorduras": realistic_fat_grams
 }`
 
     console.log('Sending request to OpenAI API...');
@@ -90,15 +92,15 @@ Return ONLY valid JSON:
         messages: [
           {
             role: 'system',
-            content: 'You are a nutritionist who creates detailed recipes. Always respond with valid JSON only. Include specific quantities and detailed cooking steps WITHOUT "Step X:" prefixes.'
+            content: 'You are a skilled nutritionist and chef who creates detailed, practical recipes. Always respond with valid JSON only. Focus on realistic portions, accurate nutrition values, and clear step-by-step instructions that anyone can follow. Make recipes delicious and nutritionally balanced.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 1500,
-        temperature: 0.8,
+        max_tokens: 1800,
+        temperature: 0.7,
       }),
     })
 
@@ -145,10 +147,25 @@ Return ONLY valid JSON:
       if (!Array.isArray(recipe.preparo) || recipe.preparo.length === 0) {
         console.error('Invalid preparation steps:', recipe.preparo);
         recipe.preparo = [
-          "Prepare all ingredients according to the recipe requirements.",
-          "Follow basic cooking methods appropriate for the ingredients.",
-          "Season to taste and serve as desired."
+          "Preheat your cooking surface or oven as needed for the recipe.",
+          "Prepare all ingredients by washing, chopping, and measuring as required.",
+          "Heat oil or cooking fat in your pan over medium heat.",
+          "Add ingredients in order of cooking time, starting with those that take longest.",
+          "Cook while stirring occasionally, adjusting heat as needed.",
+          "Season to taste with salt, pepper, and any desired herbs or spices.",
+          "Continue cooking until ingredients are tender and flavors are well combined.",
+          "Serve immediately while hot and fresh."
         ];
+      }
+
+      // Ensure we have enough detailed steps (minimum 6)
+      if (recipe.preparo.length < 6) {
+        const additionalSteps = [
+          "Adjust seasoning to taste and add any final herbs or garnishes.",
+          "Let the dish rest for 2-3 minutes to allow flavors to meld.",
+          "Serve in appropriate portions and enjoy while fresh."
+        ];
+        recipe.preparo = [...recipe.preparo, ...additionalSteps].slice(0, 8);
       }
 
       // Clean up any remaining "Step X:" prefixes that might have slipped through
@@ -156,16 +173,41 @@ Return ONLY valid JSON:
         return step.replace(/^Step\s*\d+:\s*/i, '').trim();
       });
 
-      // Ensure numeric values are valid
-      recipe.tempo = Math.max(Number(recipe.tempo) || 20, 5);
-      recipe.calorias = Math.max(Number(recipe.calorias) || 300, 100);
-      recipe.proteinas = Math.max(Number(recipe.proteinas) || 15, 1);
-      recipe.carboidratos = Math.max(Number(recipe.carboidratos) || 25, 1);
-      recipe.gorduras = Math.max(Number(recipe.gorduras) || 8, 1);
+      // Ensure numeric values are realistic and valid
+      recipe.tempo = Math.max(Math.min(Number(recipe.tempo) || 30, timeAvailable), 15);
+      
+      // Calculate more realistic calorie ranges based on meal type
+      let calorieRange = { min: 200, max: 400 };
+      switch (mealType.toLowerCase()) {
+        case 'breakfast':
+        case 'café da manhã':
+          calorieRange = { min: 250, max: 450 };
+          break;
+        case 'lunch':
+        case 'almoço':
+          calorieRange = { min: 400, max: 650 };
+          break;
+        case 'dinner':
+        case 'jantar':
+          calorieRange = { min: 350, max: 600 };
+          break;
+        case 'snack':
+        case 'lanche':
+          calorieRange = { min: 150, max: 300 };
+          break;
+      }
+      
+      recipe.calorias = Math.max(Math.min(Number(recipe.calorias) || calorieRange.min, calorieRange.max), calorieRange.min);
+      
+      // Ensure macros are realistic and proportional to calories
+      const totalCalories = recipe.calorias;
+      recipe.proteinas = Math.max(Math.min(Number(recipe.proteinas) || Math.round(totalCalories * 0.15 / 4), Math.round(totalCalories * 0.3 / 4)), Math.round(totalCalories * 0.1 / 4));
+      recipe.carboidratos = Math.max(Math.min(Number(recipe.carboidratos) || Math.round(totalCalories * 0.45 / 4), Math.round(totalCalories * 0.6 / 4)), Math.round(totalCalories * 0.3 / 4));
+      recipe.gorduras = Math.max(Math.min(Number(recipe.gorduras) || Math.round(totalCalories * 0.25 / 9), Math.round(totalCalories * 0.35 / 9)), Math.round(totalCalories * 0.15 / 9));
 
-      // Ensure recipe name is not empty
+      // Ensure recipe name is not empty and descriptive
       if (!recipe.nome || recipe.nome.trim().length === 0) {
-        recipe.nome = `Healthy ${mealType} Recipe`;
+        recipe.nome = `Healthy ${mealType} with ${allIngredients.slice(0, 2).join(' & ')}`;
       }
 
       console.log('Successfully parsed and validated recipe:', recipe);
@@ -177,7 +219,13 @@ Return ONLY valid JSON:
 
       if (recipe.preparo.length === 0) {
         console.warn('No preparation steps found, adding default steps');
-        recipe.preparo = ['Prepare ingredients as directed', 'Cook according to recipe requirements', 'Season to taste and serve'];
+        recipe.preparo = [
+          'Prepare all ingredients by washing and chopping as needed',
+          'Heat cooking surface to appropriate temperature',
+          'Cook ingredients according to their requirements',
+          'Season to taste and adjust flavors',
+          'Serve immediately while fresh'
+        ];
       }
 
       return new Response(

@@ -1,18 +1,40 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Receita } from '@/types/receitas';
 
 export class RecipesService {
-  // Helper method to get authenticated user
+  // Helper method to get authenticated user with better error handling
   private static async getAuthenticatedUser() {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) {
-      console.error('Authentication error:', error);
-      throw new Error('Authentication failed');
+    try {
+      // First try to get the current session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw new Error('Failed to get session');
+      }
+      
+      if (!session) {
+        throw new Error('No active session');
+      }
+      
+      // Then get the user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('User authentication error:', userError);
+        throw new Error('Authentication failed');
+      }
+      
+      if (!user?.email) {
+        throw new Error('User not authenticated');
+      }
+      
+      return user;
+    } catch (error) {
+      console.error('Authentication process failed:', error);
+      throw error;
     }
-    if (!user?.email) {
-      throw new Error('User not authenticated');
-    }
-    return user;
   }
 
   static async salvarReceita(receita: Receita) {
@@ -26,13 +48,17 @@ export class RecipesService {
         ingredientes: receita.ingredientes?.length || 0
       });
 
-      // Ensure we have valid macros from the recipe
-      const macrosData = receita.macros || { proteinas: 15, carboidratos: 25, gorduras: 8 };
+      // Ensure we have valid macros from the recipe with better defaults
+      const macrosData = receita.macros || { 
+        proteinas: Math.round(Math.random() * 10 + 15), // 15-25g
+        carboidratos: Math.round(Math.random() * 15 + 20), // 20-35g
+        gorduras: Math.round(Math.random() * 8 + 5) // 5-13g
+      };
       
-      // Ensure we have valid preparation steps
+      // Ensure we have valid preparation steps with more detailed defaults
       const preparoInstrucoes = receita.preparo && receita.preparo.length > 0 
         ? receita.preparo.join('\n') 
-        : 'Prepare ingredients as directed\nCook according to recipe requirements\nSeason to taste and serve';
+        : `Prepare all ingredients according to the recipe.\nFollow the cooking method appropriate for the ingredients.\nSeason to taste and adjust flavors as needed.\nServe immediately while fresh.`;
 
       console.log('🔍 RecipesService - Dados processados para salvar:', {
         proteinas: macrosData.proteinas,
@@ -91,6 +117,16 @@ export class RecipesService {
       
       if (data) {
         const receitasProcessadas = data.map(item => {
+          // Improved preparation steps processing
+          let preparoSteps = ['Prepare ingredients as directed', 'Cook according to recipe requirements', 'Season to taste and serve'];
+          
+          if (item.instrucoes && item.instrucoes.trim()) {
+            const steps = item.instrucoes.split('\n').filter(step => step.trim());
+            if (steps.length > 0) {
+              preparoSteps = steps;
+            }
+          }
+
           const receita = {
             id: item.id,
             nome: item.nome,
@@ -98,9 +134,7 @@ export class RecipesService {
             calorias: item.calorias || 300,
             refeicao: item.refeicao || 'Almoço',
             ingredientes: Array.isArray(item.ingredientes) ? item.ingredientes : [],
-            preparo: item.instrucoes && item.instrucoes.trim() 
-              ? item.instrucoes.split('\n').filter(step => step.trim()) 
-              : ['Prepare ingredients as directed', 'Cook according to recipe requirements', 'Season to taste and serve'],
+            preparo: preparoSteps,
             macros: {
               proteinas: item.proteinas || 15,
               carboidratos: item.carboidratos || 25,
@@ -155,6 +189,8 @@ export class RecipesService {
         updateData.gorduras = updates.macros.gorduras;
       }
 
+      console.log('🔍 RecipesService - Updating recipe:', { id, updateData });
+
       const { data, error } = await supabase
         .from('receitas')
         .update(updateData)
@@ -164,13 +200,14 @@ export class RecipesService {
         .single();
 
       if (error) {
-        console.error('Error updating recipe:', error);
+        console.error('🚨 RecipesService - Error updating recipe:', error);
         return { data: null, error };
       }
 
+      console.log('✅ RecipesService - Recipe updated successfully:', data);
       return { data, error: null };
     } catch (error) {
-      console.error('Erro ao atualizar receita:', error);
+      console.error('🚨 RecipesService - Erro ao atualizar receita:', error);
       return { data: null, error };
     }
   }
@@ -179,6 +216,8 @@ export class RecipesService {
     try {
       const user = await this.getAuthenticatedUser();
       
+      console.log('🔍 RecipesService - Deleting recipe:', id);
+
       const { error } = await supabase
         .from('receitas')
         .delete()
@@ -186,13 +225,14 @@ export class RecipesService {
         .eq('user_email', user.email);
 
       if (error) {
-        console.error('Error deleting recipe:', error);
+        console.error('🚨 RecipesService - Error deleting recipe:', error);
         return { error };
       }
 
+      console.log('✅ RecipesService - Recipe deleted successfully');
       return { error: null };
     } catch (error) {
-      console.error('Erro ao deletar receita:', error);
+      console.error('🚨 RecipesService - Erro ao deletar receita:', error);
       return { error };
     }
   }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -197,18 +196,6 @@ const Pricing = () => {
           </Button>
         </div>
       </div>
-
-      {/* Debug Info for logged-in users */}
-      {user && (
-        <div className="bg-yellow-500/10 border-l-4 border-yellow-500 p-4 m-4">
-          <div className="text-yellow-200 text-sm">
-            <p><strong>Debug Info:</strong></p>
-            <p>Email: {user.email}</p>
-            <p>Subscribed: {isSubscribed?.toString()}</p>
-            <p>Loading: {loading.toString()}</p>
-          </div>
-        </div>
-      )}
 
       {/* Main Content */}
       <div className="px-4 py-12">
