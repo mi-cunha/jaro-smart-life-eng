@@ -118,6 +118,10 @@ export function useAuth() {
     return result;
   };
 
+  const resetPassword = async (email: string) => {
+    return await AuthService.resetPassword(email);
+  };
+
   const checkSubscription = async (email: string) => {
     return await SubscriptionService.checkSubscription(email, session);
   };
@@ -141,6 +145,7 @@ export function useAuth() {
     signUp,
     signIn,
     signOut,
+    resetPassword,
     checkSubscription,
     fixSubscriptionStatus,
     refreshSubscriptionStatus

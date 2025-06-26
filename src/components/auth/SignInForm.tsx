@@ -13,9 +13,19 @@ interface SignInFormProps {
   isLoading: boolean;
   onSubmit: (e: React.FormEvent) => void;
   onInputChange: (field: string, value: string) => void;
+  onForgotPassword: (email: string) => void;
 }
 
-export function SignInForm({ formData, isLoading, onSubmit, onInputChange }: SignInFormProps) {
+export function SignInForm({ formData, isLoading, onSubmit, onInputChange, onForgotPassword }: SignInFormProps) {
+  const handleForgotPassword = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!formData.email) {
+      alert('Please enter your email address first');
+      return;
+    }
+    onForgotPassword(formData.email);
+  };
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -42,6 +52,18 @@ export function SignInForm({ formData, isLoading, onSubmit, onInputChange }: Sig
           required
         />
       </div>
+      
+      <div className="text-right">
+        <button
+          type="button"
+          onClick={handleForgotPassword}
+          className="text-sm text-neon-green hover:text-neon-green/80 underline"
+          disabled={isLoading}
+        >
+          Forgot password?
+        </button>
+      </div>
+
       <Button
         type="submit"
         className="w-full bg-neon-green text-black hover:bg-neon-green/90 h-11 text-base font-medium"

@@ -39,28 +39,26 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
         return;
       }
 
-      // If user is authenticated and subscribed but on pricing page, redirect to home
-      if (user && isSubscribed === true && location.pathname === '/pricing') {
-        console.log('🔐 Redirecting to / - subscribed user on pricing page');
-        setHasRedirected(true);
-        navigate('/');
-        return;
+      // If user is authenticated and subscribed
+      if (user && isSubscribed === true) {
+        // If on auth page or pricing page, redirect to dashboard
+        if (location.pathname === '/auth' || location.pathname === '/pricing') {
+          console.log('🔐 Redirecting to / - user is authenticated and subscribed');
+          setHasRedirected(true);
+          navigate('/');
+          return;
+        }
       }
 
-      // If user is authenticated but not subscribed, redirect to pricing (unless already on pricing or auth)
-      if (user && isSubscribed === false && location.pathname !== '/pricing' && location.pathname !== '/auth') {
-        console.log('🔐 Redirecting to /pricing - user not subscribed');
-        setHasRedirected(true);
-        navigate('/pricing');
-        return;
-      }
-
-      // If user is authenticated and subscribed but on auth page, redirect to home
-      if (user && isSubscribed === true && location.pathname === '/auth') {
-        console.log('🔐 Redirecting to / - user is authenticated and subscribed');
-        setHasRedirected(true);
-        navigate('/');
-        return;
+      // If user is authenticated but not subscribed
+      if (user && isSubscribed === false) {
+        // If on auth page, redirect to home for quiz
+        if (location.pathname === '/auth') {
+          console.log('🔐 Redirecting to / - user authenticated but not subscribed, start with quiz');
+          setHasRedirected(true);
+          navigate('/');
+          return;
+        }
       }
     }
   }, [user, loading, isSubscribed, navigate, location.pathname, hasRedirected]);

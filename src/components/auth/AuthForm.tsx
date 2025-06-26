@@ -8,7 +8,7 @@ import { SignInForm } from './SignInForm';
 
 export function AuthForm() {
   const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -17,18 +17,15 @@ export function AuthForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   const getRedirectPath = (subscribed: boolean) => {
-    const storedPlan = localStorage.getItem('selectedPlan');
-    if (storedPlan) {
-      console.log('User has stored plan, redirecting to pricing:', storedPlan);
-      return `/pricing?plan=${encodeURIComponent(storedPlan)}`;
-    }
+    // Clear any old stored plans to start fresh
+    localStorage.removeItem('selectedPlan');
 
     if (subscribed === true) {
       console.log('✅ User is subscribed, redirecting to dashboard');
       return '/dashboard';
     } else {
-      console.log('❌ User is not subscribed, redirecting to pricing');
-      return '/pricing';
+      console.log('❌ User is not subscribed, redirecting to home for quiz');
+      return '/';
     }
   };
 
@@ -55,15 +52,8 @@ export function AuthForm() {
     console.log('Attempting sign up for:', formData.email);
     const { error } = await signUp(formData.email, formData.password, formData.name);
     if (!error) {
-      console.log('Sign up successful');
-      const storedPlan = localStorage.getItem('selectedPlan');
-      if (storedPlan) {
-        console.log('New user with selected plan, redirecting to pricing:', storedPlan);
-        navigate(`/pricing?plan=${encodeURIComponent(storedPlan)}`);
-      } else {
-        console.log('New user without plan, redirecting to pricing');
-        navigate('/pricing');
-      }
+      console.log('Sign up successful, redirecting to home for quiz');
+      navigate('/');
       setFormData({
         email: '',
         password: '',
@@ -72,6 +62,12 @@ export function AuthForm() {
     } else {
       console.error('Sign up error:', error);
     }
+    setIsLoading(false);
+  };
+
+  const handleForgotPassword = async (email: string) => {
+    setIsLoading(true);
+    await resetPassword(email);
     setIsLoading(false);
   };
 
@@ -97,6 +93,7 @@ export function AuthForm() {
       isLoading={isLoading}
       onSubmit={handleSignIn}
       onInputChange={handleInputChange}
+      onForgotPassword={handleForgotPassword}
     />
   );
 

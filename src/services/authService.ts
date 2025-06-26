@@ -96,6 +96,30 @@ export class AuthService {
     }
   }
 
+  static async resetPassword(email: string) {
+    try {
+      console.log('🔄 Attempting password reset for:', email);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?reset=true`,
+      });
+
+      if (error) {
+        console.error('❌ Password reset error:', error);
+        toast.error(error.message);
+        return { error };
+      }
+
+      console.log('✅ Password reset email sent');
+      toast.success('Password reset email sent! Please check your inbox.');
+      return { error: null };
+    } catch (error) {
+      console.error('❌ Unexpected password reset error:', error);
+      toast.error('Unexpected error sending reset email');
+      return { error };
+    }
+  }
+
   static async signOut() {
     try {
       const { error } = await supabase.auth.signOut();
@@ -104,6 +128,8 @@ export class AuthService {
         return { error };
       }
 
+      // Clear any stored data
+      localStorage.removeItem('selectedPlan');
       toast.success('Logout successful!');
       return { error: null };
     } catch (error) {
