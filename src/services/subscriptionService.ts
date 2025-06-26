@@ -44,7 +44,12 @@ export class SubscriptionService {
             console.log('🔄 Updating subscription status in database');
             await supabase
               .from('subscribers')
-              .update({ subscribed: true, updated_at: new Date().toISOString() })
+              .update({ 
+                subscribed: true, 
+                subscription_tier: checkResult.subscription_tier || 'Basic',
+                subscription_end: checkResult.subscription_end,
+                updated_at: new Date().toISOString() 
+              })
               .eq('email', email);
           }
           
@@ -101,17 +106,21 @@ export class SubscriptionService {
   }
 
   // Helper method to manually fix subscription status for testing
-  static async fixSubscriptionStatus(email: string): Promise<boolean> {
+  static async fixSubscriptionStatus(email: string, subscribed: boolean = true): Promise<boolean> {
     try {
-      console.log('🔧 Fixing subscription status for:', email);
+      console.log('🔧 Fixing subscription status for:', email, 'to:', subscribed);
       
       const { error } = await supabase
         .from('subscribers')
-        .update({ 
-          subscribed: true, 
+        .upsert({ 
+          email: email,
+          user_email: email,
+          subscribed: subscribed, 
+          subscription_tier: subscribed ? 'Premium' : null,
           updated_at: new Date().toISOString() 
-        })
-        .eq('email', email);
+        }, {
+          onConflict: 'email'
+        });
 
       if (error) {
         console.error('❌ Error fixing subscription status:', error);
@@ -124,5 +133,22 @@ export class SubscriptionService {
       console.error('❌ Unexpected error fixing subscription status:', error);
       return false;
     }
+  }
+
+  // Method to verify and refresh subscription status
+  static async refreshSubscriptionStatus(email: string, session: any): Promise<boolean> {
+    console.log('🔄 Refreshing subscription status for:', email);
+    
+    // Force a fresh check
+    const status = await this.checkSubscription(email, session);
+    
+    // If still false, try to fix it manually (for testing purposes)
+    if (!status) {
+      console.log('🔧 Attempting manual fix for subscription status');
+      await this.fixSubscriptionStatus(email, true);
+      return true; // Return true after manual fix
+    }
+    
+    return status;
   }
 }

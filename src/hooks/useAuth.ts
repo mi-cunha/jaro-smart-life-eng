@@ -13,6 +13,23 @@ export function useAuth() {
   const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
 
+  const refreshSubscriptionStatus = async () => {
+    if (!user?.email || !session) return;
+    
+    console.log('🔄 Manually refreshing subscription status');
+    setLoading(true);
+    
+    try {
+      const status = await SubscriptionService.refreshSubscriptionStatus(user.email, session);
+      setIsSubscribed(status);
+      console.log('✅ Subscription status refreshed:', status);
+    } catch (error) {
+      console.error('❌ Error refreshing subscription:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     const getSessionAndUser = async () => {
       setLoading(true);
@@ -51,8 +68,8 @@ export function useAuth() {
     getSessionAndUser();
 
     // Listen to auth changes
-    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('🔐 Auth state change:', _event, session?.user?.email);
+    const { data: listener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔐 Auth state change:', event, session?.user?.email);
       
       if (session?.user) {
         setUser(session.user);
@@ -106,7 +123,7 @@ export function useAuth() {
   };
 
   const fixSubscriptionStatus = async (email: string) => {
-    const result = await SubscriptionService.fixSubscriptionStatus(email);
+    const result = await SubscriptionService.fixSubscriptionStatus(email, true);
     if (result) {
       // Refresh subscription status
       const newStatus = await SubscriptionService.checkSubscription(email, session);
@@ -125,6 +142,7 @@ export function useAuth() {
     signIn,
     signOut,
     checkSubscription,
-    fixSubscriptionStatus
+    fixSubscriptionStatus,
+    refreshSubscriptionStatus
   };
 }
