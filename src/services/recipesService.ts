@@ -11,28 +11,24 @@ export class RecipesService {
       
       if (sessionError) {
         console.error('Session error:', sessionError);
-        throw new Error('Failed to get session');
+        throw new Error(`Session error: ${sessionError.message}`);
       }
       
       if (!session) {
-        throw new Error('No active session');
+        throw new Error('No active session found');
       }
       
-      // Then get the user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError) {
-        console.error('User authentication error:', userError);
-        throw new Error('Authentication failed');
-      }
+      // Then get the user from the session
+      const user = session.user;
       
       if (!user?.email) {
-        throw new Error('User not authenticated');
+        throw new Error('User email not found in session');
       }
       
+      console.log('✅ User authenticated:', user.email);
       return user;
     } catch (error) {
-      console.error('Authentication process failed:', error);
+      console.error('❌ Authentication process failed:', error);
       throw error;
     }
   }

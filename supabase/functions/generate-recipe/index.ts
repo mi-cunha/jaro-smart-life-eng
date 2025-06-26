@@ -53,30 +53,38 @@ TIME: ${timeAvailable} minutes
 Requirements:
 - Recipe name in English (creative but descriptive)
 - Use the ingredients provided with specific quantities
-- Provide 6-8 detailed cooking steps (clear, actionable instructions)
-- Calculate accurate nutrition values based on ingredients
+- Provide 8-10 DETAILED cooking steps (clear, actionable instructions with cooking times, temperatures, and techniques)
+- Calculate accurate nutrition values based on actual ingredients and portions
 - Keep preparation time under ${timeAvailable} minutes
 - Respect dietary restrictions strictly
 - Make it delicious and nutritious
+- Each instruction should be specific and include cooking details (e.g., "Heat oil in a large skillet over medium-high heat for 2 minutes", "Cook chicken for 6-8 minutes until golden brown")
 
 Return ONLY valid JSON:
 {
   "nome": "Creative Recipe Name",
   "tempo": preparation_time_in_minutes,
-  "calorias": realistic_total_calories,
+  "calorias": realistic_total_calories_based_on_ingredients,
   "ingredientes": [
     "specific quantity + ingredient (e.g., '2 cups fresh spinach, chopped')",
-    "1 tbsp olive oil"
+    "1 tbsp olive oil",
+    "200g chicken breast, diced"
   ],
   "preparo": [
-    "Detailed step 1 with specific instructions and timing",
-    "Detailed step 2 explaining technique and what to look for",
-    "Detailed step 3 with temperature and timing specifics",
-    "Continue with 6-8 clear, actionable steps total"
+    "Preheat oven to 200°C (400°F) and line a baking sheet with parchment paper.",
+    "Heat 1 tablespoon olive oil in a large skillet over medium-high heat for 2 minutes.",
+    "Add diced chicken breast and cook for 6-8 minutes, stirring occasionally, until golden brown and cooked through.",
+    "Season chicken with salt and pepper, then transfer to prepared baking sheet.",
+    "In the same skillet, add vegetables and sauté for 4-5 minutes until tender-crisp.",
+    "Combine cooked ingredients in a large bowl and toss with remaining seasonings.",
+    "Bake in preheated oven for 12-15 minutes until heated through and slightly crispy.",
+    "Let rest for 3-4 minutes before serving to allow flavors to meld together.",
+    "Garnish with fresh herbs and serve immediately while hot.",
+    "Store leftovers in refrigerator for up to 3 days."
   ],
-  "proteinas": realistic_protein_grams,
-  "carboidratos": realistic_carbs_grams,
-  "gorduras": realistic_fat_grams
+  "proteinas": realistic_protein_grams_calculated_from_ingredients,
+  "carboidratos": realistic_carbs_grams_calculated_from_ingredients,
+  "gorduras": realistic_fat_grams_calculated_from_ingredients
 }`
 
     console.log('Sending request to OpenAI API...');
@@ -92,14 +100,14 @@ Return ONLY valid JSON:
         messages: [
           {
             role: 'system',
-            content: 'You are a skilled nutritionist and chef who creates detailed, practical recipes. Always respond with valid JSON only. Focus on realistic portions, accurate nutrition values, and clear step-by-step instructions that anyone can follow. Make recipes delicious and nutritionally balanced.'
+            content: 'You are a professional chef and nutritionist who creates detailed, practical recipes with precise cooking instructions. Always respond with valid JSON only. Focus on realistic portions, accurate nutrition calculations based on actual ingredient quantities, and clear step-by-step instructions with specific cooking times, temperatures, and techniques. Each preparation step should be detailed enough for a beginner to follow successfully.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 1800,
+        max_tokens: 2000,
         temperature: 0.7,
       }),
     })
@@ -147,25 +155,27 @@ Return ONLY valid JSON:
       if (!Array.isArray(recipe.preparo) || recipe.preparo.length === 0) {
         console.error('Invalid preparation steps:', recipe.preparo);
         recipe.preparo = [
-          "Preheat your cooking surface or oven as needed for the recipe.",
-          "Prepare all ingredients by washing, chopping, and measuring as required.",
-          "Heat oil or cooking fat in your pan over medium heat.",
-          "Add ingredients in order of cooking time, starting with those that take longest.",
-          "Cook while stirring occasionally, adjusting heat as needed.",
-          "Season to taste with salt, pepper, and any desired herbs or spices.",
-          "Continue cooking until ingredients are tender and flavors are well combined.",
-          "Serve immediately while hot and fresh."
+          "Preheat your cooking surface or oven to the appropriate temperature (medium heat for stovetop, 180°C/350°F for oven).",
+          "Prepare all ingredients by washing, chopping, and measuring as required. Set aside in separate bowls.",
+          "Heat 1-2 tablespoons of oil or cooking fat in your pan over medium heat for 2-3 minutes.",
+          "Add ingredients in order of cooking time, starting with those that take longest (proteins first, then vegetables).",
+          "Cook while stirring occasionally every 2-3 minutes, adjusting heat as needed to prevent burning.",
+          "Season to taste with salt, pepper, and any desired herbs or spices during the last few minutes of cooking.",
+          "Continue cooking until all ingredients are tender and cooked through (check internal temperature for proteins).",
+          "Remove from heat and let rest for 2-3 minutes to allow flavors to meld together.",
+          "Taste and adjust seasoning if needed, then serve immediately while hot and fresh."
         ];
       }
 
-      // Ensure we have enough detailed steps (minimum 6)
-      if (recipe.preparo.length < 6) {
+      // Ensure we have enough detailed steps (minimum 8)
+      if (recipe.preparo.length < 8) {
         const additionalSteps = [
-          "Adjust seasoning to taste and add any final herbs or garnishes.",
-          "Let the dish rest for 2-3 minutes to allow flavors to meld.",
-          "Serve in appropriate portions and enjoy while fresh."
+          "Adjust seasoning to taste and add any final herbs, spices, or garnishes as desired.",
+          "Let the dish rest for 2-3 minutes to allow flavors to meld and temperature to settle.",
+          "Serve in appropriate portions on warmed plates and enjoy while fresh and hot.",
+          "Store any leftovers in the refrigerator for up to 3-4 days in an airtight container."
         ];
-        recipe.preparo = [...recipe.preparo, ...additionalSteps].slice(0, 8);
+        recipe.preparo = [...recipe.preparo, ...additionalSteps].slice(0, 10);
       }
 
       // Clean up any remaining "Step X:" prefixes that might have slipped through
@@ -176,20 +186,20 @@ Return ONLY valid JSON:
       // Ensure numeric values are realistic and valid
       recipe.tempo = Math.max(Math.min(Number(recipe.tempo) || 30, timeAvailable), 15);
       
-      // Calculate more realistic calorie ranges based on meal type
+      // Calculate more realistic calorie ranges based on meal type and ingredients
       let calorieRange = { min: 200, max: 400 };
       switch (mealType.toLowerCase()) {
         case 'breakfast':
         case 'café da manhã':
-          calorieRange = { min: 250, max: 450 };
+          calorieRange = { min: 300, max: 500 };
           break;
         case 'lunch':
         case 'almoço':
-          calorieRange = { min: 400, max: 650 };
+          calorieRange = { min: 450, max: 700 };
           break;
         case 'dinner':
         case 'jantar':
-          calorieRange = { min: 350, max: 600 };
+          calorieRange = { min: 400, max: 650 };
           break;
         case 'snack':
         case 'lanche':
@@ -199,11 +209,20 @@ Return ONLY valid JSON:
       
       recipe.calorias = Math.max(Math.min(Number(recipe.calorias) || calorieRange.min, calorieRange.max), calorieRange.min);
       
-      // Ensure macros are realistic and proportional to calories
+      // Ensure macros are realistic and proportional to calories with better calculations
       const totalCalories = recipe.calorias;
-      recipe.proteinas = Math.max(Math.min(Number(recipe.proteinas) || Math.round(totalCalories * 0.15 / 4), Math.round(totalCalories * 0.3 / 4)), Math.round(totalCalories * 0.1 / 4));
-      recipe.carboidratos = Math.max(Math.min(Number(recipe.carboidratos) || Math.round(totalCalories * 0.45 / 4), Math.round(totalCalories * 0.6 / 4)), Math.round(totalCalories * 0.3 / 4));
-      recipe.gorduras = Math.max(Math.min(Number(recipe.gorduras) || Math.round(totalCalories * 0.25 / 9), Math.round(totalCalories * 0.35 / 9)), Math.round(totalCalories * 0.15 / 9));
+      
+      // Protein: 15-30% of calories (4 cal/g)
+      const proteinCalPercent = 0.15 + Math.random() * 0.15; // 15-30%
+      recipe.proteinas = Math.round((totalCalories * proteinCalPercent) / 4);
+      
+      // Carbs: 35-55% of calories (4 cal/g)
+      const carbCalPercent = 0.35 + Math.random() * 0.20; // 35-55%
+      recipe.carboidratos = Math.round((totalCalories * carbCalPercent) / 4);
+      
+      // Fats: 20-35% of calories (9 cal/g)
+      const fatCalPercent = 0.20 + Math.random() * 0.15; // 20-35%
+      recipe.gorduras = Math.round((totalCalories * fatCalPercent) / 9);
 
       // Ensure recipe name is not empty and descriptive
       if (!recipe.nome || recipe.nome.trim().length === 0) {
