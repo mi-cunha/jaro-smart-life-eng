@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Receita } from '@/types/receitas';
 
@@ -136,12 +137,48 @@ export class RecipesService {
           carboidratos: data[0].carboidratos,
           gorduras: data[0].gorduras,
           instrucoes_length: data[0].instrucoes?.length || 0,
-          instrucoes_preview: data[0].instrucoes?.substring(0, 100)
+          instrucoes_preview: data[0].instrucoes?.substring(0, 100),
+          ingredientes_type: typeof data[0].ingredientes,
+          ingredientes_sample: data[0].ingredientes
         });
       }
       
       if (data) {
         const receitasProcessadas = data.map(item => {
+          console.log('🔍 Processing recipe raw data:', {
+            nome: item.nome,
+            tempo_preparo: item.tempo_preparo,
+            calorias: item.calorias,
+            proteinas: item.proteinas,
+            carboidratos: item.carboidratos,
+            gorduras: item.gorduras,
+            ingredientes_raw: item.ingredientes
+          });
+
+          // Process ingredientes safely - handle Json type conversion
+          let processedIngredientes: string[] = [];
+          if (item.ingredientes) {
+            try {
+              if (Array.isArray(item.ingredientes)) {
+                // Convert Json[] to string[] by filtering and mapping
+                processedIngredientes = item.ingredientes
+                  .filter((ing): ing is string => typeof ing === 'string')
+                  .map(ing => String(ing));
+              } else if (typeof item.ingredientes === 'string') {
+                // Handle case where it might be a JSON string
+                const parsed = JSON.parse(item.ingredientes);
+                if (Array.isArray(parsed)) {
+                  processedIngredientes = parsed
+                    .filter((ing): ing is string => typeof ing === 'string')
+                    .map(ing => String(ing));
+                }
+              }
+            } catch (e) {
+              console.warn('🚨 Error processing ingredientes for recipe:', item.nome, e);
+              processedIngredientes = [];
+            }
+          }
+
           // Process preparation steps more carefully
           let preparoSteps: string[] = [];
           
@@ -162,12 +199,12 @@ export class RecipesService {
             ];
           }
 
-          // Ensure we have valid numeric values, preserving what came from the database
-          const tempo = item.tempo_preparo && item.tempo_preparo > 0 ? item.tempo_preparo : 30;
-          const calorias = item.calorias && item.calorias > 0 ? item.calorias : 300;
-          const proteinas = item.proteinas && item.proteinas > 0 ? item.proteinas : 20;
-          const carboidratos = item.carboidratos && item.carboidratos > 0 ? item.carboidratos : 30;
-          const gorduras = item.gorduras && item.gorduras > 0 ? item.gorduras : 10;
+          // Preserve original values from database - don't override with defaults if they exist
+          const tempo = item.tempo_preparo || 30;
+          const calorias = item.calorias || 300;
+          const proteinas = item.proteinas || 20;
+          const carboidratos = item.carboidratos || 30;
+          const gorduras = item.gorduras || 10;
 
           const receita: Receita = {
             id: item.id,
@@ -175,7 +212,7 @@ export class RecipesService {
             tempo: tempo,
             calorias: calorias,
             refeicao: item.refeicao || 'Almoço',
-            ingredientes: Array.isArray(item.ingredientes) ? item.ingredientes : [],
+            ingredientes: processedIngredientes,
             preparo: preparoSteps,
             macros: {
               proteinas: proteinas,
@@ -192,6 +229,7 @@ export class RecipesService {
             calorias: receita.calorias,
             macros: receita.macros,
             preparoSteps: receita.preparo.length,
+            ingredientesCount: receita.ingredientes.length,
             originalValues: {
               tempo_preparo: item.tempo_preparo,
               calorias: item.calorias,
