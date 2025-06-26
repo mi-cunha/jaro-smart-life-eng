@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Star, CheckCircle, RefreshCw } from 'lucide-react';
+import { Check, Star, CheckCircle } from 'lucide-react';
 import { JaroSmartLogo } from '@/components/JaroSmartLogo';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -12,9 +12,8 @@ import { toast } from 'sonner';
 const Pricing = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading, isSubscribed, fixSubscriptionStatus, refreshSubscriptionStatus } = useAuth();
+  const { user, loading, isSubscribed } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Check for plan from URL params or localStorage on component mount
   useEffect(() => {
@@ -40,38 +39,6 @@ const Pricing = () => {
       }
     }
   }, [user, loading, searchParams, isSubscribed]);
-
-  const handleRefreshStatus = async () => {
-    if (!user?.email || !refreshSubscriptionStatus) return;
-    
-    setIsRefreshing(true);
-    try {
-      await refreshSubscriptionStatus();
-      toast.success('Status refreshed!');
-    } catch (error) {
-      toast.error('Error refreshing status');
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  const handleFixSubscription = async () => {
-    if (!user?.email || !fixSubscriptionStatus) return;
-    
-    setIsRefreshing(true);
-    try {
-      await fixSubscriptionStatus(user.email);
-      toast.success('Subscription status fixed!');
-      // Force a page refresh after fixing
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-    } catch (error) {
-      toast.error('Error fixing subscription status');
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
 
   const plans = [
     {
@@ -221,36 +188,13 @@ const Pricing = () => {
       <div className="bg-dark-bg border-b border-white/10 px-4 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <JaroSmartLogo size="md" />
-          <div className="flex items-center gap-4">
-            {user && (
-              <>
-                <Button
-                  variant="ghost"
-                  onClick={handleRefreshStatus}
-                  disabled={isRefreshing}
-                  className="text-white/60 hover:text-white flex items-center gap-2"
-                >
-                  <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                  Refresh Status
-                </Button>
-                <Button
-                  variant="ghost"
-                  onClick={handleFixSubscription}
-                  disabled={isRefreshing}
-                  className="text-neon-green hover:text-neon-green/80"
-                >
-                  Fix Subscription
-                </Button>
-              </>
-            )}
-            <Button
-              variant="ghost"
-              onClick={handleBackToLogin}
-              className="text-white/60 hover:text-white"
-            >
-              {user ? 'Back to Dashboard' : 'Back to Login'}
-            </Button>
-          </div>
+          <Button
+            variant="ghost"
+            onClick={handleBackToLogin}
+            className="text-white/60 hover:text-white"
+          >
+            {user ? 'Back to Dashboard' : 'Back to Login'}
+          </Button>
         </div>
       </div>
 
