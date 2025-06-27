@@ -35,11 +35,11 @@ Deno.serve(async (req) => {
 
     console.log('🔍 Checking subscription for user:', user.email)
 
-    // Check subscription in subscribers table
+    // Check subscription in subscribers table using user_email
     const { data: subscriber, error: subError } = await supabaseClient
       .from('subscribers')
       .select('*')
-      .eq('email', user.email)
+      .eq('user_email', user.email)
       .maybeSingle()
 
     if (subError) {

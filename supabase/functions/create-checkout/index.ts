@@ -70,13 +70,13 @@ serve(async (req) => {
 
     console.log('💰 Using price ID:', priceId);
 
-    // Update subscriber record before creating checkout
+    // Update subscriber record before creating checkout - REMOVED user_id to avoid foreign key issues
     console.log('📝 Updating subscriber record...');
     const { error: upsertError } = await supabaseClient
       .from('subscribers')
       .upsert({
         user_email: user.email,
-        user_id: user.id,
+        // user_id: removed to avoid foreign key constraint errors
         stripe_customer_id: customerId,
         subscribed: false, // Will be updated by webhook after successful payment
         updated_at: new Date().toISOString(),

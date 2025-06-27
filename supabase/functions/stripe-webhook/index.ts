@@ -142,12 +142,12 @@ serve(async (req) => {
             subscription_end: subscriptionEndDate
           });
           
-          // Use user_email as conflict resolution
+          // Use user_email as conflict resolution - REMOVED user_id to avoid foreign key issues
           const { data: updateResult, error } = await supabase
             .from("subscribers")
             .upsert({
               user_email: customerEmail,
-              user_id: session.metadata?.user_id || null,
+              // user_id: removed to avoid foreign key constraint errors
               stripe_customer_id: session.customer as string,
               stripe_subscription_id: session.subscription as string,
               stripe_session_id: session.id,
