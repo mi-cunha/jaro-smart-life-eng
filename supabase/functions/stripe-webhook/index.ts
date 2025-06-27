@@ -14,7 +14,14 @@ const logStep = (step: string, details?: any) => {
 };
 
 serve(async (req) => {
+  logStep("🚀 WEBHOOK FUNCTION STARTED", { 
+    method: req.method, 
+    url: req.url,
+    timestamp: new Date().toISOString()
+  });
+
   if (req.method === "OPTIONS") {
+    logStep("OPTIONS request received");
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -30,7 +37,7 @@ serve(async (req) => {
     });
     
     if (!stripeKey || !webhookSecret) {
-      logStep("Missing configuration", { stripeKey: !!stripeKey, webhookSecret: !!webhookSecret });
+      logStep("❌ Missing configuration", { stripeKey: !!stripeKey, webhookSecret: !!webhookSecret });
       throw new Error("Missing Stripe configuration");
     }
 
@@ -52,7 +59,7 @@ serve(async (req) => {
     });
     
     if (!signature) {
-      logStep("No signature found");
+      logStep("❌ No signature found");
       throw new Error("No Stripe signature found");
     }
 
@@ -60,17 +67,19 @@ serve(async (req) => {
     let event: Stripe.Event;
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      logStep("Webhook signature verified", { type: event.type, id: event.id });
+      logStep("✅ Webhook signature verified", { type: event.type, id: event.id });
     } catch (err) {
-      logStep("Webhook signature verification failed", { error: err.message });
+      logStep("❌ Webhook signature verification failed", { error: err.message });
       return new Response(`Webhook signature verification failed: ${err.message}`, { status: 400 });
     }
 
     // Process the event
+    logStep("Processing event", { type: event.type });
+
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        logStep("Processing checkout.session.completed", { 
+        logStep("🛒 Processing checkout.session.completed", { 
           sessionId: session.id, 
           customerId: session.customer,
           subscriptionId: session.subscription
@@ -79,12 +88,12 @@ serve(async (req) => {
         if (session.mode === "subscription" && session.customer && session.subscription) {
           // Get customer details
           const customer = await stripe.customers.retrieve(session.customer as string) as Stripe.Customer;
-          logStep("Customer retrieved", { customerId: customer.id, email: customer.email });
+          logStep("👤 Customer retrieved", { customerId: customer.id, email: customer.email });
           
           if (customer.email) {
             // Get subscription details
             const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-            logStep("Subscription retrieved", { 
+            logStep("📅 Subscription retrieved", { 
               subscriptionId: subscription.id, 
               status: subscription.status,
               currentPeriodEnd: subscription.current_period_end
@@ -106,7 +115,7 @@ serve(async (req) => {
               }
             }
             
-            logStep("Subscription tier determined", { subscriptionTier, priceAmount: subscription.items.data[0]?.price.unit_amount });
+            logStep("💰 Subscription tier determined", { subscriptionTier, priceAmount: subscription.items.data[0]?.price.unit_amount });
 
             // Update subscriber record
             const { error } = await supabaseClient
@@ -126,19 +135,19 @@ serve(async (req) => {
               });
 
             if (error) {
-              logStep("Error updating subscriber", { error: error.message, details: error });
+              logStep("❌ Error updating subscriber", { error: error.message, details: error });
             } else {
-              logStep("Subscriber updated successfully", { 
+              logStep("✅ Subscriber updated successfully", { 
                 email: customer.email, 
                 subscribed: true,
                 tier: subscriptionTier
               });
             }
           } else {
-            logStep("No customer email found");
+            logStep("❌ No customer email found");
           }
         } else {
-          logStep("Session not eligible for processing", { 
+          logStep("ℹ️ Session not eligible for processing", { 
             mode: session.mode, 
             hasCustomer: !!session.customer,
             hasSubscription: !!session.subscription
@@ -149,7 +158,7 @@ serve(async (req) => {
 
       case "invoice.payment_succeeded": {
         const invoice = event.data.object as Stripe.Invoice;
-        logStep("Processing invoice.payment_succeeded", { 
+        logStep("💳 Processing invoice.payment_succeeded", { 
           invoiceId: invoice.id,
           customerId: invoice.customer,
           subscriptionId: invoice.subscription
@@ -172,9 +181,9 @@ serve(async (req) => {
               .eq('email', customer.email);
 
             if (error) {
-              logStep("Error updating subscription renewal", { error: error.message });
+              logStep("❌ Error updating subscription renewal", { error: error.message });
             } else {
-              logStep("Subscription renewed successfully", { 
+              logStep("✅ Subscription renewed successfully", { 
                 email: customer.email,
                 newEndDate: new Date(subscription.current_period_end * 1000).toISOString()
               });
@@ -186,7 +195,7 @@ serve(async (req) => {
 
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
-        logStep("Processing customer.subscription.deleted", { 
+        logStep("❌ Processing customer.subscription.deleted", { 
           subscriptionId: subscription.id,
           customerId: subscription.customer
         });
@@ -206,30 +215,40 @@ serve(async (req) => {
             .eq('email', customer.email);
 
           if (error) {
-            logStep("Error updating subscription cancellation", { error: error.message });
+            logStep("❌ Error updating subscription cancellation", { error: error.message });
           } else {
-            logStep("Subscription cancelled successfully", { email: customer.email });
+            logStep("✅ Subscription cancelled successfully", { email: customer.email });
           }
         }
         break;
       }
 
       default:
-        logStep("Unhandled webhook event", { type: event.type });
+        logStep("ℹ️ Unhandled webhook event", { type: event.type });
     }
 
-    logStep("Webhook processing completed successfully");
-    return new Response(JSON.stringify({ received: true }), {
+    logStep("✅ Webhook processing completed successfully");
+    return new Response(JSON.stringify({ 
+      received: true, 
+      processed: true,
+      eventType: event.type,
+      eventId: event.id
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("Webhook processing error", { error: errorMessage });
+    logStep("💥 WEBHOOK PROCESSING ERROR", { error: errorMessage });
     
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        error: errorMessage,
+        timestamp: new Date().toISOString(),
+        received: true,
+        processed: false
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,
