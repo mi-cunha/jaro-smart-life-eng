@@ -2,7 +2,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Shield } from "lucide-react";
+import { Shield, Mail } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 interface PrivacySectionProps {
@@ -11,6 +11,12 @@ interface PrivacySectionProps {
 }
 
 export function PrivacySection({ perfil, onTogglePrivacy }: PrivacySectionProps) {
+  const handleSupport = () => {
+    const subject = encodeURIComponent("Support Request");
+    const body = encodeURIComponent("Hello JaroSmart Support Team,\n\nI need assistance with the app.\n\nBest regards");
+    window.location.href = `mailto:suporte@smartjaro.site?subject=${subject}&body=${body}`;
+  };
+
   return (
     <Card className="bg-dark-bg border-white/10">
       <CardHeader>
@@ -37,6 +43,14 @@ export function PrivacySection({ perfil, onTogglePrivacy }: PrivacySectionProps)
             className="w-full border-white/20 text-white hover:bg-white/10"
           >
             Download My Data
+          </Button>
+          <Button
+            onClick={handleSupport}
+            variant="outline"
+            className="w-full border-neon-green/30 text-neon-green hover:bg-neon-green/10"
+          >
+            <Mail className="w-4 h-4 mr-2" />
+            Contact Support
           </Button>
           <Button
             variant="outline"

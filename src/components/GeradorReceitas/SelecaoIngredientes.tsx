@@ -74,7 +74,7 @@ export function SelecaoIngredientes({
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {itensComprados.map((item, index) => (
               <div key={index} className="flex items-center space-x-2 bg-neon-green/10 p-2 rounded-lg border border-neon-green/30">
-                <div className="w-3 h-3 bg-neon-green rounded-full flex-shrink-0"></div>
+                <div className="w-2 h-2 bg-neon-green rounded-full flex-shrink-0"></div>
                 <span className="text-neon-green text-xs md:text-sm font-medium truncate">{item}</span>
               </div>
             ))}
@@ -97,7 +97,7 @@ export function SelecaoIngredientes({
               <Checkbox
                 checked={ingrediente.selecionado}
                 onCheckedChange={() => onToggleIngrediente(index)}
-                className="w-3 h-3 md:w-4 md:h-4 border-white/30 data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green"
+                className="w-3 h-3 border-white/30 data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green"
               />
               <span className={`text-xs md:text-sm font-medium truncate ${
                 ingrediente.selecionado ? 'text-white' : 'text-white/70'
