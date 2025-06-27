@@ -28,6 +28,13 @@ serve(async (req) => {
   try {
     logStep("Webhook received", { method: req.method, url: req.url });
     
+    // Log all headers for debugging
+    const headers: Record<string, string> = {};
+    for (const [key, value] of req.headers.entries()) {
+      headers[key] = value;
+    }
+    logStep("📋 Request Headers", headers);
+    
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     
@@ -48,47 +55,103 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Get raw body as bytes
-    const body = await req.arrayBuffer();
-    const bodyUint8Array = new Uint8Array(body);
+    // Get raw body as ArrayBuffer and convert to Uint8Array
+    const rawBody = await req.arrayBuffer();
+    const bodyUint8Array = new Uint8Array(rawBody);
+    
+    // Also get text version for logging (first 500 chars)
+    const bodyText = new TextDecoder().decode(bodyUint8Array);
+    
+    logStep("📦 Request Body Analysis", { 
+      bodyLength: bodyUint8Array.length,
+      bodyPreview: bodyText.substring(0, 500),
+      contentType: req.headers.get("content-type"),
+      isArrayBuffer: rawBody instanceof ArrayBuffer,
+      uint8ArrayLength: bodyUint8Array.length
+    });
     
     const signature = req.headers.get("stripe-signature");
     
-    logStep("🔒 Verifying Signature", { 
-      signature: signature ? signature.substring(0, 20) + "..." : "null",
-      contentLength: bodyUint8Array.length
+    logStep("🔒 Signature Analysis", { 
+      signature: signature ? signature.substring(0, 50) + "..." : "null",
+      signatureLength: signature?.length || 0,
+      hasSignature: !!signature
     });
     
     if (!signature) {
-      logStep("❌ No signature found");
+      logStep("❌ No signature found in headers");
       throw new Error("No Stripe signature found");
     }
 
+    // Parse signature components for debugging
+    const sigParts = signature.split(',');
+    const timestamp = sigParts.find(part => part.startsWith('t='))?.substring(2);
+    const v1Signature = sigParts.find(part => part.startsWith('v1='))?.substring(3);
+    
+    logStep("🔍 Signature Components", {
+      timestamp,
+      v1Signature: v1Signature ? v1Signature.substring(0, 20) + "..." : null,
+      totalParts: sigParts.length,
+      allParts: sigParts
+    });
+
     let event;
     try {
-      event = stripe.webhooks.constructEvent(
+      logStep("🔐 Attempting signature verification with constructEventAsync");
+      
+      // Try with constructEventAsync first
+      event = await stripe.webhooks.constructEventAsync(
         bodyUint8Array, 
         signature, 
         webhookSecret
       );
-      logStep("✅ Signature verified successfully");
-    } catch (err: any) {
-      logStep("❌ Signature Verification Failed", { error: err.message });
-      return new Response(
-        JSON.stringify({ error: "Invalid signature" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        }
-      );
+      
+      logStep("✅ Signature verified successfully with constructEventAsync");
+    } catch (asyncError: any) {
+      logStep("❌ constructEventAsync failed", { 
+        error: asyncError.message,
+        errorType: asyncError.constructor.name 
+      });
+      
+      try {
+        logStep("🔐 Attempting signature verification with constructEvent (fallback)");
+        
+        // Fallback to synchronous version
+        event = stripe.webhooks.constructEvent(
+          bodyUint8Array, 
+          signature, 
+          webhookSecret
+        );
+        
+        logStep("✅ Signature verified successfully with constructEvent (fallback)");
+      } catch (syncError: any) {
+        logStep("❌ Both signature verification methods failed", { 
+          asyncError: asyncError.message,
+          syncError: syncError.message,
+          webhookSecretLength: webhookSecret.length,
+          webhookSecretPrefix: webhookSecret.substring(0, 10) + "..."
+        });
+        
+        return new Response(
+          JSON.stringify({ error: "Invalid signature" }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          }
+        );
+      }
     }
 
-    logStep("📦 Event Received", { eventType: event.type });
+    logStep("📦 Event Successfully Parsed", { 
+      eventType: event.type,
+      eventId: event.id,
+      created: event.created
+    });
 
     // Process different event types
     switch (event.type) {
       case "checkout.session.completed":
-        logStep("🛒 checkout.session.completed", { 
+        logStep("🛒 Processing checkout.session.completed", { 
           customer: event.data.object.customer,
           sessionId: event.data.object.id
         });
@@ -102,7 +165,10 @@ serve(async (req) => {
 
         // Get customer details
         const customer = await stripe.customers.retrieve(session.customer as string);
-        logStep("👤 Customer fetched", { email: (customer as Stripe.Customer).email });
+        logStep("👤 Customer retrieved", { 
+          customerId: session.customer,
+          email: (customer as Stripe.Customer).email 
+        });
         
         if (!customer || customer.deleted || !(customer as Stripe.Customer).email) {
           logStep("❌ Invalid customer data");
@@ -111,9 +177,10 @@ serve(async (req) => {
 
         // Get subscription details
         const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-        logStep("📅 Subscription fetched", { 
+        logStep("📅 Subscription retrieved", { 
+          subscriptionId: session.subscription,
           status: subscription.status,
-          end: subscription.current_period_end
+          currentPeriodEnd: subscription.current_period_end
         });
 
         // Update subscriber in database
@@ -123,7 +190,7 @@ serve(async (req) => {
             subscribed: true,
             stripe_customer_id: session.customer as string,
             stripe_subscription_id: session.subscription as string,
-            subscription_tier: "Monthly", // You can determine this from the price
+            subscription_tier: "Monthly",
             subscription_end: new Date(subscription.current_period_end * 1000).toISOString(),
             updated_at: new Date().toISOString(),
           })
@@ -132,17 +199,16 @@ serve(async (req) => {
         if (updateError) {
           logStep("❌ Database update error", { error: updateError });
         } else {
-          logStep("✅ Subscriber marked as subscribed", { 
+          logStep("✅ Subscriber updated successfully", { 
             email: (customer as Stripe.Customer).email,
+            subscribed: true,
             tier: "Monthly"
           });
         }
         break;
 
       case "invoice.payment_succeeded":
-        logStep("📥 Payment succeeded for customer", { 
-          email: (event.data.object as any).customer_email 
-        });
+        logStep("📥 Processing invoice.payment_succeeded");
         
         const invoice = event.data.object as Stripe.Invoice;
         
@@ -153,12 +219,6 @@ serve(async (req) => {
 
         try {
           const invoiceSubscription = await stripe.subscriptions.retrieve(invoice.subscription as string);
-          logStep("📋 Invoice subscription fetched", { 
-            status: invoiceSubscription.status,
-            customerId: invoiceSubscription.customer
-          });
-
-          // Get customer from subscription
           const invoiceCustomer = await stripe.customers.retrieve(invoiceSubscription.customer as string);
           
           if (invoiceCustomer && !invoiceCustomer.deleted && (invoiceCustomer as Stripe.Customer).email) {
@@ -185,7 +245,7 @@ serve(async (req) => {
         break;
 
       case "customer.subscription.deleted":
-        logStep("🚫 Subscription cancelled");
+        logStep("🚫 Processing customer.subscription.deleted");
         
         const cancelledSub = event.data.object as Stripe.Subscription;
         const cancelledCustomer = await stripe.customers.retrieve(cancelledSub.customer as string);
@@ -222,7 +282,10 @@ serve(async (req) => {
 
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("💥 WEBHOOK PROCESSING ERROR", { error: errorMessage });
+    logStep("💥 WEBHOOK PROCESSING ERROR", { 
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined
+    });
     
     return new Response(
       JSON.stringify({ 
