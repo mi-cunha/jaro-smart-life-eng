@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 
@@ -185,26 +184,24 @@ Return ONLY valid JSON:
         return step.replace(/^Step\s*\d+:\s*/i, '').trim();
       });
 
-      // CRITICAL FIX: Only validate and set fallbacks if AI values are truly invalid
-      // Parse numbers more carefully and preserve AI-generated values
-      const parseNumberSafely = (value: any, fallback: number) => {
+      // Use AI-generated values directly without fallbacks that override them
+      const parseNumberSafely = (value: any) => {
         if (value === null || value === undefined || value === '') {
-          return fallback;
+          return 0;
         }
         const parsed = Number(value);
-        // Only use fallback if the parsed value is truly NaN, not just 0
-        return isNaN(parsed) ? fallback : parsed;
+        return isNaN(parsed) ? 0 : parsed;
       };
 
-      // Preserve AI-generated values with minimal fallback interference
-      recipe.tempo = parseNumberSafely(recipe.tempo, Math.min(timeAvailable, 45));
-      recipe.calorias = parseNumberSafely(recipe.calorias, 300);
-      recipe.proteinas = parseNumberSafely(recipe.proteinas, 15);
-      recipe.carboidratos = parseNumberSafely(recipe.carboidratos, 25);
-      recipe.gorduras = parseNumberSafely(recipe.gorduras, 8);
+      // Keep AI-generated values as they are - only convert to numbers
+      recipe.tempo = parseNumberSafely(recipe.tempo) || 30;
+      recipe.calorias = parseNumberSafely(recipe.calorias) || 0;
+      recipe.proteinas = parseNumberSafely(recipe.proteinas) || 0;
+      recipe.carboidratos = parseNumberSafely(recipe.carboidratos) || 0;
+      recipe.gorduras = parseNumberSafely(recipe.gorduras) || 0;
 
       // Log the final values to verify they're preserved
-      console.log('✅ Final recipe with preserved AI nutritional data:', {
+      console.log('✅ Final recipe with AI nutritional data:', {
         nome: recipe.nome,
         tempo: recipe.tempo,
         calorias: recipe.calorias,
@@ -221,22 +218,6 @@ Return ONLY valid JSON:
       }
 
       console.log('Successfully parsed and validated recipe:', recipe);
-
-      // Final validation to ensure we have complete data
-      if (recipe.ingredientes.length === 0) {
-        throw new Error('Recipe generation returned no valid ingredients');
-      }
-
-      if (recipe.preparo.length === 0) {
-        console.warn('No preparation steps found, adding default steps');
-        recipe.preparo = [
-          'Prepare all ingredients by washing and chopping as needed',
-          'Heat cooking surface to appropriate temperature',
-          'Cook ingredients according to their requirements',
-          'Season to taste and adjust flavors',
-          'Serve immediately while fresh'
-        ];
-      }
 
       return new Response(
         JSON.stringify(recipe),

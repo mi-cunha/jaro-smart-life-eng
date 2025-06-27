@@ -1,4 +1,3 @@
-
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,8 @@ import {
   Trophy,
   TrendingUp,
   Calendar,
-  Target
+  Target,
+  Heart
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -69,12 +69,9 @@ const GeneralDashboard = () => {
   const totalHabitos = habitosHoje.length;
 
   // Calculate weight loss progress - convert to display units
-  const currentWeightDisplay = convertToDisplayWeight(pesoAtual || 165); // Default 165 lbs
-  const goalWeightDisplay = convertToDisplayWeight(pesoMeta || 150); // Default 150 lbs
-  const initialWeightDisplay = historicoPeso.length > 0 ? 
-    convertToDisplayWeight(historicoPeso[historicoPeso.length - 1].peso) : 
-    currentWeightDisplay + convertToDisplayWeight(4.8);
-  const weightLostDisplay = initialWeightDisplay - currentWeightDisplay;
+  const currentWeightDisplay = convertToDisplayWeight(pesoAtual || 165);
+  const goalWeightDisplay = convertToDisplayWeight(pesoMeta || 150);
+  const weightLostDisplay = convertToDisplayWeight(realStats.weightLostSinceStart);
 
   // Progress cards with real data
   const progressoCards = [
@@ -103,11 +100,11 @@ const GeneralDashboard = () => {
       link: "/progresso-peso"
     },
     {
-      title: "Recipes",
-      icon: <ChefHat className="w-6 h-6 text-neon-green" />,
-      value: `${realStats.recipesCookedThisMonth}/28`,
-      description: hasQuizData ? "Refeições saudáveis personalizadas" : "Refeições saudáveis este mês",
-      progress: Math.min(100, (realStats.recipesCookedThisMonth / 28) * 100),
+      title: "Favorited Recipes",
+      icon: <Heart className="w-6 h-6 text-neon-green" />,
+      value: `${realStats.favoritedRecipesCount}`,
+      description: hasQuizData ? "Receitas favoritas personalizadas" : "Receitas marcadas como favoritas",
+      progress: Math.min(100, (realStats.favoritedRecipesCount / 10) * 100),
       link: "/gerador-receitas"
     },
     {
@@ -140,7 +137,7 @@ const GeneralDashboard = () => {
     { name: "7 Dias de Chá", icon: "🏅", achieved: realStats.teaDosesThisMonth >= 7 },
     { name: "30 Dias de Hábitos", icon: "🏆", achieved: realStats.habitCompletionRate >= 80 },
     { name: "Meta de Peso", icon: "🎯", achieved: progressoPeso >= 100 },
-    { name: "Mestre das Receitas", icon: "👨‍🍳", achieved: realStats.recipesCookedThisMonth >= 10 },
+    { name: "Mestre das Receitas", icon: "👨‍🍳", achieved: realStats.favoritedRecipesCount >= 5 },
     { name: "Comprador Inteligente", icon: "🛒", achieved: allItens.length >= 20 },
     { name: "Série de Ferro", icon: "💪", achieved: realStats.habitCompletionRate >= 90 },
     { name: "Campeão da Saúde", icon: "❤️", achieved: progressoPeso >= 50 && realStats.habitCompletionRate >= 70 }
@@ -150,8 +147,8 @@ const GeneralDashboard = () => {
   if (realStats.habitCompletionRate < 80) {
     improvementSuggestions.push("Sua taxa de conclusão de hábitos diminuiu esta semana. Tente definir lembretes durante as refeições!");
   }
-  if (realStats.recipesCookedThisMonth < 10) {
-    improvementSuggestions.push("Considere gerar mais variedades de receitas para manter uma dieta equilibrada ao longo do mês.");
+  if (realStats.favoritedRecipesCount < 5) {
+    improvementSuggestions.push("Considere favoritar mais receitas para facilitar o acesso às suas favoritas.");
   }
   if (progressoPeso < 50 && pesoAtual && pesoMeta) {
     improvementSuggestions.push("Você está se aproximando de sua meta de peso. Considere aumentar a hidratação para acelerar o metabolismo.");
@@ -195,7 +192,7 @@ const GeneralDashboard = () => {
         <MonthlySummary
           activeDays={realStats.activeDaysThisMonth}
           teaDoses={realStats.teaDosesThisMonth}
-          recipesConsumed={realStats.recipesCookedThisMonth}
+          recipesConsumed={realStats.favoritedRecipesCount}
           weightLost={weightLostDisplay}
         />
         

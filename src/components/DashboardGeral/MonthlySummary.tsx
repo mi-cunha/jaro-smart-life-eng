@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Coffee, ChefHat, TrendingUp } from "lucide-react";
+import { Calendar, Coffee, Heart, TrendingUp } from "lucide-react";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
 
 interface MonthlySummaryProps {
@@ -31,9 +31,9 @@ export function MonthlySummary({ activeDays, teaDoses, recipesConsumed, weightLo
       </Card>
       <Card className="bg-dark-bg border-white/10">
         <CardContent className="p-6 text-center">
-          <ChefHat className="w-8 h-8 text-neon-green mx-auto mb-3" />
+          <Heart className="w-8 h-8 text-neon-green mx-auto mb-3" />
           <div className="text-2xl font-bold text-neon-green">{recipesConsumed}</div>
-          <div className="text-sm text-white/70">Recipes consumed</div>
+          <div className="text-sm text-white/70">Favorited recipes</div>
         </CardContent>
       </Card>
       <Card className="bg-dark-bg border-white/10">

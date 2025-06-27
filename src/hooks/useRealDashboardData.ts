@@ -6,12 +6,14 @@ import { supabase } from '@/integrations/supabase/client';
 interface DashboardStats {
   activeDaysThisMonth: number;
   recipesCookedThisMonth: number;
+  favoritedRecipesCount: number;
   teaDosesThisMonth: number;
   habitCompletionRate: number;
   monthlySpending: number;
   recommendedCalories: number;
   recommendedWater: number;
   recommendedTeaDoses: number;
+  weightLostSinceStart: number;
 }
 
 export function useRealDashboardData() {
@@ -19,12 +21,14 @@ export function useRealDashboardData() {
   const [stats, setStats] = useState<DashboardStats>({
     activeDaysThisMonth: 0,
     recipesCookedThisMonth: 0,
+    favoritedRecipesCount: 0,
     teaDosesThisMonth: 0,
     habitCompletionRate: 0,
     monthlySpending: 0,
     recommendedCalories: 2000,
     recommendedWater: 8,
-    recommendedTeaDoses: 2
+    recommendedTeaDoses: 2,
+    weightLostSinceStart: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -66,6 +70,15 @@ export function useRealDashboardData() {
 
         const recipesCookedThisMonth = recipes?.length || 0;
 
+        // Get favorited recipes count
+        const { data: favoritedRecipes } = await supabase
+          .from('receitas')
+          .select('id')
+          .eq('user_email', user.email)
+          .eq('favorita', true);
+
+        const favoritedRecipesCount = favoritedRecipes?.length || 0;
+
         // Get habit completion for this month - buscar dados reais da tabela
         const { data: habitHistory } = await supabase
           .from('historico_habitos')
@@ -77,7 +90,7 @@ export function useRealDashboardData() {
         const completedHabits = habitHistory?.filter(h => h.concluido).length || 0;
         const habitCompletionRate = totalHabitEntries > 0 ? (completedHabits / totalHabitEntries) * 100 : 0;
 
-        // Calculate tea doses based on real habit data for "Chá Jaro"
+        // Calculate REAL tea doses based on actual habit data for "Chá Jaro"
         const { data: chajaroHabit } = await supabase
           .from('habitos')
           .select('id')
@@ -97,6 +110,20 @@ export function useRealDashboardData() {
           teaDosesThisMonth = teaHistory?.reduce((total, entry) => {
             return total + (entry.concluido ? (entry.quantidade || 1) : 0);
           }, 0) || 0;
+        }
+
+        // Calculate REAL weight lost since start
+        const { data: weightHistory } = await supabase
+          .from('historico_peso')
+          .select('peso, data')
+          .eq('user_email', user.email)
+          .order('data', { ascending: true });
+
+        let weightLostSinceStart = 0;
+        if (weightHistory && weightHistory.length > 1) {
+          const initialWeight = weightHistory[0].peso;
+          const currentWeight = weightHistory[weightHistory.length - 1].peso;
+          weightLostSinceStart = initialWeight - currentWeight;
         }
 
         // Calculate active days (days with any activity)
@@ -120,20 +147,24 @@ export function useRealDashboardData() {
         setStats({
           activeDaysThisMonth,
           recipesCookedThisMonth,
+          favoritedRecipesCount,
           teaDosesThisMonth,
           habitCompletionRate,
           monthlySpending,
           recommendedCalories: recommendations.recommendedCalories,
           recommendedWater: recommendations.recommendedWater,
-          recommendedTeaDoses: recommendations.recommendedTeaDoses
+          recommendedTeaDoses: recommendations.recommendedTeaDoses,
+          weightLostSinceStart: Math.max(0, weightLostSinceStart)
         });
 
         console.log('✅ Real dashboard data loaded:', {
           activeDaysThisMonth,
           recipesCookedThisMonth,
+          favoritedRecipesCount,
           teaDosesThisMonth,
           habitCompletionRate: Math.round(habitCompletionRate),
-          monthlySpending: monthlySpending.toFixed(2)
+          monthlySpending: monthlySpending.toFixed(2),
+          weightLostSinceStart: weightLostSinceStart.toFixed(1)
         });
 
       } catch (error) {
