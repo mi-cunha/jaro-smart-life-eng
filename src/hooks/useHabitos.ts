@@ -169,7 +169,7 @@ export function useHabitos() {
     habitos,
     historicoHoje,
     loading,
-    carregarHabitos,
+    carregarHabitos, // CRITICAL FIX: Expose carregarHabitos for external use
     marcarHabito,
     getHabitosHoje,
     getProgressoHabitos,

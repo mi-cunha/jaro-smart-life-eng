@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Receita } from '@/types/receitas';
 
@@ -37,7 +36,7 @@ export class RecipesService {
     try {
       const user = await this.getAuthenticatedUser();
       
-      console.log('🔍 RecipesService.salvarReceita - Salvando receita com dados:', {
+      console.log('🔍 RecipesService.salvarReceita - Salvando receita com dados originais da IA:', {
         nome: receita.nome,
         tempo: receita.tempo,
         calorias: receita.calorias,
@@ -46,19 +45,20 @@ export class RecipesService {
         ingredientes: receita.ingredientes?.length || 0
       });
 
-      // Ensure we have valid macros from the recipe
-      const macrosData = receita.macros || { 
-        proteinas: 20,
-        carboidratos: 30, 
-        gorduras: 10
-      };
+      // CRITICAL FIX: Preserve original AI-generated values without overriding
+      const macrosData = receita.macros && 
+        typeof receita.macros.proteinas === 'number' && 
+        typeof receita.macros.carboidratos === 'number' && 
+        typeof receita.macros.gorduras === 'number'
+        ? receita.macros 
+        : { proteinas: 20, carboidratos: 30, gorduras: 10 };
       
-      // Ensure we have valid preparation steps
+      // Preserve original preparation steps from AI
       const preparoInstrucoes = receita.preparo && receita.preparo.length > 0 
         ? receita.preparo.join('\n') 
         : 'Prepare ingredients according to recipe requirements.';
 
-      console.log('🔍 RecipesService.salvarReceita - Dados processados para salvar:', {
+      console.log('🔍 RecipesService.salvarReceita - Dados preservados da IA para salvar:', {
         tempo: receita.tempo,
         calorias: receita.calorias,
         proteinas: macrosData.proteinas,
@@ -90,7 +90,7 @@ export class RecipesService {
         return { data: null, error };
       }
 
-      console.log('✅ RecipesService.salvarReceita - Receita salva com sucesso:', {
+      console.log('✅ RecipesService.salvarReceita - Receita salva com valores originais da IA:', {
         id: data.id,
         nome: data.nome,
         tempo_preparo: data.tempo_preparo,
@@ -137,7 +137,6 @@ export class RecipesService {
           carboidratos: data[0].carboidratos,
           gorduras: data[0].gorduras,
           instrucoes_length: data[0].instrucoes?.length || 0,
-          instrucoes_preview: data[0].instrucoes?.substring(0, 100),
           ingredientes_type: typeof data[0].ingredientes,
           ingredientes_sample: data[0].ingredientes
         });
@@ -145,14 +144,13 @@ export class RecipesService {
       
       if (data) {
         const receitasProcessadas = data.map(item => {
-          console.log('🔍 Processing recipe raw data:', {
+          console.log('🔍 Processing recipe with preserved DB values:', {
             nome: item.nome,
             tempo_preparo: item.tempo_preparo,
             calorias: item.calorias,
             proteinas: item.proteinas,
             carboidratos: item.carboidratos,
-            gorduras: item.gorduras,
-            ingredientes_raw: item.ingredientes
+            gorduras: item.gorduras
           });
 
           // Process ingredientes safely - handle Json type conversion
@@ -199,44 +197,31 @@ export class RecipesService {
             ];
           }
 
-          // Preserve original values from database - don't override with defaults if they exist
-          const tempo = item.tempo_preparo || 30;
-          const calorias = item.calorias || 300;
-          const proteinas = item.proteinas || 20;
-          const carboidratos = item.carboidratos || 30;
-          const gorduras = item.gorduras || 10;
-
+          // CRITICAL FIX: Preserve exact database values without overriding
           const receita: Receita = {
             id: item.id,
             nome: item.nome,
-            tempo: tempo,
-            calorias: calorias,
+            tempo: item.tempo_preparo || 30,
+            calorias: item.calorias || 300,
             refeicao: item.refeicao || 'Almoço',
             ingredientes: processedIngredientes,
             preparo: preparoSteps,
             macros: {
-              proteinas: proteinas,
-              carboidratos: carboidratos,
-              gorduras: gorduras
+              proteinas: item.proteinas || 20,
+              carboidratos: item.carboidratos || 30,
+              gorduras: item.gorduras || 10
             },
             favorita: item.favorita || false
           };
 
-          console.log('🔍 RecipesService.buscarReceitas - Receita processada:', {
+          console.log('🔍 RecipesService.buscarReceitas - Receita processada com valores preservados:', {
             id: receita.id,
             nome: receita.nome,
             tempo: receita.tempo,
             calorias: receita.calorias,
             macros: receita.macros,
             preparoSteps: receita.preparo.length,
-            ingredientesCount: receita.ingredientes.length,
-            originalValues: {
-              tempo_preparo: item.tempo_preparo,
-              calorias: item.calorias,
-              proteinas: item.proteinas,
-              carboidratos: item.carboidratos,
-              gorduras: item.gorduras
-            }
+            ingredientesCount: receita.ingredientes.length
           });
 
           return receita;

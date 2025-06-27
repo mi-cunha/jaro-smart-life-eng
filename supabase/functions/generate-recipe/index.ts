@@ -54,17 +54,19 @@ Requirements:
 - Recipe name in English (creative but descriptive)
 - Use the ingredients provided with specific quantities
 - Provide 8-10 DETAILED cooking steps (clear, actionable instructions with cooking times, temperatures, and techniques)
-- Calculate accurate nutrition values based on actual ingredients and portions
+- Calculate ACCURATE nutrition values based on actual ingredients and portions (very important!)
 - Keep preparation time under ${timeAvailable} minutes
 - Respect dietary restrictions strictly
 - Make it delicious and nutritious
 - Each instruction should be specific and include cooking details (e.g., "Heat oil in a large skillet over medium-high heat for 2 minutes", "Cook chicken for 6-8 minutes until golden brown")
 
+CRITICAL: Provide realistic and accurate nutritional values based on the actual ingredients and quantities used. Do not use generic values.
+
 Return ONLY valid JSON:
 {
   "nome": "Creative Recipe Name",
   "tempo": preparation_time_in_minutes,
-  "calorias": realistic_total_calories_based_on_ingredients,
+  "calorias": realistic_total_calories_based_on_actual_ingredients_and_portions,
   "ingredientes": [
     "specific quantity + ingredient (e.g., '2 cups fresh spinach, chopped')",
     "1 tbsp olive oil",
@@ -82,9 +84,9 @@ Return ONLY valid JSON:
     "Garnish with fresh herbs and serve immediately while hot.",
     "Store leftovers in refrigerator for up to 3 days."
   ],
-  "proteinas": realistic_protein_grams_calculated_from_ingredients,
-  "carboidratos": realistic_carbs_grams_calculated_from_ingredients,
-  "gorduras": realistic_fat_grams_calculated_from_ingredients
+  "proteinas": realistic_protein_grams_calculated_from_actual_ingredients,
+  "carboidratos": realistic_carbs_grams_calculated_from_actual_ingredients,
+  "gorduras": realistic_fat_grams_calculated_from_actual_ingredients
 }`
 
     console.log('Sending request to OpenAI API...');
@@ -100,7 +102,7 @@ Return ONLY valid JSON:
         messages: [
           {
             role: 'system',
-            content: 'You are a professional chef and nutritionist who creates detailed, practical recipes with precise cooking instructions. Always respond with valid JSON only. Focus on realistic portions, accurate nutrition calculations based on actual ingredient quantities, and clear step-by-step instructions with specific cooking times, temperatures, and techniques. Each preparation step should be detailed enough for a beginner to follow successfully.'
+            content: 'You are a professional chef and nutritionist who creates detailed, practical recipes with ACCURATE nutritional calculations. Always respond with valid JSON only. Focus on realistic portions, PRECISE nutrition calculations based on actual ingredient quantities, and clear step-by-step instructions with specific cooking times, temperatures, and techniques. Each preparation step should be detailed enough for a beginner to follow successfully. NEVER use generic or placeholder nutritional values - calculate them based on the actual ingredients and portions specified.'
           },
           {
             role: 'user',
@@ -183,46 +185,35 @@ Return ONLY valid JSON:
         return step.replace(/^Step\s*\d+:\s*/i, '').trim();
       });
 
-      // Ensure numeric values are realistic and valid
-      recipe.tempo = Math.max(Math.min(Number(recipe.tempo) || 30, timeAvailable), 15);
-      
-      // Calculate more realistic calorie ranges based on meal type and ingredients
-      let calorieRange = { min: 200, max: 400 };
-      switch (mealType.toLowerCase()) {
-        case 'breakfast':
-        case 'café da manhã':
-          calorieRange = { min: 300, max: 500 };
-          break;
-        case 'lunch':
-        case 'almoço':
-          calorieRange = { min: 450, max: 700 };
-          break;
-        case 'dinner':
-        case 'jantar':
-          calorieRange = { min: 400, max: 650 };
-          break;
-        case 'snack':
-        case 'lanche':
-          calorieRange = { min: 150, max: 300 };
-          break;
-      }
-      
-      recipe.calorias = Math.max(Math.min(Number(recipe.calorias) || calorieRange.min, calorieRange.max), calorieRange.min);
-      
-      // Ensure macros are realistic and proportional to calories with better calculations
-      const totalCalories = recipe.calorias;
-      
-      // Protein: 15-30% of calories (4 cal/g)
-      const proteinCalPercent = 0.15 + Math.random() * 0.15; // 15-30%
-      recipe.proteinas = Math.round((totalCalories * proteinCalPercent) / 4);
-      
-      // Carbs: 35-55% of calories (4 cal/g)
-      const carbCalPercent = 0.35 + Math.random() * 0.20; // 35-55%
-      recipe.carboidratos = Math.round((totalCalories * carbCalPercent) / 4);
-      
-      // Fats: 20-35% of calories (9 cal/g)
-      const fatCalPercent = 0.20 + Math.random() * 0.15; // 20-35%
-      recipe.gorduras = Math.round((totalCalories * fatCalPercent) / 9);
+      // CRITICAL FIX: Only validate and set fallbacks if AI values are truly invalid
+      // Parse numbers more carefully and preserve AI-generated values
+      const parseNumberSafely = (value: any, fallback: number) => {
+        if (value === null || value === undefined || value === '') {
+          return fallback;
+        }
+        const parsed = Number(value);
+        // Only use fallback if the parsed value is truly NaN, not just 0
+        return isNaN(parsed) ? fallback : parsed;
+      };
+
+      // Preserve AI-generated values with minimal fallback interference
+      recipe.tempo = parseNumberSafely(recipe.tempo, Math.min(timeAvailable, 45));
+      recipe.calorias = parseNumberSafely(recipe.calorias, 300);
+      recipe.proteinas = parseNumberSafely(recipe.proteinas, 15);
+      recipe.carboidratos = parseNumberSafely(recipe.carboidratos, 25);
+      recipe.gorduras = parseNumberSafely(recipe.gorduras, 8);
+
+      // Log the final values to verify they're preserved
+      console.log('✅ Final recipe with preserved AI nutritional data:', {
+        nome: recipe.nome,
+        tempo: recipe.tempo,
+        calorias: recipe.calorias,
+        proteinas: recipe.proteinas,
+        carboidratos: recipe.carboidratos,
+        gorduras: recipe.gorduras,
+        ingredientes_count: recipe.ingredientes.length,
+        preparo_count: recipe.preparo.length
+      });
 
       // Ensure recipe name is not empty and descriptive
       if (!recipe.nome || recipe.nome.trim().length === 0) {

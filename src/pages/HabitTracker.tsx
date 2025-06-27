@@ -1,4 +1,3 @@
-
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +32,7 @@ const HabitTracker = () => {
     getProgressoHabitos, 
     marcarHabito,
     getHistoricoSemanal,
+    carregarHabitos, // CRITICAL FIX: Use exposed carregarHabitos
     loading 
   } = useHabitos();
 
@@ -84,7 +84,10 @@ const HabitTracker = () => {
       toast.success('Hábito adicionado com sucesso!');
       setNewHabitName('');
       setShowAddHabit(false);
-      // Recarregar dados será feito automaticamente pelo hook useHabitos
+      
+      // CRITICAL FIX: Reload habits immediately after adding
+      console.log('🔄 Recarregando hábitos após adição...');
+      await carregarHabitos();
     } catch (error) {
       console.error('Unexpected error adding habit:', error);
       toast.error('Erro inesperado ao adicionar hábito');
