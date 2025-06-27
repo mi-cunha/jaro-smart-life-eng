@@ -42,8 +42,8 @@ export class UserService {
       // Try to check if user exists by querying subscribers table first
       const { data: existingSubscriber, error: subError } = await supabase
         .from('subscribers')
-        .select('email')
-        .eq('email', email)
+        .select('user_email')
+        .eq('user_email', email)
         .maybeSingle();
       
       if (!subError && existingSubscriber) {
@@ -52,24 +52,20 @@ export class UserService {
       }
 
       // Fallback: try to sign in to check if user exists
-      try {
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password: 'dummy-password-check-123'
-        });
-        
-        // If we get "Invalid login credentials", user exists but password is wrong
-        // If we get "Email not confirmed", user exists but needs confirmation
-        if (signInError?.message.includes('Invalid login credentials') || 
-            signInError?.message.includes('Email not confirmed')) {
-          return true;
-        }
-        
-        return false;
-      } catch (fallbackError) {
-        console.error('❌ Fallback user check failed:', fallbackError);
-        return false;
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: 'dummy-password-check-123'
+      });
+      
+      // If we get "Invalid login credentials", user exists but password is wrong
+      // If we get "Email not confirmed", user exists but needs confirmation
+      if (signInError && 
+          (signInError.message.includes('Invalid login credentials') || 
+           signInError.message.includes('Email not confirmed'))) {
+        return true;
       }
+      
+      return false;
     } catch (error) {
       console.error('❌ Error checking if user exists:', error);
       return false;
