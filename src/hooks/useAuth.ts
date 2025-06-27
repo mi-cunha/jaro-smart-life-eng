@@ -126,16 +126,6 @@ export function useAuth() {
     return await SubscriptionService.checkSubscription(email, session);
   };
 
-  const fixSubscriptionStatus = async (email: string) => {
-    const result = await SubscriptionService.fixSubscriptionStatus(email, true);
-    if (result) {
-      // Refresh subscription status
-      const newStatus = await SubscriptionService.checkSubscription(email, session);
-      setIsSubscribed(newStatus);
-    }
-    return result;
-  };
-
   return {
     user,
     session,
@@ -147,7 +137,6 @@ export function useAuth() {
     signOut,
     resetPassword,
     checkSubscription,
-    fixSubscriptionStatus,
     refreshSubscriptionStatus
   };
 }
