@@ -98,25 +98,39 @@ serve(async (req) => {
           
           console.log(`Customer: ${customer.email}, Subscription: ${subscription.id}, Status: ${subscription.status}`);
           
-          // Determine subscription tier based on price
+          // Determine subscription tier based on plan from metadata
           let subscriptionTier = "Monthly"; // default
-          if (subscription.items.data.length > 0) {
-            const priceId = subscription.items.data[0].price.id;
-            const price = await stripe.prices.retrieve(priceId);
-            const amount = price.unit_amount || 0;
-            
-            if (amount <= 999) {
-              subscriptionTier = "Basic";
-            } else if (amount <= 1999) {
-              subscriptionTier = "Premium";
-            } else if (amount >= 2000) {
-              subscriptionTier = "Enterprise";
+          const planFromMetadata = session.metadata?.plan;
+          
+          if (planFromMetadata) {
+            if (planFromMetadata.toLowerCase().includes('weekly')) {
+              subscriptionTier = "Weekly";
+            } else if (planFromMetadata.toLowerCase().includes('monthly')) {
+              subscriptionTier = "Monthly";
+            } else if (planFromMetadata.toLowerCase().includes('quarterly')) {
+              subscriptionTier = "Quarterly";
             }
-            
-            console.log(`Price details: ${priceId}, Amount: ${amount}, Tier: ${subscriptionTier}`);
+            console.log(`Plan from metadata: ${planFromMetadata}, Tier set to: ${subscriptionTier}`);
+          } else {
+            // Fallback: check price amount if no metadata
+            if (subscription.items.data.length > 0) {
+              const priceId = subscription.items.data[0].price.id;
+              const price = await stripe.prices.retrieve(priceId);
+              const amount = price.unit_amount || 0;
+              
+              // Based on your pricing: Weekly $9.99, Monthly $19.99, Quarterly $35
+              if (amount <= 1000) {
+                subscriptionTier = "Weekly";
+              } else if (amount <= 2000) {
+                subscriptionTier = "Monthly";
+              } else {
+                subscriptionTier = "Quarterly";
+              }
+              console.log(`Price fallback: ${priceId}, Amount: ${amount}, Tier: ${subscriptionTier}`);
+            }
           }
 
-          // Update subscriber record - CRITICAL FIX: Ensure subscribed is explicitly set to true
+          // Update subscriber record - EXPLICIT Boolean true for active subscriptions
           const subscriptionEndDate = new Date(subscription.current_period_end * 1000).toISOString();
           const isActiveSubscription = subscription.status === 'active' || subscription.status === 'trialing';
           
@@ -124,10 +138,11 @@ serve(async (req) => {
             email: customerEmail,
             subscribed: isActiveSubscription,
             subscription_status: subscription.status,
+            subscription_tier: subscriptionTier,
             subscription_end: subscriptionEndDate
           });
           
-          // Try to upsert using email as the conflict resolution
+          // Use user_email as conflict resolution
           const { data: updateResult, error } = await supabase
             .from("subscribers")
             .upsert({
@@ -142,7 +157,7 @@ serve(async (req) => {
               subscription_end: subscriptionEndDate,
               updated_at: new Date().toISOString(),
             }, { 
-              onConflict: 'email',
+              onConflict: 'user_email',
               ignoreDuplicates: false 
             });
 
@@ -184,7 +199,7 @@ serve(async (req) => {
                   subscription_end: new Date(subscription.current_period_end * 1000).toISOString(),
                   updated_at: new Date().toISOString(),
                 })
-                .eq("email", customer.email);
+                .eq("user_email", customer.email);
 
               if (error) {
                 console.error("❌ Renewal update error:", error);
@@ -213,7 +228,7 @@ serve(async (req) => {
                 subscription_end: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
               })
-              .eq("email", customer.email);
+              .eq("user_email", customer.email);
 
             if (error) {
               console.error("❌ Cancellation update error:", error);
