@@ -112,8 +112,16 @@ serve(async (req) => {
             console.log(`Price details: ${priceId}, Amount: ${amount}, Tier: ${subscriptionTier}`);
           }
 
-          // Update subscriber record
+          // Update subscriber record - CRITICAL FIX: Ensure subscribed is explicitly set to true
           const subscriptionEndDate = new Date(subscription.current_period_end * 1000).toISOString();
+          const isActiveSubscription = subscription.status === 'active' || subscription.status === 'trialing';
+          
+          console.log(`🔧 Setting subscription data:`, {
+            email: customer.email,
+            subscribed: isActiveSubscription,
+            subscription_status: subscription.status,
+            subscription_end: subscriptionEndDate
+          });
           
           const { data: updateResult, error } = await supabase
             .from("subscribers")
@@ -123,7 +131,7 @@ serve(async (req) => {
               stripe_customer_id: session.customer as string,
               stripe_subscription_id: session.subscription as string,
               stripe_session_id: session.id,
-              subscribed: true, // This is the key field that was missing
+              subscribed: isActiveSubscription, // EXPLICIT Boolean true for active subscriptions
               subscription_tier: subscriptionTier,
               subscription_end: subscriptionEndDate,
               updated_at: new Date().toISOString(),
@@ -134,11 +142,12 @@ serve(async (req) => {
             return new Response(`Database error: ${error.message}`, { status: 500, headers: corsHeaders });
           } else {
             console.log(`✅ Subscription activated for ${customer.email}:`, {
-              subscribed: true,
+              subscribed: isActiveSubscription,
               tier: subscriptionTier,
               end_date: subscriptionEndDate,
               customer_id: session.customer,
-              subscription_id: session.subscription
+              subscription_id: session.subscription,
+              subscription_status: subscription.status
             });
           }
         } catch (err) {
@@ -157,10 +166,12 @@ serve(async (req) => {
             const customer = await stripe.customers.retrieve(subscription.customer as string) as Stripe.Customer;
             
             if (customer.email) {
+              const isActive = subscription.status === 'active' || subscription.status === 'trialing';
+              
               const { error } = await supabase
                 .from("subscribers")
                 .update({
-                  subscribed: true,
+                  subscribed: isActive, // EXPLICIT Boolean for renewal
                   subscription_end: new Date(subscription.current_period_end * 1000).toISOString(),
                   updated_at: new Date().toISOString(),
                 })
@@ -169,7 +180,7 @@ serve(async (req) => {
               if (error) {
                 console.error("❌ Renewal update error:", error);
               } else {
-                console.log(`✅ Subscription renewed for ${customer.email}`);
+                console.log(`✅ Subscription renewed for ${customer.email}, active: ${isActive}`);
               }
             }
           } catch (err) {
@@ -189,7 +200,7 @@ serve(async (req) => {
             const { error } = await supabase
               .from("subscribers")
               .update({
-                subscribed: false,
+                subscribed: false, // EXPLICIT Boolean false for cancellation
                 subscription_end: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
               })

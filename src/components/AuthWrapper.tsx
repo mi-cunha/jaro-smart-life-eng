@@ -1,6 +1,6 @@
 
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [hasRedirected, setHasRedirected] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   console.log('🔐 AuthWrapper - Authentication State:', {
     user: user?.email || 'No user',
@@ -22,6 +23,19 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
     hasUser: !!user,
     hasRedirected
   });
+
+  const handleRefreshStatus = async () => {
+    if (!refreshSubscriptionStatus) return;
+    
+    setIsRefreshing(true);
+    try {
+      await refreshSubscriptionStatus();
+    } catch (error) {
+      console.error('Error refreshing subscription:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     if (!loading && !hasRedirected) {
@@ -82,15 +96,17 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
       <div className="min-h-screen bg-dark-bg flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 text-neon-green animate-spin mx-auto mb-4" />
-          <p className="text-white/60">
+          <p className="text-white/60 mb-4">
             {loading ? 'Carregando...' : 'Verificando assinatura...'}
           </p>
           {user && refreshSubscriptionStatus && (
             <button
-              onClick={() => refreshSubscriptionStatus()}
-              className="mt-4 text-neon-green hover:text-neon-green/80 text-sm underline"
+              onClick={handleRefreshStatus}
+              disabled={isRefreshing}
+              className="flex items-center gap-2 mx-auto px-4 py-2 text-neon-green hover:text-neon-green/80 text-sm underline disabled:opacity-50"
             >
-              Atualizar Status
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Atualizando...' : 'Atualizar Status'}
             </button>
           )}
         </div>
@@ -107,12 +123,22 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
           <p className="text-white/60 mb-6">
             Você precisa de uma assinatura ativa para acessar esta página.
           </p>
-          <button
-            onClick={() => navigate('/pricing')}
-            className="bg-neon-green text-dark-bg px-6 py-3 rounded-lg font-medium hover:bg-neon-green/90 transition-colors"
-          >
-            Ver Planos
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => navigate('/pricing')}
+              className="bg-neon-green text-dark-bg px-6 py-3 rounded-lg font-medium hover:bg-neon-green/90 transition-colors"
+            >
+              Ver Planos
+            </button>
+            <button
+              onClick={handleRefreshStatus}
+              disabled={isRefreshing}
+              className="flex items-center justify-center gap-2 px-6 py-3 border border-white/20 text-white rounded-lg hover:border-white/40 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Verificando...' : 'Verificar Status'}
+            </button>
+          </div>
         </div>
       </div>
     );

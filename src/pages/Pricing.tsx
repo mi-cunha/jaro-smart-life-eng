@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Star, CheckCircle } from 'lucide-react';
+import { Check, Star, CheckCircle, LogOut } from 'lucide-react';
 import { JaroSmartLogo } from '@/components/JaroSmartLogo';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -12,7 +11,7 @@ import { toast } from 'sonner';
 const Pricing = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading, isSubscribed } = useAuth();
+  const { user, loading, isSubscribed, signOut, refreshSubscriptionStatus } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   // Check for plan from URL params or localStorage on component mount
@@ -142,6 +141,17 @@ const Pricing = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success('Logout realizado com sucesso!');
+      navigate('/auth');
+    } catch (error) {
+      console.error('Erro no logout:', error);
+      toast.error('Erro ao fazer logout');
+    }
+  };
+
   // If user is already subscribed, show different content
   if (user && isSubscribed === true) {
     return (
@@ -188,13 +198,30 @@ const Pricing = () => {
       <div className="bg-dark-bg border-b border-white/10 px-4 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
           <JaroSmartLogo size="md" />
-          <Button
-            variant="ghost"
-            onClick={handleBackToLogin}
-            className="text-white/60 hover:text-white"
-          >
-            {user ? 'Back to Dashboard' : 'Back to Login'}
-          </Button>
+          <div className="flex items-center gap-3">
+            {user && (
+              <>
+                <span className="text-white/70 text-sm hidden sm:inline">
+                  {user.email}
+                </span>
+                <Button
+                  variant="ghost"
+                  onClick={handleLogout}
+                  className="text-white/60 hover:text-white flex items-center gap-2"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="hidden sm:inline">Sair</span>
+                </Button>
+              </>
+            )}
+            <Button
+              variant="ghost"
+              onClick={handleBackToLogin}
+              className="text-white/60 hover:text-white"
+            >
+              {user ? 'Dashboard' : 'Login'}
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -210,9 +237,30 @@ const Pricing = () => {
             <span className="font-medium">7 Days Free Trial Included!</span>
           </div>
 
-          <p className="text-white/70 text-lg mb-12">
+          <p className="text-white/70 text-lg mb-8">
             Start your transformation today with zero risk
           </p>
+
+          {user && (
+            <div className="bg-dark-bg/50 border border-white/10 rounded-lg p-4 mb-8 max-w-md mx-auto">
+              <div className="flex items-center justify-between">
+                <div className="text-left">
+                  <p className="text-white/70 text-sm">Status da Assinatura</p>
+                  <p className={`font-medium ${isSubscribed ? 'text-neon-green' : 'text-red-400'}`}>
+                    {isSubscribed ? 'Ativa' : 'Inativa'}
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={refreshSubscriptionStatus}
+                  className="text-neon-green hover:text-neon-green/80"
+                >
+                  Atualizar
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Plans Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

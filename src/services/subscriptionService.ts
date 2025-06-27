@@ -25,41 +25,7 @@ export class SubscriptionService {
         console.log('✅ Subscriber record created/updated');
       }
 
-      // First, try to check subscription via edge function
-      try {
-        const { data: checkResult, error: checkError } = await supabase.functions.invoke('check-subscription', {
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-        });
-
-        if (checkError) {
-          console.error('❌ Error calling check-subscription function:', checkError);
-        } else if (checkResult) {
-          console.log('✅ Subscription check result from edge function:', checkResult);
-          const subscribed = checkResult.subscribed || false;
-          
-          // If user is subscribed, update the database to ensure consistency
-          if (subscribed) {
-            console.log('🔄 Updating subscription status in database');
-            await supabase
-              .from('subscribers')
-              .update({ 
-                subscribed: true, 
-                subscription_tier: checkResult.subscription_tier || 'Basic',
-                subscription_end: checkResult.subscription_end,
-                updated_at: new Date().toISOString() 
-              })
-              .eq('email', email);
-          }
-          
-          return subscribed;
-        }
-      } catch (funcError) {
-        console.error('❌ Edge function call failed:', funcError);
-      }
-      
-      // Fallback to direct database check
+      // First, check subscription status from database
       console.log('🔄 Checking subscription status from database');
       const { data: subscriber, error: subError } = await supabase
         .from('subscribers')
@@ -79,16 +45,71 @@ export class SubscriptionService {
 
       console.log('✅ Subscriber found:', subscriber);
       
-      // Check subscription status and expiration
-      const isSubscribed = subscriber.subscribed === true;
+      // Enhanced subscription logic with fallbacks
+      const hasExplicitSubscription = subscriber.subscribed === true;
+      const hasValidStripeData = subscriber.stripe_subscription_id && subscriber.stripe_customer_id;
       const hasValidEndDate = !subscriber.subscription_end || 
         new Date(subscriber.subscription_end) > new Date();
       
-      const finalStatus = isSubscribed && hasValidEndDate;
+      // Primary check: explicit subscribed field
+      if (hasExplicitSubscription && hasValidEndDate) {
+        console.log('✅ Primary check passed: explicit subscription active');
+        return true;
+      }
+      
+      // Fallback check: if we have valid Stripe data but subscribed is false/null
+      if (hasValidStripeData && hasValidEndDate && !hasExplicitSubscription) {
+        console.log('🔄 Fallback check: has valid Stripe data, attempting to verify with edge function');
+        
+        try {
+          const { data: checkResult, error: checkError } = await supabase.functions.invoke('check-subscription', {
+            headers: {
+              Authorization: `Bearer ${session?.access_token}`,
+            },
+          });
+
+          if (checkError) {
+            console.error('❌ Error calling check-subscription function:', checkError);
+            // If edge function fails but we have valid data, assume subscribed
+            console.log('🔄 Edge function failed, but we have valid Stripe data - assuming subscribed');
+            return hasValidStripeData && hasValidEndDate;
+          } else if (checkResult) {
+            console.log('✅ Subscription check result from edge function:', checkResult);
+            const subscribed = checkResult.subscribed || false;
+            
+            // If user is subscribed, update the database to fix the inconsistency  
+            if (subscribed) {
+              console.log('🔄 Updating subscription status in database to fix inconsistency');
+              await supabase
+                .from('subscribers')
+                .update({ 
+                  subscribed: true, 
+                  subscription_tier: checkResult.subscription_tier || 'Basic',
+                  subscription_end: checkResult.subscription_end,
+                  updated_at: new Date().toISOString() 
+                })
+                .eq('email', email);
+            }
+            
+            return subscribed;
+          }
+        } catch (funcError) {
+          console.error('❌ Edge function call failed:', funcError);
+          // Fallback to local logic if edge function completely fails
+          console.log('🔄 Using local fallback logic');
+          return hasValidStripeData && hasValidEndDate;
+        }
+      }
+      
+      const finalStatus = hasExplicitSubscription && hasValidEndDate;
       
       console.log('📊 Final subscription status:', {
         subscribed: subscriber.subscribed,
+        stripe_subscription_id: subscriber.stripe_subscription_id,
+        stripe_customer_id: subscriber.stripe_customer_id,
         subscription_end: subscriber.subscription_end,
+        hasExplicitSubscription,
+        hasValidStripeData,
         hasValidEndDate,
         final_status: finalStatus
       });
@@ -103,7 +124,22 @@ export class SubscriptionService {
   static async refreshSubscriptionStatus(email: string, session: any): Promise<boolean> {
     console.log('🔄 Refreshing subscription status for:', email);
     
-    // Just do a fresh check - the webhook should handle the real updates
+    // Force refresh by calling edge function first
+    try {
+      const { data: checkResult, error: checkError } = await supabase.functions.invoke('check-subscription', {
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (!checkError && checkResult) {
+        console.log('✅ Edge function refresh successful:', checkResult);
+      }
+    } catch (error) {
+      console.error('❌ Error in edge function refresh:', error);
+    }
+    
+    // Then do a fresh check with updated data
     return await this.checkSubscription(email, session);
   }
 }

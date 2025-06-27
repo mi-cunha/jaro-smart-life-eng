@@ -1,6 +1,6 @@
 
-import { Card, CardContent } from "@/components/ui/card";
-import { EnhancedLogo } from "@/components/EnhancedLogo";
+import { Card, CardContent } from '@/components/ui/card';
+import { JaroSmartLogo } from '@/components/JaroSmartLogo';
 
 interface AuthCardProps {
   children: React.ReactNode;
@@ -8,27 +8,24 @@ interface AuthCardProps {
 
 export function AuthCard({ children }: AuthCardProps) {
   return (
-    <div className="w-full space-y-6">
-      {/* Logo Section */}
-      <div className="text-center">
-        <EnhancedLogo 
-          className="mx-auto mb-4" 
-          alt="Jaro Smart Logo" 
-        />
-        <h1 className="text-2xl lg:text-3xl font-bold text-white mb-2">
-          Welcome to Jaro Smart
-        </h1>
-        <p className="text-white/70 text-sm lg:text-base">
-          Your wellness journey starts here
-        </p>
+    <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
+      <div className="w-full max-w-sm sm:max-w-md space-y-6">
+        <div className="text-center">
+          <JaroSmartLogo size="lg" className="mx-auto mb-6" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+            Bem-vindo de volta
+          </h1>
+          <p className="text-white/60 text-sm sm:text-base">
+            Entre na sua conta ou crie uma nova
+          </p>
+        </div>
+        
+        <Card className="bg-dark-bg/90 border-white/10 backdrop-blur-sm">
+          <CardContent className="p-6 sm:p-8">
+            {children}
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Auth Form Card */}
-      <Card className="bg-dark-bg border-white/10 shadow-2xl">
-        <CardContent className="p-6 lg:p-8">
-          {children}
-        </CardContent>
-      </Card>
     </div>
   );
 }
