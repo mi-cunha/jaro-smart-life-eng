@@ -1,11 +1,10 @@
 
 import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
-import { Home, Calendar, Scale, CheckCircle, ChefHat, ShoppingCart, Heart, BarChart3, User, LogOut, Download } from "lucide-react";
+import { Home, Calendar, Scale, CheckCircle, ChefHat, ShoppingCart, Heart, BarChart3, User, LogOut } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { EnhancedLogo } from "./EnhancedLogo";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuth";
-import { usePWA } from "@/hooks/usePWA";
 
 const menuItems = [{
   title: "Home",
@@ -50,7 +49,6 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { setOpenMobile, isMobile } = useSidebar();
   const { signOut } = useAuth();
-  const { isInstalled } = usePWA();
 
   const handleMenuClick = () => {
     // Close sidebar on mobile after selecting an item
@@ -62,15 +60,6 @@ export function AppSidebar() {
   const handleLogout = async () => {
     await signOut();
     navigate('/auth');
-    if (isMobile) {
-      setOpenMobile(false);
-    }
-  };
-
-  const handleInstallPWA = () => {
-    // Trigger PWA install prompt
-    const event = new CustomEvent('pwa-install-prompt');
-    window.dispatchEvent(event);
     if (isMobile) {
       setOpenMobile(false);
     }
@@ -100,18 +89,6 @@ export function AppSidebar() {
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>)}
-              
-              {!isInstalled && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    onClick={handleInstallPWA}
-                    className="text-white hover:bg-neon-green/20 hover:text-neon-green cursor-pointer"
-                  >
-                    <Download className="w-5 h-5" />
-                    <span>Install App</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
               
               <SidebarMenuItem>
                 <SidebarMenuButton 

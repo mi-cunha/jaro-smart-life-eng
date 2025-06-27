@@ -6,9 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { ProgressChart } from "@/components/ProgressChart";
 import { WeightUnitToggle } from "@/components/WeightUnitToggle";
-import { Scale, Target, TrendingUp, Calendar } from "lucide-react";
+import { Scale, Target, TrendingUp, Calendar, Mail } from "lucide-react";
 import { useState } from "react";
 import { usePeso } from "@/hooks/usePeso";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
@@ -71,8 +70,13 @@ const ProgressoPeso = () => {
     }
   };
 
+  const handleCancelSupport = () => {
+    const subject = encodeURIComponent("Weight Progress Support Request");
+    const body = encodeURIComponent("Hello JaroSmart Support Team,\n\nI need assistance with the Weight Progress feature.\n\nBest regards");
+    window.location.href = `mailto:suporte@smartjaro.site?subject=${subject}&body=${body}`;
+  };
+
   const progressoPeso = getProgressoPeso();
-  const dadosGrafico = getDadosGrafico();
   
   // Use initial weight from usePeso hook (which gets it from profile)
   const initialWeight = pesoInicial ? convertToDisplayWeight(pesoInicial) : 0;
@@ -184,12 +188,22 @@ const ProgressoPeso = () => {
                   className="bg-white/5 border-white/20 text-white"
                 />
               </div>
-              <Button 
-                onClick={handleAdicionarPeso}
-                className="w-full bg-neon-green hover:bg-neon-green/80 text-black"
-              >
-                Add Weight
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleAdicionarPeso}
+                  className="flex-1 bg-neon-green hover:bg-neon-green/80 text-black"
+                >
+                  Add Weight
+                </Button>
+                <Button 
+                  onClick={handleCancelSupport}
+                  variant="outline"
+                  className="border-white/20 text-white hover:bg-white/10"
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Support
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -227,17 +241,6 @@ const ProgressoPeso = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Progress Chart - Only show if we have data */}
-        {dadosGrafico.length > 0 && (
-          <ProgressChart 
-            title="Weight Progress Over Time"
-            data={dadosGrafico}
-            type="line"
-            color="#00FF66"
-            unit={` ${unit}`}
-          />
-        )}
       </div>
     </Layout>
   );
