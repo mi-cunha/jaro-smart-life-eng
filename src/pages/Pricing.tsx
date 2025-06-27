@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,7 +12,7 @@ import { toast } from 'sonner';
 const Pricing = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading, isSubscribed, signOut, refreshSubscriptionStatus } = useAuth();
+  const { user, loading, isSubscribed, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   // Check for plan from URL params or localStorage on component mount
@@ -240,27 +241,6 @@ const Pricing = () => {
           <p className="text-white/70 text-lg mb-8">
             Start your transformation today with zero risk
           </p>
-
-          {user && (
-            <div className="bg-dark-bg/50 border border-white/10 rounded-lg p-4 mb-8 max-w-md mx-auto">
-              <div className="flex items-center justify-between">
-                <div className="text-left">
-                  <p className="text-white/70 text-sm">Status da Assinatura</p>
-                  <p className={`font-medium ${isSubscribed ? 'text-neon-green' : 'text-red-400'}`}>
-                    {isSubscribed ? 'Ativa' : 'Inativa'}
-                  </p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={refreshSubscriptionStatus}
-                  className="text-neon-green hover:text-neon-green/80"
-                >
-                  Atualizar
-                </Button>
-              </div>
-            </div>
-          )}
 
           {/* Plans Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
