@@ -70,16 +70,9 @@ export function RefeicaoSection({
               ingredientes={ingredientes}
               onToggleIngrediente={onToggleIngrediente}
               onToggleTodos={onToggleTodos}
-            />
-          </div>
-          <div className="ml-4">
-            <SugerirItemModal 
-              refeicoes={[refeicao]}
-              onAddIngrediente={(refeicaoSelecionada, item) => {
-                if (onAddIngrediente) {
-                  onAddIngrediente(item);
-                }
-              }}
+              onAddIngrediente={onAddIngrediente || (() => {})}
+              itensComprados={itensComprados}
+              temItensComprados={temItensComprados}
             />
           </div>
         </div>

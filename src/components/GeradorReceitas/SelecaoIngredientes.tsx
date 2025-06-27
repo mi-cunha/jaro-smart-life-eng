@@ -122,9 +122,8 @@ export function SelecaoIngredientes({
       )}
 
       <SugerirItemModal
-        isOpen={showSugerirModal}
-        onClose={() => setShowSugerirModal(false)}
-        onAddIngrediente={onAddIngrediente}
+        refeicoes={[refeicao]}
+        onAddIngrediente={(refeicao, ingrediente) => onAddIngrediente(ingrediente)}
       />
     </div>
   );

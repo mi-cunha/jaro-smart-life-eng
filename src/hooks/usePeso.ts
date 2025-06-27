@@ -108,15 +108,38 @@ export function usePeso() {
       if (error) {
         console.error('❌ Erro ao adicionar peso:', error);
         toast.error('Erro ao adicionar registro de peso');
-        return;
+        return false;
       }
 
       // Reload data after successful addition
       await carregarDados();
       toast.success('Registro de peso adicionado com sucesso!');
+      return true;
     } catch (error) {
       console.error('❌ Erro inesperado ao adicionar peso:', error);
       toast.error('Erro ao adicionar registro de peso');
+      return false;
+    }
+  };
+
+  const definirMeta = async (meta: number) => {
+    try {
+      console.log('🎯 Definindo meta de peso:', meta);
+      const { error } = await PerfilService.atualizarPerfil({ peso_objetivo: meta });
+      
+      if (error) {
+        console.error('❌ Erro ao definir meta:', error);
+        toast.error('Erro ao definir meta de peso');
+        return false;
+      }
+
+      setPesoMeta(meta);
+      toast.success('Meta de peso definida com sucesso!');
+      return true;
+    } catch (error) {
+      console.error('❌ Erro inesperado ao definir meta:', error);
+      toast.error('Erro ao definir meta de peso');
+      return false;
     }
   };
 
@@ -151,6 +174,7 @@ export function usePeso() {
     loading,
     carregarDados,
     adicionarPeso,
+    definirMeta,
     getProgressoPeso,
     getDadosGrafico
   };

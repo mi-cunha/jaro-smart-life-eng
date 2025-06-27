@@ -44,12 +44,17 @@ export function useWeightUnit() {
     return unit === 'lb' ? convertWeight(displayWeight, 'lb', 'kg') : displayWeight;
   };
 
+  const convertFromDisplayWeight = (displayWeight: number): number => {
+    return unit === 'lb' ? convertWeight(displayWeight, 'lb', 'kg') : displayWeight;
+  };
+
   return {
     unit,
     toggleUnit,
     convertWeight,
     formatWeight,
     convertToDisplayWeight,
-    convertToStorageWeight
+    convertToStorageWeight,
+    convertFromDisplayWeight
   };
 }
