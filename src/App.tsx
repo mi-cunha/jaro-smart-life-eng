@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AuthWrapper } from "@/components/AuthWrapper";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { usePWA } from "@/hooks/usePWA";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Pricing from "./pages/Pricing";
@@ -20,30 +22,40 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const AppContent = () => {
+  // Inicializar PWA
+  usePWA();
+
+  return (
+    <div className="min-h-screen flex w-full">
+      <SidebarProvider>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/cha-jaro" element={<ChaJaro />} />
+          <Route path="/progresso-peso" element={<ProgressoPeso />} />
+          <Route path="/habit-tracker" element={<HabitTracker />} />
+          <Route path="/gerador-receitas" element={<GeradorReceitas />} />
+          <Route path="/lista-compras" element={<ListaCompras />} />
+          <Route path="/colecao-receitas" element={<ColecaoReceitas />} />
+          <Route path="/dashboard" element={<DashboardGeral />} />
+          <Route path="/perfil" element={<Perfil />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <PWAInstallPrompt />
+      </SidebarProvider>
+    </div>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <BrowserRouter>
         <AuthWrapper>
-          <div className="min-h-screen flex w-full">
-            <SidebarProvider>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/pricing" element={<Pricing />} />
-                <Route path="/cha-jaro" element={<ChaJaro />} />
-                <Route path="/progresso-peso" element={<ProgressoPeso />} />
-                <Route path="/habit-tracker" element={<HabitTracker />} />
-                <Route path="/gerador-receitas" element={<GeradorReceitas />} />
-                <Route path="/lista-compras" element={<ListaCompras />} />
-                <Route path="/colecao-receitas" element={<ColecaoReceitas />} />
-                <Route path="/dashboard" element={<DashboardGeral />} />
-                <Route path="/perfil" element={<Perfil />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </SidebarProvider>
-          </div>
+          <AppContent />
         </AuthWrapper>
       </BrowserRouter>
     </TooltipProvider>

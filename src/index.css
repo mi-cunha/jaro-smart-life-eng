@@ -53,6 +53,36 @@
 
   body {
     @apply bg-background text-foreground font-sans;
+    /* Prevent scroll bounce on mobile */
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* PWA specific styles */
+  html {
+    /* Prevent text scaling on iOS */
+    -webkit-text-size-adjust: 100%;
+    /* Prevent tap highlighting */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Safe area support for devices with notches */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Touch-friendly sizing */
+  button, 
+  [role="button"], 
+  input, 
+  select, 
+  textarea {
+    min-height: 44px;
+    min-width: 44px;
   }
 
   /* Custom scrollbar */
@@ -71,6 +101,48 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-neon-green/80;
   }
+
+  /* Mobile-first responsive improvements */
+  @media (max-width: 768px) {
+    .container {
+      @apply px-3;
+    }
+    
+    /* Improve touch targets on mobile */
+    .sidebar-trigger {
+      @apply p-3;
+    }
+    
+    /* Better card spacing on mobile */
+    .grid {
+      @apply gap-3;
+    }
+    
+    /* Optimize text sizes for mobile */
+    h1 {
+      @apply text-xl;
+    }
+    
+    h2 {
+      @apply text-lg;
+    }
+    
+    /* Better button sizes on mobile */
+    .btn-mobile {
+      @apply py-3 px-4 text-base;
+    }
+  }
+
+  /* Landscape mobile optimizations */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .sidebar {
+      @apply hidden;
+    }
+    
+    .main-content {
+      @apply ml-0;
+    }
+  }
 }
 
 @layer components {
@@ -88,5 +160,78 @@
 
   .progress-fill {
     @apply bg-neon-green transition-all duration-500 ease-out;
+  }
+
+  /* PWA specific components */
+  .pwa-install-banner {
+    @apply fixed bottom-0 left-0 right-0 z-50 p-4 bg-gradient-to-t from-black to-transparent;
+  }
+
+  .mobile-optimized {
+    @apply touch-manipulation select-none;
+  }
+
+  /* Responsive grid improvements */
+  .responsive-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+  }
+
+  .responsive-grid-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  }
+
+  /* Better mobile navigation */
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-black/95 backdrop-blur-md border-t border-white/10 z-40;
+  }
+
+  /* Improved mobile cards */
+  .mobile-card {
+    @apply bg-dark-bg border-white/10 rounded-lg p-4 touch-manipulation;
+  }
+
+  /* Better mobile forms */
+  .mobile-form-input {
+    @apply w-full p-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:border-neon-green focus:ring-1 focus:ring-neon-green;
+  }
+}
+
+/* PWA Standalone mode specific styles */
+@media (display-mode: standalone) {
+  body {
+    /* Remove any browser chrome padding */
+    margin: 0;
+    padding: 0;
+  }
+  
+  .app-header {
+    @apply safe-area-top;
+  }
+  
+  .app-footer {
+    @apply safe-area-bottom;
+  }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  .ios-fix {
+    /* Prevent scroll bouncing */
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+  
+  /* Fix viewport height on iOS */
+  .full-height-ios {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+}
+
+/* High DPI screen optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .icon-crisp {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
   }
 }
