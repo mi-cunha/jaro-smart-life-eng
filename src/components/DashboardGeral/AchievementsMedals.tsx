@@ -1,6 +1,5 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Trophy } from "lucide-react";
 
 interface Medal {
@@ -38,11 +37,6 @@ export function AchievementsMedals({ medals }: AchievementsMedalsProps) {
               }`}>
                 {medal.name}
               </div>
-              {medal.achieved && (
-                <Badge className="mt-2 bg-neon-green/20 text-neon-green border-neon-green/30 text-xs">
-                  Achieved
-                </Badge>
-              )}
             </div>
           ))}
         </div>

@@ -68,7 +68,7 @@ export function TabelaItensRefeicao({
             <Checkbox
               checked={item.comprado}
               onCheckedChange={() => onToggleItem(item.id)}
-              className="w-3 h-3 border-white/30 data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green"
+              className="w-3 h-3 border-white/30 data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green [&>svg]:w-2 [&>svg]:h-2"
             />
             <div className="flex-1">
               <div className={`font-medium text-sm md:text-base ${

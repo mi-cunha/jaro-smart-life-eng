@@ -216,7 +216,7 @@ const ProgressoPeso = () => {
               </div>
               <div className="flex items-end">
                 <Button 
-                  onClick={handleDefinirMeta}
+                  onClick={handleDefinir Meta}
                   className="bg-purple-500 hover:bg-purple-500/80 text-white"
                 >
                   Set Goal
