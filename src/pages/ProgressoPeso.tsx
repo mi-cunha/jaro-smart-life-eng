@@ -20,6 +20,7 @@ const ProgressoPeso = () => {
   const { 
     pesoAtual, 
     pesoMeta, 
+    pesoInicial,
     historicoPeso, 
     adicionarPeso, 
     definirMeta, 
@@ -73,9 +74,8 @@ const ProgressoPeso = () => {
   const progressoPeso = getProgressoPeso();
   const dadosGrafico = getDadosGrafico();
   
-  // Get initial weight from profile or first weight entry
-  const initialWeight = perfil?.peso_atual ? convertToDisplayWeight(perfil.peso_atual) : 
-    (historicoPeso.length > 0 ? convertToDisplayWeight(historicoPeso[0].peso) : 0);
+  // Use initial weight from usePeso hook (which gets it from profile)
+  const initialWeight = pesoInicial ? convertToDisplayWeight(pesoInicial) : 0;
   const currentWeight = pesoAtual ? convertToDisplayWeight(pesoAtual) : 0;
   const goalWeight = pesoMeta ? convertToDisplayWeight(pesoMeta) : 0;
   
@@ -92,45 +92,45 @@ const ProgressoPeso = () => {
           <WeightUnitToggle />
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {/* Stats Cards - 2x2 Layout */}
+        <div className="grid grid-cols-2 gap-4 md:gap-6">
           <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-6 text-center">
-              <Scale className="w-8 h-8 text-neon-green mx-auto mb-3" />
-              <div className="text-2xl font-bold text-neon-green">
+            <CardContent className="p-4 md:p-6 text-center">
+              <Scale className="w-6 h-6 md:w-8 md:h-8 text-neon-green mx-auto mb-2 md:mb-3" />
+              <div className="text-lg md:text-2xl font-bold text-neon-green">
                 {formatWeight(initialWeight, false)} {unit}
               </div>
-              <div className="text-sm text-white/70">Initial Weight</div>
+              <div className="text-xs md:text-sm text-white/70">Initial Weight</div>
             </CardContent>
           </Card>
           
           <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-6 text-center">
-              <Target className="w-8 h-8 text-purple-400 mx-auto mb-3" />
-              <div className="text-2xl font-bold text-purple-400">
+            <CardContent className="p-4 md:p-6 text-center">
+              <Target className="w-6 h-6 md:w-8 md:h-8 text-purple-400 mx-auto mb-2 md:mb-3" />
+              <div className="text-lg md:text-2xl font-bold text-purple-400">
                 {goalWeight ? `${formatWeight(goalWeight, false)} ${unit}` : "Not set"}
               </div>
-              <div className="text-sm text-white/70">Goal Weight</div>
+              <div className="text-xs md:text-sm text-white/70">Goal Weight</div>
             </CardContent>
           </Card>
           
           <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-6 text-center">
-              <TrendingUp className="w-8 h-8 text-blue-400 mx-auto mb-3" />
-              <div className="text-2xl font-bold text-blue-400">
+            <CardContent className="p-4 md:p-6 text-center">
+              <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-blue-400 mx-auto mb-2 md:mb-3" />
+              <div className="text-lg md:text-2xl font-bold text-blue-400">
                 {formatWeight(weightLost, false)} {unit}
               </div>
-              <div className="text-sm text-white/70">Weight Lost</div>
+              <div className="text-xs md:text-sm text-white/70">Weight Lost</div>
             </CardContent>
           </Card>
           
           <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-6 text-center">
-              <Calendar className="w-8 h-8 text-orange-400 mx-auto mb-3" />
-              <div className="text-2xl font-bold text-orange-400">
+            <CardContent className="p-4 md:p-6 text-center">
+              <Calendar className="w-6 h-6 md:w-8 md:h-8 text-orange-400 mx-auto mb-2 md:mb-3" />
+              <div className="text-lg md:text-2xl font-bold text-orange-400">
                 {formatWeight(weightRemaining, false)} {unit}
               </div>
-              <div className="text-sm text-white/70">Remaining</div>
+              <div className="text-xs md:text-sm text-white/70">Remaining</div>
             </CardContent>
           </Card>
         </div>
@@ -228,19 +228,15 @@ const ProgressoPeso = () => {
           </CardContent>
         </Card>
 
-        {/* Progress Chart */}
+        {/* Progress Chart - Only show if we have data */}
         {dadosGrafico.length > 0 && (
-          <Card className="bg-dark-bg border-white/10">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-400" />
-                Weight Progress Over Time
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ProgressChart data={dadosGrafico} />
-            </CardContent>
-          </Card>
+          <ProgressChart 
+            title="Weight Progress Over Time"
+            data={dadosGrafico}
+            type="line"
+            color="#00FF66"
+            unit={` ${unit}`}
+          />
         )}
       </div>
     </Layout>

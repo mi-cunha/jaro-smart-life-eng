@@ -17,6 +17,7 @@ export function usePeso() {
   const [historicoPeso, setHistoricoPeso] = useState<HistoricoPeso[]>([]);
   const [pesoAtual, setPesoAtual] = useState<number | null>(null);
   const [pesoMeta, setPesoMeta] = useState<number | null>(null);
+  const [pesoInicial, setPesoInicial] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
 
   const carregarDados = async () => {
@@ -61,6 +62,7 @@ export function usePeso() {
         console.error('❌ Erro ao carregar perfil:', perfilRes.error);
         // Set default values when profile fails to load
         setPesoMeta(70.0);
+        setPesoInicial(78.0);
         if (!pesoAtual && (!historicoRes.data || historicoRes.data.length === 0)) {
           setPesoAtual(78.0);
           console.log('ℹ️ Usando peso atual padrão: 78.0');
@@ -71,21 +73,27 @@ export function usePeso() {
         setPesoMeta(targetWeight);
         console.log('✅ Meta de peso definida:', targetWeight);
         
+        // Use peso_atual from profile as initial weight
+        const initialWeight = perfilRes.data.peso_atual || 78.0;
+        setPesoInicial(initialWeight);
+        console.log('✅ Peso inicial definido do perfil:', initialWeight);
+        
         // If no weight history and profile has current weight, use it
         if ((!historicoRes.data || historicoRes.data.length === 0) && perfilRes.data.peso_atual) {
           setPesoAtual(perfilRes.data.peso_atual);
           console.log('✅ Peso atual definido do perfil:', perfilRes.data.peso_atual);
         } else if (!pesoAtual && (!historicoRes.data || historicoRes.data.length === 0)) {
-          // Fallback to default if no data anywhere
-          setPesoAtual(78.0);
-          console.log('ℹ️ Usando peso atual padrão: 78.0');
+          // Fallback to initial weight if no data anywhere
+          setPesoAtual(initialWeight);
+          console.log('ℹ️ Usando peso inicial como peso atual:', initialWeight);
         }
       } else {
         // No profile data, set defaults
         setPesoMeta(70.0);
+        setPesoInicial(78.0);
         if (!pesoAtual && (!historicoRes.data || historicoRes.data.length === 0)) {
           setPesoAtual(78.0);
-          console.log('ℹ️ Usando valores padrão - peso: 78.0, meta: 70.0');
+          console.log('ℹ️ Usando valores padrão - peso: 78.0, meta: 70.0, inicial: 78.0');
         }
       }
     } catch (error) {
@@ -94,6 +102,7 @@ export function usePeso() {
       // Set fallback values
       setPesoAtual(78.0);
       setPesoMeta(70.0);
+      setPesoInicial(78.0);
       setHistoricoPeso([]);
     } finally {
       setLoading(false);
@@ -144,9 +153,9 @@ export function usePeso() {
   };
 
   const getProgressoPeso = () => {
-    if (!pesoAtual || !pesoMeta) return 0;
+    if (!pesoAtual || !pesoMeta || !pesoInicial) return 0;
     
-    const pesoInicial = historicoPeso.length > 0 ? historicoPeso[historicoPeso.length - 1].peso : pesoAtual;
+    // Calculate progress using initial weight from profile
     const progressoTotal = pesoInicial - pesoMeta;
     const progressoAtual = pesoInicial - pesoAtual;
     
@@ -171,6 +180,7 @@ export function usePeso() {
     historicoPeso,
     pesoAtual,
     pesoMeta,
+    pesoInicial,
     loading,
     carregarDados,
     adicionarPeso,
