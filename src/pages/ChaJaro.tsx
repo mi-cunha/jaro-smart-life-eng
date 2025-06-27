@@ -1,22 +1,41 @@
-
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Thermometer, Droplets, Leaf, CheckCircle, Info, Zap, Heart } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useHabitos } from "@/hooks/useHabitos";
 
 const ChaJaro = () => {
-  const [dailyConsumption, setDailyConsumption] = useState(2);
-  const dailyGoal = 3;
+  const { getHabitosHoje, marcarHabito, loading } = useHabitos();
+  const [chaJaroHabito, setChaJaroHabito] = useState<any>(null);
+
+  useEffect(() => {
+    const habitos = getHabitosHoje();
+    const chaJaro = habitos.find(h => h.nome === 'Chá Jaro');
+    setChaJaroHabito(chaJaro);
+  }, [getHabitosHoje]);
+
+  const dailyConsumption = chaJaroHabito?.concluido ? chaJaroHabito.meta_diaria : 0;
+  const dailyGoal = chaJaroHabito?.meta_diaria || 3;
   const progressPercentage = (dailyConsumption / dailyGoal) * 100;
 
-  const markConsumption = () => {
+  const markConsumption = async () => {
+    if (!chaJaroHabito) {
+      toast.error("Hábito do Chá Jaro não encontrado");
+      return;
+    }
+
     if (dailyConsumption < dailyGoal) {
-      setDailyConsumption(prev => prev + 1);
+      await marcarHabito(chaJaroHabito.id, true);
       toast.success("Consumption recorded! 🍵");
+      
+      // Atualizar estado local
+      const habitos = getHabitosHoje();
+      const updatedChaJaro = habitos.find(h => h.nome === 'Chá Jaro');
+      setChaJaroHabito(updatedChaJaro);
     } else {
       toast.success("Daily goal already achieved! 🎉");
     }
@@ -82,6 +101,16 @@ const ChaJaro = () => {
     { icon: Leaf, title: "Natural Antioxidant", description: "Fights free radicals and aging" }
   ];
 
+  if (loading) {
+    return (
+      <Layout title="Jaro Tea - Natural Fat Burner" breadcrumb={["Home", "Jaro Tea"]}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-white">Loading...</div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout title="Jaro Tea - Natural Fat Burner" breadcrumb={["Home", "Jaro Tea"]}>
       <div className="space-y-8">
@@ -141,7 +170,7 @@ const ChaJaro = () => {
                 onClick={markConsumption}
                 size="sm"
                 className="bg-green-500 text-white hover:bg-green-600"
-                disabled={dailyConsumption >= dailyGoal}
+                disabled={dailyConsumption >= dailyGoal || loading}
               >
                 {dailyConsumption >= dailyGoal ? "✓ Completed" : "Mark Consumption"}
               </Button>
