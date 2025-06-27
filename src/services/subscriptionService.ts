@@ -59,7 +59,7 @@ export class SubscriptionService {
         console.error('❌ Edge function call failed:', funcError);
       }
       
-      // Fallback to direct database check (now this is the real source of truth)
+      // Fallback to direct database check
       console.log('🔄 Checking subscription status from database');
       const { data: subscriber, error: subError } = await supabase
         .from('subscribers')
@@ -86,7 +86,7 @@ export class SubscriptionService {
       
       const finalStatus = isSubscribed && hasValidEndDate;
       
-      console.log('📊 Subscription status:', {
+      console.log('📊 Final subscription status:', {
         subscribed: subscriber.subscribed,
         subscription_end: subscriber.subscription_end,
         hasValidEndDate,
@@ -100,11 +100,10 @@ export class SubscriptionService {
     }
   }
 
-  // Remove the manual fix method as we now rely on webhooks
   static async refreshSubscriptionStatus(email: string, session: any): Promise<boolean> {
     console.log('🔄 Refreshing subscription status for:', email);
     
-    // Just do a fresh check - no more manual fixes
+    // Just do a fresh check - the webhook should handle the real updates
     return await this.checkSubscription(email, session);
   }
 }

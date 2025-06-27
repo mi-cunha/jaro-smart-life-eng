@@ -19,12 +19,18 @@ serve(async (req) => {
   }
 
   try {
-    logStep("Webhook received");
+    logStep("Webhook received", { method: req.method, url: req.url });
     
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
     
+    logStep("Environment check", { 
+      hasStripeKey: !!stripeKey, 
+      hasWebhookSecret: !!webhookSecret 
+    });
+    
     if (!stripeKey || !webhookSecret) {
+      logStep("Missing configuration", { stripeKey: !!stripeKey, webhookSecret: !!webhookSecret });
       throw new Error("Missing Stripe configuration");
     }
 
@@ -39,7 +45,14 @@ serve(async (req) => {
     const body = await req.text();
     const signature = req.headers.get("stripe-signature");
     
+    logStep("Request details", { 
+      bodyLength: body.length, 
+      hasSignature: !!signature,
+      signature: signature ? signature.substring(0, 50) + "..." : "none"
+    });
+    
     if (!signature) {
+      logStep("No signature found");
       throw new Error("No Stripe signature found");
     }
 
@@ -66,10 +79,16 @@ serve(async (req) => {
         if (session.mode === "subscription" && session.customer && session.subscription) {
           // Get customer details
           const customer = await stripe.customers.retrieve(session.customer as string) as Stripe.Customer;
+          logStep("Customer retrieved", { customerId: customer.id, email: customer.email });
           
           if (customer.email) {
             // Get subscription details
             const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+            logStep("Subscription retrieved", { 
+              subscriptionId: subscription.id, 
+              status: subscription.status,
+              currentPeriodEnd: subscription.current_period_end
+            });
             
             // Determine subscription tier based on price
             let subscriptionTier = "Basic";
@@ -86,6 +105,8 @@ serve(async (req) => {
                 subscriptionTier = "Quarterly";
               }
             }
+            
+            logStep("Subscription tier determined", { subscriptionTier, priceAmount: subscription.items.data[0]?.price.unit_amount });
 
             // Update subscriber record
             const { error } = await supabaseClient
@@ -105,7 +126,7 @@ serve(async (req) => {
               });
 
             if (error) {
-              logStep("Error updating subscriber", { error });
+              logStep("Error updating subscriber", { error: error.message, details: error });
             } else {
               logStep("Subscriber updated successfully", { 
                 email: customer.email, 
@@ -113,7 +134,15 @@ serve(async (req) => {
                 tier: subscriptionTier
               });
             }
+          } else {
+            logStep("No customer email found");
           }
+        } else {
+          logStep("Session not eligible for processing", { 
+            mode: session.mode, 
+            hasCustomer: !!session.customer,
+            hasSubscription: !!session.subscription
+          });
         }
         break;
       }
@@ -143,7 +172,7 @@ serve(async (req) => {
               .eq('email', customer.email);
 
             if (error) {
-              logStep("Error updating subscription renewal", { error });
+              logStep("Error updating subscription renewal", { error: error.message });
             } else {
               logStep("Subscription renewed successfully", { 
                 email: customer.email,
@@ -177,7 +206,7 @@ serve(async (req) => {
             .eq('email', customer.email);
 
           if (error) {
-            logStep("Error updating subscription cancellation", { error });
+            logStep("Error updating subscription cancellation", { error: error.message });
           } else {
             logStep("Subscription cancelled successfully", { email: customer.email });
           }
@@ -189,6 +218,7 @@ serve(async (req) => {
         logStep("Unhandled webhook event", { type: event.type });
     }
 
+    logStep("Webhook processing completed successfully");
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,

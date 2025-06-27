@@ -39,6 +39,14 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
         return;
       }
 
+      // If user is authenticated but not subscribed, redirect to pricing (except for auth page)
+      if (user && isSubscribed === false && location.pathname !== '/pricing' && location.pathname !== '/auth') {
+        console.log('🔐 Redirecting to /pricing - user not subscribed');
+        setHasRedirected(true);
+        navigate('/pricing');
+        return;
+      }
+
       // If user is authenticated and subscribed
       if (user && isSubscribed === true) {
         // If on auth page or pricing page, redirect to dashboard
@@ -52,11 +60,11 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
 
       // If user is authenticated but not subscribed
       if (user && isSubscribed === false) {
-        // If on auth page, redirect to home for quiz
+        // If on auth page, redirect to pricing
         if (location.pathname === '/auth') {
-          console.log('🔐 Redirecting to / - user authenticated but not subscribed, start with quiz');
+          console.log('🔐 Redirecting to /pricing - user authenticated but not subscribed');
           setHasRedirected(true);
-          navigate('/');
+          navigate('/pricing');
           return;
         }
       }
@@ -75,16 +83,36 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
         <div className="text-center">
           <Loader2 className="w-8 h-8 text-neon-green animate-spin mx-auto mb-4" />
           <p className="text-white/60">
-            {loading ? 'Loading...' : 'Checking subscription...'}
+            {loading ? 'Carregando...' : 'Verificando assinatura...'}
           </p>
           {user && refreshSubscriptionStatus && (
             <button
               onClick={() => refreshSubscriptionStatus()}
               className="mt-4 text-neon-green hover:text-neon-green/80 text-sm underline"
             >
-              Refresh Status
+              Atualizar Status
             </button>
           )}
+        </div>
+      </div>
+    );
+  }
+
+  // Block access to protected pages if user is not subscribed
+  if (user && isSubscribed === false && location.pathname !== '/pricing' && location.pathname !== '/auth') {
+    return (
+      <div className="min-h-screen bg-dark-bg flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Acesso Negado</h2>
+          <p className="text-white/60 mb-6">
+            Você precisa de uma assinatura ativa para acessar esta página.
+          </p>
+          <button
+            onClick={() => navigate('/pricing')}
+            className="bg-neon-green text-dark-bg px-6 py-3 rounded-lg font-medium hover:bg-neon-green/90 transition-colors"
+          >
+            Ver Planos
+          </button>
         </div>
       </div>
     );
