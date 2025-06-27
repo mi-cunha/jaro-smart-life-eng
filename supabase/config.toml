@@ -1,1 +1,20 @@
+
 project_id = "kzdnwksylgvcxrrxlcaa"
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.check-subscription]
+verify_jwt = true
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.calculate-health-recommendations]
+verify_jwt = true
+
+[functions.generate-recipe]
+verify_jwt = true
+
+[functions.optimize-shopping-list]
+verify_jwt = true
