@@ -23,20 +23,30 @@ const ProgressoPeso = () => {
   const [novoPeso, setNovoPeso] = useState("");
   const [novoObjetivo, setNovoObjetivo] = useState("");
 
-  // Use data from user profile - peso_atual as starting weight and peso_objetivo as goal
+  // Use data from user profile and weight history
   const currentWeight = pesoAtual ? convertToDisplayWeight(pesoAtual) : null;
   const goalWeight = perfil?.peso_objetivo ? convertToDisplayWeight(perfil.peso_objetivo) : null;
   
-  // Starting weight should come from peso_atual in perfil_usuario table, not from weight history
-  const startingWeight = perfil?.peso_atual ? convertToDisplayWeight(perfil.peso_atual) : 
-                        (historicoPeso.length > 0 ? convertToDisplayWeight(historicoPeso[historicoPeso.length - 1].peso) : null);
+  // Starting weight should come from the first weight entry (oldest) or peso_atual from perfil
+  const startingWeight = historicoPeso.length > 0 ? 
+    convertToDisplayWeight(historicoPeso[historicoPeso.length - 1].peso) : 
+    (perfil?.peso_atual ? convertToDisplayWeight(perfil.peso_atual) : null);
 
-  // Only calculate progress if we have all required data
-  const progressoPercentual = currentWeight && goalWeight && startingWeight && startingWeight > goalWeight
-    ? ((startingWeight - currentWeight) / (startingWeight - goalWeight)) * 100
-    : 0;
-  
-  const pesoRestante = currentWeight && goalWeight ? currentWeight - goalWeight : 0;
+  // Calculate progress correctly using starting weight, current weight, and goal
+  const calculateProgressPercentual = () => {
+    if (!currentWeight || !goalWeight || !startingWeight || startingWeight <= goalWeight) {
+      return 0;
+    }
+    
+    const totalWeightToLose = startingWeight - goalWeight;
+    const weightLostSoFar = startingWeight - currentWeight;
+    
+    return Math.max(0, Math.min(100, (weightLostSoFar / totalWeightToLose) * 100));
+  };
+
+  const progressoPercentual = calculateProgressPercentual();
+  const pesoRestante = currentWeight && goalWeight ? Math.max(0, currentWeight - goalWeight) : 0;
+  const pesoJaPerdido = startingWeight && currentWeight ? Math.max(0, startingWeight - currentWeight) : 0;
 
   const handleAtualizarPeso = async () => {
     const peso = parseFloat(novoPeso);
@@ -46,31 +56,31 @@ const ProgressoPeso = () => {
       setNovoPeso("");
       
       if (goalWeight && peso <= goalWeight) {
-        toast.success("🏆 Congratulations! Weight goal achieved!");
+        toast.success("🏆 Parabéns! Meta de peso alcançada!");
       }
     } else {
-      toast.error("Please enter a valid weight.");
+      toast.error("Por favor, insira um peso válido.");
     }
   };
 
   const handleAtualizarObjetivo = () => {
     const objetivo = parseFloat(novoObjetivo);
     if (objetivo && objetivo > 0 && currentWeight && objetivo < currentWeight) {
-      toast.success("Goal updated successfully! ✅");
+      toast.success("Meta atualizada com sucesso! ✅");
       setNovoObjetivo("");
     } else {
-      toast.error("Goal must be less than current weight.");
+      toast.error("A meta deve ser menor que o peso atual.");
     }
   };
 
   const exportarCSV = () => {
     if (historicoPeso.length === 0) {
-      toast.error("No weight data to export");
+      toast.error("Não há dados de peso para exportar");
       return;
     }
 
     const csvContent = [
-      ["Date", `Weight (${unit})`, `Change (${unit})`],
+      ["Data", `Peso (${unit})`, `Mudança (${unit})`],
       ...getDadosGrafico().map(item => [item.date, convertToDisplayWeight(item.value), ""])
     ].map(row => row.join(",")).join("\n");
 
@@ -78,17 +88,17 @@ const ProgressoPeso = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "weight_history_jarosmart.csv";
+    a.download = "historico_peso_jarosmart.csv";
     a.click();
     window.URL.revokeObjectURL(url);
     
-    toast.success("History exported successfully! 📊");
+    toast.success("Histórico exportado com sucesso! 📊");
   };
 
   // Show empty state if no weight data
   if (!currentWeight && !startingWeight && historicoPeso.length === 0) {
     return (
-      <Layout title="Weight Progress" breadcrumb={["Home", "Weight Progress"]}>
+      <Layout title="Progresso do Peso" breadcrumb={["Home", "Progresso do Peso"]}>
         <div className="space-y-6 md:space-y-8 px-2 md:px-0">
           <div className="flex justify-end">
             <WeightUnitToggle />
@@ -97,22 +107,22 @@ const ProgressoPeso = () => {
           <Card className="bg-dark-bg border-white/10">
             <CardContent className="p-6 md:p-12 text-center">
               <Scale className="w-12 h-12 md:w-16 md:h-16 text-white/30 mx-auto mb-4" />
-              <h3 className="text-lg md:text-xl font-semibold text-white mb-2">No Weight Data</h3>
-              <p className="text-white/60 mb-6 text-sm md:text-base">Start tracking your weight progress by adding your first weight entry.</p>
+              <h3 className="text-lg md:text-xl font-semibold text-white mb-2">Sem Dados de Peso</h3>
+              <p className="text-white/60 mb-6 text-sm md:text-base">Comece a acompanhar seu progresso de peso adicionando sua primeira entrada de peso.</p>
               
               <Dialog>
                 <DialogTrigger asChild>
                   <Button className="bg-neon-green text-black hover:bg-neon-green/90 w-full sm:w-auto">
-                    Add First Weight Entry
+                    Adicionar Primeira Entrada de Peso
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-dark-bg border-white/10 mx-4 md:mx-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-white">Add Weight Entry</DialogTitle>
+                    <DialogTitle className="text-white">Adicionar Entrada de Peso</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-white/80 text-sm">Current weight ({unit}):</label>
+                      <label className="text-white/80 text-sm">Peso atual ({unit}):</label>
                       <Input
                         type="number"
                         value={novoPeso}
@@ -125,7 +135,7 @@ const ProgressoPeso = () => {
                       onClick={handleAtualizarPeso}
                       className="w-full bg-neon-green text-black hover:bg-neon-green/90"
                     >
-                      Save Weight
+                      Salvar Peso
                     </Button>
                   </div>
                 </DialogContent>
@@ -138,7 +148,7 @@ const ProgressoPeso = () => {
   }
 
   return (
-    <Layout title="Weight Progress" breadcrumb={["Home", "Weight Progress"]}>
+    <Layout title="Progresso do Peso" breadcrumb={["Home", "Progresso do Peso"]}>
       <div className="space-y-6 md:space-y-8 px-2 md:px-0">
         {/* Weight Unit Toggle */}
         <div className="flex justify-end">
@@ -151,16 +161,15 @@ const ProgressoPeso = () => {
             <CardHeader className="pb-3">
               <CardTitle className="text-white flex items-center gap-2 text-sm md:text-base">
                 <Scale className="w-4 h-4 md:w-5 md:h-5 text-neon-green flex-shrink-0" />
-                Starting Weight
+                Peso Inicial
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="text-2xl md:text-3xl font-bold text-white">
-                {startingWeight ? formatWeight(startingWeight) : 'No data'}
+                {startingWeight ? formatWeight(startingWeight) : 'Sem dados'}
               </div>
               <div className="text-xs md:text-sm text-white/60 mt-1">
-                {perfil?.peso_atual ? 'From your profile' : 
-                 (historicoPeso.length > 0 ? new Date(historicoPeso[historicoPeso.length - 1].data).toLocaleDateString() : 'Add first entry')}
+                {historicoPeso.length > 0 ? new Date(historicoPeso[historicoPeso.length - 1].data).toLocaleDateString() : 'Adicionar primeira entrada'}
               </div>
             </CardContent>
           </Card>
@@ -169,12 +178,12 @@ const ProgressoPeso = () => {
             <CardHeader className="pb-3">
               <CardTitle className="text-white flex items-center gap-2 text-sm md:text-base">
                 <TrendingDown className="w-4 h-4 md:w-5 md:h-5 text-neon-green flex-shrink-0" />
-                Current Weight
+                Peso Atual
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-3">
               <div className="text-2xl md:text-3xl font-bold text-neon-green">
-                {currentWeight ? formatWeight(currentWeight) : 'No data'}
+                {currentWeight ? formatWeight(currentWeight) : 'Sem dados'}
               </div>
               <Dialog>
                 <DialogTrigger asChild>
@@ -183,16 +192,16 @@ const ProgressoPeso = () => {
                     variant="outline"
                     className="w-full border-neon-green/30 text-neon-green hover:bg-neon-green/10 text-xs md:text-sm"
                   >
-                    Update Weight
+                    Atualizar Peso
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-dark-bg border-white/10 mx-4 md:mx-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-white">Update Weight</DialogTitle>
+                    <DialogTitle className="text-white">Atualizar Peso</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-white/80 text-sm">New weight ({unit}):</label>
+                      <label className="text-white/80 text-sm">Novo peso ({unit}):</label>
                       <Input
                         type="number"
                         value={novoPeso}
@@ -205,7 +214,7 @@ const ProgressoPeso = () => {
                       onClick={handleAtualizarPeso}
                       className="w-full bg-neon-green text-black hover:bg-neon-green/90"
                     >
-                      Save Weight
+                      Salvar Peso
                     </Button>
                   </div>
                 </DialogContent>
@@ -217,12 +226,12 @@ const ProgressoPeso = () => {
             <CardHeader className="pb-3">
               <CardTitle className="text-white flex items-center gap-2 text-sm md:text-base">
                 <Target className="w-4 h-4 md:w-5 md:h-5 text-neon-green flex-shrink-0" />
-                Goal Weight
+                Meta de Peso
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0 space-y-3">
               <div className="text-2xl md:text-3xl font-bold text-white">
-                {goalWeight ? formatWeight(goalWeight) : 'Set goal'}
+                {goalWeight ? formatWeight(goalWeight) : 'Definir meta'}
               </div>
               <Dialog>
                 <DialogTrigger asChild>
@@ -231,16 +240,16 @@ const ProgressoPeso = () => {
                     variant="outline"
                     className="w-full border-neon-green/30 text-neon-green hover:bg-neon-green/10 text-xs md:text-sm"
                   >
-                    {goalWeight ? 'Edit Goal' : 'Set Goal'}
+                    {goalWeight ? 'Editar Meta' : 'Definir Meta'}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="bg-dark-bg border-white/10 mx-4 md:mx-auto">
                   <DialogHeader>
-                    <DialogTitle className="text-white">{goalWeight ? 'Edit Goal' : 'Set Goal'}</DialogTitle>
+                    <DialogTitle className="text-white">{goalWeight ? 'Editar Meta' : 'Definir Meta'}</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div>
-                      <label className="text-white/80 text-sm">Goal weight ({unit}):</label>
+                      <label className="text-white/80 text-sm">Meta de peso ({unit}):</label>
                       <Input
                         type="number"
                         value={novoObjetivo}
@@ -253,7 +262,7 @@ const ProgressoPeso = () => {
                       onClick={handleAtualizarObjetivo}
                       className="w-full bg-neon-green text-black hover:bg-neon-green/90"
                     >
-                      Save Goal
+                      Salvar Meta
                     </Button>
                   </div>
                 </DialogContent>
@@ -266,13 +275,13 @@ const ProgressoPeso = () => {
         {currentWeight && goalWeight && startingWeight && (
           <Card className="bg-dark-bg border-white/10">
             <CardHeader>
-              <CardTitle className="text-white text-sm md:text-base">Progress to Goal</CardTitle>
+              <CardTitle className="text-white text-sm md:text-base">Progresso para a Meta</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex justify-between text-xs md:text-sm text-white/70 gap-2">
-                <span className="truncate">Starting: {formatWeight(startingWeight)}</span>
-                <span className="text-center flex-shrink-0">You are {progressoPercentual.toFixed(1)}% of the way there</span>
-                <span className="truncate text-right">Goal: {formatWeight(goalWeight)}</span>
+                <span className="truncate">Inicial: {formatWeight(startingWeight)}</span>
+                <span className="text-center flex-shrink-0">Você está {progressoPercentual.toFixed(1)}% do caminho</span>
+                <span className="truncate text-right">Meta: {formatWeight(goalWeight)}</span>
               </div>
               
               <div className="relative">
@@ -290,10 +299,10 @@ const ProgressoPeso = () => {
               
               <div className="text-center space-y-2">
                 <div className="text-xl md:text-2xl font-bold text-neon-green">
-                  {pesoRestante > 0 ? `${formatWeight(pesoRestante, false)} ${unit} remaining` : "Goal achieved! 🎉"}
+                  {pesoRestante > 0 ? `${formatWeight(pesoRestante, false)} ${unit} restante` : "Meta alcançada! 🎉"}
                 </div>
                 <div className="text-white/60 text-sm md:text-base">
-                  You've already lost {formatWeight(startingWeight - currentWeight, false)} {unit}
+                  Você já perdeu {formatWeight(pesoJaPerdido, false)} {unit}
                 </div>
               </div>
             </CardContent>
@@ -304,7 +313,7 @@ const ProgressoPeso = () => {
         {historicoPeso.length > 0 && (
           <div className="px-1">
             <ProgressChart
-              title="Weight Evolution"
+              title="Evolução do Peso"
               data={getDadosGrafico().map(item => ({
                 ...item,
                 value: convertToDisplayWeight(item.value)
@@ -322,14 +331,14 @@ const ProgressoPeso = () => {
             variant="outline"
             className="border-neon-green/30 text-neon-green hover:bg-neon-green/10 w-full sm:w-auto text-sm"
           >
-            View Overall Progress
+            Ver Progresso Geral
           </Button>
           
           <Button
             onClick={() => navigate("/")}
             className="bg-neon-green text-black hover:bg-neon-green/90 w-full sm:w-auto text-sm"
           >
-            Back to Home
+            Voltar ao Início
           </Button>
 
           {historicoPeso.length > 0 && (
@@ -338,7 +347,7 @@ const ProgressoPeso = () => {
               variant="outline"
               className="border-neon-green/30 text-neon-green hover:bg-neon-green/10 w-full sm:w-auto text-sm"
             >
-              Export Data
+              Exportar Dados
             </Button>
           )}
         </div>

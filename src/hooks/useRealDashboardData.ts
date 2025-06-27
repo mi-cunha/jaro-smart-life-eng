@@ -42,6 +42,7 @@ export function useRealDashboardData() {
         const now = new Date();
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
         const startOfMonthStr = startOfMonth.toISOString().split('T')[0];
+        const todayStr = now.toISOString().split('T')[0];
 
         // Get health recommendations
         let recommendations = { recommendedCalories: 2000, recommendedWater: 8, recommendedTeaDoses: 2 };
@@ -65,10 +66,10 @@ export function useRealDashboardData() {
 
         const recipesCookedThisMonth = recipes?.length || 0;
 
-        // Get habit completion for this month
+        // Get habit completion for this month - buscar dados reais da tabela
         const { data: habitHistory } = await supabase
           .from('historico_habitos')
-          .select('concluido, data')
+          .select('concluido, data, habito_id')
           .eq('user_email', user.email)
           .gte('data', startOfMonthStr);
 
@@ -76,16 +77,34 @@ export function useRealDashboardData() {
         const completedHabits = habitHistory?.filter(h => h.concluido).length || 0;
         const habitCompletionRate = totalHabitEntries > 0 ? (completedHabits / totalHabitEntries) * 100 : 0;
 
+        // Calculate tea doses based on real habit data for "Chá Jaro"
+        const { data: chajaroHabit } = await supabase
+          .from('habitos')
+          .select('id')
+          .eq('user_email', user.email)
+          .ilike('nome', '%chá%jaro%')
+          .single();
+
+        let teaDosesThisMonth = 0;
+        if (chajaroHabit) {
+          const { data: teaHistory } = await supabase
+            .from('historico_habitos')
+            .select('concluido, quantidade')
+            .eq('user_email', user.email)
+            .eq('habito_id', chajaroHabit.id)
+            .gte('data', startOfMonthStr);
+
+          teaDosesThisMonth = teaHistory?.reduce((total, entry) => {
+            return total + (entry.concluido ? (entry.quantidade || 1) : 0);
+          }, 0) || 0;
+        }
+
         // Calculate active days (days with any activity)
         const uniqueActivityDates = new Set([
           ...(recipes?.map(r => r.created_at.split('T')[0]) || []),
           ...(habitHistory?.map(h => h.data) || [])
         ]);
         const activeDaysThisMonth = uniqueActivityDates.size;
-
-        // Calculate tea doses based on habit completion and recommendations
-        const daysInMonth = now.getDate();
-        const teaDosesThisMonth = Math.floor(daysInMonth * recommendations.recommendedTeaDoses * (habitCompletionRate / 100));
 
         // Get shopping items count (no price calculation since column doesn't exist)
         const { data: shoppingItems } = await supabase

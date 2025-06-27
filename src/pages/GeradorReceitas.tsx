@@ -86,29 +86,31 @@ const GeradorReceitas = () => {
   const refeicoes = ["Breakfast", "Lunch", "Snack", "Dinner"];
 
   return (
-    <Layout title="Recipe Generator" breadcrumb={["Home", "Recipe Generator"]}>
-      <div className="space-y-6 md:space-y-8">
+    <Layout title="Gerador de Receitas" breadcrumb={["Home", "Gerador de Receitas"]}>
+      <div className="space-y-6 md:space-y-8 max-w-full overflow-hidden">
         <Card className="bg-gradient-to-r from-neon-green/10 to-transparent border-neon-green/30">
           <CardContent className="p-4 md:p-6">
-            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <Bot className="w-4 h-4 md:w-5 md:h-5 text-neon-green flex-shrink-0" />
-                  <span className="text-neon-green font-medium text-sm md:text-base">Smart Recipe Generation</span>
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-start gap-3">
+                <Bot className="w-5 h-5 text-neon-green flex-shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-neon-green font-medium text-sm md:text-base block mb-2">
+                    geração Inteligente de Receitas
+                  </span>
+                  <p className="text-white/80 text-sm md:text-base leading-relaxed">
+                    Gere receitas personalizadas baseadas nos seus ingredientes selecionados e itens comprados da sua Lista de Compras. 
+                    Cada receita é adaptada às suas preferências e nutricionalmente equilibrada.
+                  </p>
+                  <p className="text-neon-green text-xs md:text-sm mt-2">
+                    🍳 Crie variações ilimitadas com os mesmos ingredientes para diversidade nas refeições
+                  </p>
                 </div>
-                <p className="text-white/80 mb-2 text-sm md:text-base leading-relaxed">
-                  Generate personalized recipes based on your selected ingredients and purchased items from your Shopping List. 
-                  Each recipe is tailored to your preferences and nutritionally balanced.
-                </p>
-                <p className="text-neon-green text-xs md:text-sm">
-                  🍳 Create unlimited variations with the same ingredients for meal diversity
-                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="px-1">
+        <div className="w-full">
           <FiltrosReceitas
             objetivo={filtros.objetivo}
             caloriesMax={filtros.caloriesMax}
@@ -117,13 +119,13 @@ const GeradorReceitas = () => {
           />
         </div>
 
-        <div className="space-y-6 md:space-y-8">
+        <div className="space-y-6 md:space-y-8 w-full">
           {refeicoes.map((refeicao) => {
             const itensComprados = getItensCompradosPorRefeicao(refeicao);
             const temItensComprados = hasItensComprados(refeicao);
 
             return (
-              <div key={refeicao} className="px-1">
+              <div key={refeicao} className="w-full">
                 <RefeicaoSection
                   refeicao={refeicao}
                   ingredientes={ingredientesPorRefeicao[refeicao] || []}
@@ -143,14 +145,14 @@ const GeradorReceitas = () => {
           })}
         </div>
 
-        <div className="flex flex-col gap-3 px-1">
+        <div className="flex flex-col gap-3 w-full">
           <Button
             onClick={() => navigate("/lista-compras")}
             variant="outline"
             className="border-neon-green/30 text-neon-green hover:bg-neon-green/10 w-full sm:w-auto"
           >
             <ShoppingCart className="w-4 h-4 mr-2" />
-            View Shopping List
+            Ver Lista de Compras
           </Button>
         </div>
       </div>

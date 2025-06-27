@@ -35,12 +35,12 @@ export function PWAInstallPrompt() {
       const promptEvent = e as BeforeInstallPromptEvent;
       setDeferredPrompt(promptEvent);
       
-      // Mostrar prompt após 3 segundos se não estiver instalado
+      // Mostrar prompt automaticamente após 2 segundos se não estiver instalado e não foi dispensado
       setTimeout(() => {
         if (!isInstalled && !localStorage.getItem('pwa-install-dismissed')) {
           setShowPrompt(true);
         }
-      }, 3000);
+      }, 2000);
     };
 
     // Listener para quando o app for instalado
@@ -65,7 +65,9 @@ export function PWAInstallPrompt() {
     if (!deferredPrompt) {
       // Para iOS Safari
       if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-        toast.info('Para instalar no iOS: toque no ícone de compartilhar e selecione "Adicionar à Tela de Início"');
+        toast.info('Para instalar no iOS: toque no ícone de compartilhar e selecione "Adicionar à Tela de Início"', {
+          duration: 5000
+        });
         return;
       }
       return;
@@ -100,8 +102,8 @@ export function PWAInstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96">
-      <Card className="bg-gradient-to-r from-green-500/20 to-green-600/20 border-green-500/30 backdrop-blur-sm">
+    <div className="fixed top-16 left-4 right-4 z-50 md:left-auto md:right-4 md:w-96">
+      <Card className="bg-gradient-to-r from-green-500/20 to-green-600/20 border-green-500/30 backdrop-blur-sm animate-in slide-in-from-top-2 duration-500">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-white flex items-center gap-2 text-lg">

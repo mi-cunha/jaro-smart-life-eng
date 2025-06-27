@@ -37,7 +37,7 @@ import { useRealDashboardData } from "@/hooks/useRealDashboardData";
 const GeneralDashboard = () => {
   const navigate = useNavigate();
   const { user, userProfile } = useAuth();
-  const { pesoAtual, pesoMeta, getProgressoPeso, getDadosGrafico } = usePeso();
+  const { pesoAtual, pesoMeta, getProgressoPeso, getDadosGrafico, historicoPeso } = usePeso();
   const { getHabitosHoje, getProgressoHabitos, getHistoricoSemanal } = useHabitos();
   const { receitas, loading: loadingReceitas } = useSupabaseReceitas();
   const { itensCompra, loading: loadingCompras } = useSupabaseListaCompras();
@@ -71,7 +71,9 @@ const GeneralDashboard = () => {
   // Calculate weight loss progress - convert to display units
   const currentWeightDisplay = convertToDisplayWeight(pesoAtual || 165); // Default 165 lbs
   const goalWeightDisplay = convertToDisplayWeight(pesoMeta || 150); // Default 150 lbs
-  const initialWeightDisplay = currentWeightDisplay + convertToDisplayWeight(4.8);
+  const initialWeightDisplay = historicoPeso.length > 0 ? 
+    convertToDisplayWeight(historicoPeso[historicoPeso.length - 1].peso) : 
+    currentWeightDisplay + convertToDisplayWeight(4.8);
   const weightLostDisplay = initialWeightDisplay - currentWeightDisplay;
 
   // Progress cards with real data
@@ -79,24 +81,24 @@ const GeneralDashboard = () => {
     {
       title: "Jaro Tea",
       icon: <Coffee className="w-6 h-6 text-neon-green" />,
-      value: `${Math.floor(realStats.teaDosesThisMonth / realStats.recommendedTeaDoses)}/7 days`,
-      description: hasQuizData ? "Personalized daily doses" : "Days completed this week",
-      progress: Math.min(100, Math.floor((realStats.teaDosesThisMonth / realStats.recommendedTeaDoses) / 7 * 100)),
+      value: `${realStats.teaDosesThisMonth}/${realStats.recommendedTeaDoses * 30}`,
+      description: hasQuizData ? "Doses personalizadas este mês" : "Doses consumidas este mês",
+      progress: Math.min(100, (realStats.teaDosesThisMonth / (realStats.recommendedTeaDoses * 30)) * 100),
       link: "/cha-jaro"
     },
     {
       title: "Habits",
       icon: <CheckCircle className="w-6 h-6 text-neon-green" />,
       value: `${Math.round(realStats.habitCompletionRate)}%`,
-      description: "Monthly completion rate",
+      description: "Taxa de conclusão mensal",
       progress: Math.round(realStats.habitCompletionRate),
       link: "/habit-tracker"
     },
     {
       title: "Weight",
       icon: <Scale className="w-6 h-6 text-neon-green" />,
-      value: pesoAtual && pesoMeta ? `${formatWeight(Math.abs(currentWeightDisplay - goalWeightDisplay), false)} ${unit} remaining` : "Set your goal",
-      description: "To reach your target",
+      value: pesoAtual && pesoMeta ? `${formatWeight(Math.abs(currentWeightDisplay - goalWeightDisplay), false)} ${unit} restante` : "Definir meta",
+      description: "Para alcançar seu objetivo",
       progress: progressoPeso,
       link: "/progresso-peso"
     },
@@ -104,7 +106,7 @@ const GeneralDashboard = () => {
       title: "Recipes",
       icon: <ChefHat className="w-6 h-6 text-neon-green" />,
       value: `${realStats.recipesCookedThisMonth}/28`,
-      description: hasQuizData ? "Personalized healthy meals" : "Healthy meals this month",
+      description: hasQuizData ? "Refeições saudáveis personalizadas" : "Refeições saudáveis este mês",
       progress: Math.min(100, (realStats.recipesCookedThisMonth / 28) * 100),
       link: "/gerador-receitas"
     },
@@ -112,15 +114,15 @@ const GeneralDashboard = () => {
       title: "Shopping",
       icon: <ShoppingCart className="w-6 h-6 text-neon-green" />,
       value: `$${realStats.monthlySpending.toFixed(2)}`,
-      description: "Estimated monthly spending",
+      description: "Gastos estimados mensais",
       progress: 0,
       link: "/lista-compras"
     },
     {
       title: "Achievements",
       icon: <Trophy className="w-6 h-6 text-neon-green" />,
-      value: `${Math.floor(progressoPeso / 15)} medals`,
-      description: "Goals achieved",
+      value: `${Math.floor(progressoPeso / 15)} medalhas`,
+      description: "Objetivos alcançados",
       progress: 0,
       link: "#"
     }
@@ -133,42 +135,43 @@ const GeneralDashboard = () => {
     calorias: receita.calorias || 300
   }));
 
+  // Achievements based on real user data
   const medalhas = [
-    { name: "7 Days of Tea", icon: "🏅", achieved: realStats.teaDosesThisMonth >= 7 },
-    { name: "30 Days of Habits", icon: "🏆", achieved: realStats.habitCompletionRate >= 80 },
-    { name: "Weight Goal", icon: "🎯", achieved: progressoPeso >= 100 },
-    { name: "Recipe Master", icon: "👨‍🍳", achieved: realStats.recipesCookedThisMonth >= 10 },
-    { name: "Smart Shopper", icon: "🛒", achieved: allItens.length >= 20 },
-    { name: "Iron Streak", icon: "💪", achieved: habitosConcluidos >= totalHabitos && totalHabitos > 0 },
-    { name: "Health Champion", icon: "❤️", achieved: progressoPeso >= 50 }
+    { name: "7 Dias de Chá", icon: "🏅", achieved: realStats.teaDosesThisMonth >= 7 },
+    { name: "30 Dias de Hábitos", icon: "🏆", achieved: realStats.habitCompletionRate >= 80 },
+    { name: "Meta de Peso", icon: "🎯", achieved: progressoPeso >= 100 },
+    { name: "Mestre das Receitas", icon: "👨‍🍳", achieved: realStats.recipesCookedThisMonth >= 10 },
+    { name: "Comprador Inteligente", icon: "🛒", achieved: allItens.length >= 20 },
+    { name: "Série de Ferro", icon: "💪", achieved: realStats.habitCompletionRate >= 90 },
+    { name: "Campeão da Saúde", icon: "❤️", achieved: progressoPeso >= 50 && realStats.habitCompletionRate >= 70 }
   ];
 
   const improvementSuggestions = [];
   if (realStats.habitCompletionRate < 80) {
-    improvementSuggestions.push("Your habit completion rate dropped this week. Try setting reminders during meal times!");
+    improvementSuggestions.push("Sua taxa de conclusão de hábitos diminuiu esta semana. Tente definir lembretes durante as refeições!");
   }
   if (realStats.recipesCookedThisMonth < 10) {
-    improvementSuggestions.push("Consider generating more recipe varieties to maintain a balanced diet throughout the month.");
+    improvementSuggestions.push("Considere gerar mais variedades de receitas para manter uma dieta equilibrada ao longo do mês.");
   }
   if (progressoPeso < 50 && pesoAtual && pesoMeta) {
-    improvementSuggestions.push("You're getting closer to your weight goal. Consider increasing hydration to boost metabolism.");
+    improvementSuggestions.push("Você está se aproximando de sua meta de peso. Considere aumentar a hidratação para acelerar o metabolismo.");
   }
   if (improvementSuggestions.length === 0) {
-    improvementSuggestions.push("Great progress! Keep maintaining your current routine for optimal results.");
+    improvementSuggestions.push("Ótimo progresso! Continue mantendo sua rotina atual para obter resultados ideais.");
   }
 
   if (loadingStats) {
     return (
-      <Layout title="General Dashboard" breadcrumb={["Home", "General Dashboard"]}>
+      <Layout title="Dashboard Geral" breadcrumb={["Home", "Dashboard Geral"]}>
         <div className="flex items-center justify-center min-h-64">
-          <div className="text-white">Loading dashboard data...</div>
+          <div className="text-white">Carregando dados do dashboard...</div>
         </div>
       </Layout>
     );
   }
 
   return (
-    <Layout title="General Dashboard" breadcrumb={["Home", "General Dashboard"]}>
+    <Layout title="Dashboard Geral" breadcrumb={["Home", "Dashboard Geral"]}>
       <div className="space-y-8">
         {/* Personalized Insights - New Section */}
         <PersonalizedInsights />
