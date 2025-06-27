@@ -1,5 +1,4 @@
 
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
@@ -49,12 +48,12 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Get the request body and signature
-    const body = await req.text();
+    // Get the request body as raw bytes and signature
+    const body = await req.arrayBuffer();
     const signature = req.headers.get("stripe-signature");
     
     logStep("Request details", { 
-      bodyLength: body.length, 
+      bodyLength: body.byteLength, 
       hasSignature: !!signature,
       signature: signature ? signature.substring(0, 50) + "..." : "none"
     });
@@ -64,10 +63,14 @@ serve(async (req) => {
       throw new Error("No Stripe signature found");
     }
 
-    // Verify webhook signature using async method
+    // Verify webhook signature with raw body
     let event: Stripe.Event;
     try {
-      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
+      event = stripe.webhooks.constructEvent(
+        new Uint8Array(body), 
+        signature, 
+        webhookSecret
+      );
       logStep("✅ Webhook signature verified", { type: event.type, id: event.id });
     } catch (err) {
       logStep("❌ Webhook signature verification failed", { error: err.message });
@@ -260,4 +263,3 @@ serve(async (req) => {
     );
   }
 });
-
