@@ -10,12 +10,11 @@ export class SubscriptionService {
       const { error: upsertError } = await supabase
         .from('subscribers')
         .upsert({
-          email: email,
           user_email: email,
           subscribed: false, // Default to false, will be updated if subscription is found
           updated_at: new Date().toISOString(),
         }, { 
-          onConflict: 'email',
+          onConflict: 'user_email',
           ignoreDuplicates: false 
         });
 
@@ -30,7 +29,7 @@ export class SubscriptionService {
       const { data: subscriber, error: subError } = await supabase
         .from('subscribers')
         .select('*')
-        .eq('email', email)
+        .eq('user_email', email)
         .maybeSingle();
 
       if (subError) {
@@ -88,7 +87,7 @@ export class SubscriptionService {
                   subscription_end: checkResult.subscription_end,
                   updated_at: new Date().toISOString() 
                 })
-                .eq('email', email);
+                .eq('user_email', email);
             }
             
             return subscribed;

@@ -413,7 +413,6 @@ export type Database = {
       subscribers: {
         Row: {
           created_at: string
-          email: string
           id: string
           stripe_customer_id: string | null
           stripe_session_id: string | null
@@ -427,7 +426,6 @@ export type Database = {
         }
         Insert: {
           created_at?: string
-          email: string
           id?: string
           stripe_customer_id?: string | null
           stripe_session_id?: string | null
@@ -441,7 +439,6 @@ export type Database = {
         }
         Update: {
           created_at?: string
-          email?: string
           id?: string
           stripe_customer_id?: string | null
           stripe_session_id?: string | null
@@ -457,7 +454,7 @@ export type Database = {
           {
             foreignKeyName: "fk_subscribers_email"
             columns: ["user_email"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "usuarios"
             referencedColumns: ["email"]
           },

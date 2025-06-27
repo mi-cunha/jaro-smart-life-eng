@@ -75,14 +75,13 @@ serve(async (req) => {
     const { error: upsertError } = await supabaseClient
       .from('subscribers')
       .upsert({
-        email: user.email,
         user_email: user.email,
         user_id: user.id,
         stripe_customer_id: customerId,
         subscribed: false, // Will be updated by webhook after successful payment
         updated_at: new Date().toISOString(),
       }, { 
-        onConflict: 'email',
+        onConflict: 'user_email',
         ignoreDuplicates: false 
       });
 
@@ -120,7 +119,7 @@ serve(async (req) => {
         stripe_session_id: session.id,
         updated_at: new Date().toISOString(),
       })
-      .eq('email', user.email);
+      .eq('user_email', user.email);
 
     console.log('🎯 Checkout process completed successfully');
 

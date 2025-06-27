@@ -135,7 +135,7 @@ serve(async (req) => {
           const isActiveSubscription = subscription.status === 'active' || subscription.status === 'trialing';
           
           console.log(`🔧 Setting subscription data:`, {
-            email: customerEmail,
+            user_email: customerEmail,
             subscribed: isActiveSubscription,
             subscription_status: subscription.status,
             subscription_tier: subscriptionTier,
@@ -146,7 +146,6 @@ serve(async (req) => {
           const { data: updateResult, error } = await supabase
             .from("subscribers")
             .upsert({
-              email: customerEmail,
               user_email: customerEmail,
               user_id: session.metadata?.user_id || null,
               stripe_customer_id: session.customer as string,
