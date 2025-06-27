@@ -9,7 +9,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Log every request received
   console.log(`🚀 Webhook received: ${req.method} ${req.url} at ${new Date().toISOString()}`);
   
   if (req.method === "OPTIONS") {
@@ -65,39 +64,86 @@ serve(async (req) => {
         console.log("🛒 Processing checkout completion");
         const session = event.data.object as Stripe.Checkout.Session;
         
-        if (session.customer && session.subscription) {
-          try {
-            // Get customer and subscription details
-            const customer = await stripe.customers.retrieve(session.customer as string) as Stripe.Customer;
-            const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
-            
-            console.log(`Customer: ${customer.email}, Subscription: ${subscription.id}`);
-            
-            if (customer.email) {
-              // Update subscriber record
-              const { error } = await supabase
-                .from("subscribers")
-                .upsert({
-                  email: customer.email,
-                  user_email: customer.email,
-                  stripe_customer_id: session.customer as string,
-                  stripe_subscription_id: session.subscription as string,
-                  stripe_session_id: session.id,
-                  subscribed: true,
-                  subscription_tier: "Monthly",
-                  subscription_end: new Date(subscription.current_period_end * 1000).toISOString(),
-                  updated_at: new Date().toISOString(),
-                }, { onConflict: 'email' });
+        console.log(`Session details:`, {
+          id: session.id,
+          customer: session.customer,
+          subscription: session.subscription,
+          payment_status: session.payment_status,
+          customer_email: session.customer_details?.email,
+          metadata: session.metadata
+        });
+        
+        // Check if we have customer and subscription
+        if (!session.customer || !session.subscription) {
+          console.error("❌ Missing customer or subscription in session:", {
+            customer: session.customer,
+            subscription: session.subscription
+          });
+          return new Response("Missing required session data", { status: 400, headers: corsHeaders });
+        }
 
-              if (error) {
-                console.error("❌ Database update error:", error);
-              } else {
-                console.log(`✅ Subscription activated for ${customer.email}`);
-              }
-            }
-          } catch (err) {
-            console.error("❌ Error processing checkout:", err.message);
+        try {
+          // Get customer and subscription details
+          const customer = await stripe.customers.retrieve(session.customer as string) as Stripe.Customer;
+          const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
+          
+          console.log(`Customer: ${customer.email}, Subscription: ${subscription.id}, Status: ${subscription.status}`);
+          
+          if (!customer.email) {
+            console.error("❌ No email found for customer");
+            return new Response("Customer email not found", { status: 400, headers: corsHeaders });
           }
+
+          // Determine subscription tier based on price
+          let subscriptionTier = "Monthly"; // default
+          if (subscription.items.data.length > 0) {
+            const priceId = subscription.items.data[0].price.id;
+            const price = await stripe.prices.retrieve(priceId);
+            const amount = price.unit_amount || 0;
+            
+            if (amount <= 999) {
+              subscriptionTier = "Basic";
+            } else if (amount <= 1999) {
+              subscriptionTier = "Premium";
+            } else if (amount >= 2000) {
+              subscriptionTier = "Enterprise";
+            }
+            
+            console.log(`Price details: ${priceId}, Amount: ${amount}, Tier: ${subscriptionTier}`);
+          }
+
+          // Update subscriber record
+          const subscriptionEndDate = new Date(subscription.current_period_end * 1000).toISOString();
+          
+          const { data: updateResult, error } = await supabase
+            .from("subscribers")
+            .upsert({
+              email: customer.email,
+              user_email: customer.email,
+              stripe_customer_id: session.customer as string,
+              stripe_subscription_id: session.subscription as string,
+              stripe_session_id: session.id,
+              subscribed: true, // This is the key field that was missing
+              subscription_tier: subscriptionTier,
+              subscription_end: subscriptionEndDate,
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'email' });
+
+          if (error) {
+            console.error("❌ Database update error:", error);
+            return new Response(`Database error: ${error.message}`, { status: 500, headers: corsHeaders });
+          } else {
+            console.log(`✅ Subscription activated for ${customer.email}:`, {
+              subscribed: true,
+              tier: subscriptionTier,
+              end_date: subscriptionEndDate,
+              customer_id: session.customer,
+              subscription_id: session.subscription
+            });
+          }
+        } catch (err) {
+          console.error("❌ Error processing checkout:", err.message);
+          return new Response(`Processing error: ${err.message}`, { status: 500, headers: corsHeaders });
         }
         break;
 
@@ -165,7 +211,7 @@ serve(async (req) => {
     }
 
     console.log("✅ Webhook processed successfully");
-    return new Response(JSON.stringify({ received: true }), {
+    return new Response(JSON.stringify({ received: true, processed: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
