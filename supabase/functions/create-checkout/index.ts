@@ -79,7 +79,7 @@ serve(async (req) => {
         user_email: user.email,
         user_id: user.id,
         stripe_customer_id: customerId,
-        subscribed: false, // Will be updated after successful payment
+        subscribed: false, // Will be updated by webhook after successful payment
         updated_at: new Date().toISOString(),
       }, { 
         onConflict: 'email',

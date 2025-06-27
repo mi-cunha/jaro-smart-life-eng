@@ -416,6 +416,7 @@ export type Database = {
           email: string
           id: string
           stripe_customer_id: string | null
+          stripe_session_id: string | null
           stripe_subscription_id: string | null
           subscribed: boolean | null
           subscription_end: string | null
@@ -429,6 +430,7 @@ export type Database = {
           email: string
           id?: string
           stripe_customer_id?: string | null
+          stripe_session_id?: string | null
           stripe_subscription_id?: string | null
           subscribed?: boolean | null
           subscription_end?: string | null
@@ -442,6 +444,7 @@ export type Database = {
           email?: string
           id?: string
           stripe_customer_id?: string | null
+          stripe_session_id?: string | null
           stripe_subscription_id?: string | null
           subscribed?: boolean | null
           subscription_end?: string | null

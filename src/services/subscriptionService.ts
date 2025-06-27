@@ -59,8 +59,8 @@ export class SubscriptionService {
         console.error('❌ Edge function call failed:', funcError);
       }
       
-      // Fallback to direct database check
-      console.log('🔄 Falling back to direct database check');
+      // Fallback to direct database check (now this is the real source of truth)
+      console.log('🔄 Checking subscription status from database');
       const { data: subscriber, error: subError } = await supabase
         .from('subscribers')
         .select('*')
@@ -78,77 +78,33 @@ export class SubscriptionService {
       }
 
       console.log('✅ Subscriber found:', subscriber);
-      console.log('📊 Raw subscribed value:', subscriber.subscribed, 'Type:', typeof subscriber.subscribed);
       
-      // Handle different possible boolean representations from database
-      let isSubbed = false;
-      const subscribedValue = subscriber.subscribed;
+      // Check subscription status and expiration
+      const isSubscribed = subscriber.subscribed === true;
+      const hasValidEndDate = !subscriber.subscription_end || 
+        new Date(subscriber.subscription_end) > new Date();
       
-      // Direct boolean check
-      if (subscribedValue === true) {
-        isSubbed = true;
-      }
-      // Handle string representations (in case database returns string)
-      else if (typeof subscribedValue === 'string' && subscribedValue === 'true') {
-        isSubbed = true;
-      }
-      // Handle number representations (in case database returns number)
-      else if (typeof subscribedValue === 'number' && subscribedValue === 1) {
-        isSubbed = true;
-      }
+      const finalStatus = isSubscribed && hasValidEndDate;
       
-      console.log('✅ Final subscription status from database:', isSubbed);
-      return isSubbed;
+      console.log('📊 Subscription status:', {
+        subscribed: subscriber.subscribed,
+        subscription_end: subscriber.subscription_end,
+        hasValidEndDate,
+        final_status: finalStatus
+      });
+      
+      return finalStatus;
     } catch (error) {
       console.error('❌ Unexpected error checking subscription:', error);
       return false;
     }
   }
 
-  // Helper method to manually fix subscription status for testing
-  static async fixSubscriptionStatus(email: string, subscribed: boolean = true): Promise<boolean> {
-    try {
-      console.log('🔧 Fixing subscription status for:', email, 'to:', subscribed);
-      
-      const { error } = await supabase
-        .from('subscribers')
-        .upsert({ 
-          email: email,
-          user_email: email,
-          subscribed: subscribed, 
-          subscription_tier: subscribed ? 'Premium' : null,
-          updated_at: new Date().toISOString() 
-        }, {
-          onConflict: 'email'
-        });
-
-      if (error) {
-        console.error('❌ Error fixing subscription status:', error);
-        return false;
-      }
-
-      console.log('✅ Subscription status fixed successfully');
-      return true;
-    } catch (error) {
-      console.error('❌ Unexpected error fixing subscription status:', error);
-      return false;
-    }
-  }
-
-  // Method to verify and refresh subscription status
+  // Remove the manual fix method as we now rely on webhooks
   static async refreshSubscriptionStatus(email: string, session: any): Promise<boolean> {
     console.log('🔄 Refreshing subscription status for:', email);
     
-    // Force a fresh check
-    const status = await this.checkSubscription(email, session);
-    
-    // If still false, try to fix it manually (for testing purposes)
-    if (!status) {
-      console.log('🔧 Attempting manual fix for subscription status');
-      await this.fixSubscriptionStatus(email, true);
-      return true; // Return true after manual fix
-    }
-    
-    return status;
+    // Just do a fresh check - no more manual fixes
+    return await this.checkSubscription(email, session);
   }
 }
