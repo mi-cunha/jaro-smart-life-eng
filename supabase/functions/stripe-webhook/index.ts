@@ -46,10 +46,10 @@ serve(async (req) => {
       return new Response("No signature", { status: 400, headers: corsHeaders });
     }
 
-    // Verify webhook signature
+    // Verify webhook signature using async method
     let event;
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
       console.log(`✅ Event verified: ${event.type} (ID: ${event.id})`);
     } catch (err) {
       console.error(`❌ Signature verification failed: ${err.message}`);
@@ -70,9 +70,18 @@ serve(async (req) => {
           subscription: session.subscription,
           payment_status: session.payment_status,
           customer_email: session.customer_details?.email,
-          metadata: session.metadata
+          metadata: session.metadata,
+          status: session.status
         });
         
+        // Extract email from customer_details or metadata
+        const customerEmail = session.customer_details?.email || session.metadata?.user_email;
+        
+        if (!customerEmail) {
+          console.error("❌ No customer email found");
+          return new Response("Customer email not found", { status: 400, headers: corsHeaders });
+        }
+
         // Check if we have customer and subscription
         if (!session.customer || !session.subscription) {
           console.error("❌ Missing customer or subscription in session:", {
@@ -89,11 +98,6 @@ serve(async (req) => {
           
           console.log(`Customer: ${customer.email}, Subscription: ${subscription.id}, Status: ${subscription.status}`);
           
-          if (!customer.email) {
-            console.error("❌ No email found for customer");
-            return new Response("Customer email not found", { status: 400, headers: corsHeaders });
-          }
-
           // Determine subscription tier based on price
           let subscriptionTier = "Monthly"; // default
           if (subscription.items.data.length > 0) {
@@ -117,17 +121,19 @@ serve(async (req) => {
           const isActiveSubscription = subscription.status === 'active' || subscription.status === 'trialing';
           
           console.log(`🔧 Setting subscription data:`, {
-            email: customer.email,
+            email: customerEmail,
             subscribed: isActiveSubscription,
             subscription_status: subscription.status,
             subscription_end: subscriptionEndDate
           });
           
+          // Try to upsert using email as the conflict resolution
           const { data: updateResult, error } = await supabase
             .from("subscribers")
             .upsert({
-              email: customer.email,
-              user_email: customer.email,
+              email: customerEmail,
+              user_email: customerEmail,
+              user_id: session.metadata?.user_id || null,
               stripe_customer_id: session.customer as string,
               stripe_subscription_id: session.subscription as string,
               stripe_session_id: session.id,
@@ -135,13 +141,16 @@ serve(async (req) => {
               subscription_tier: subscriptionTier,
               subscription_end: subscriptionEndDate,
               updated_at: new Date().toISOString(),
-            }, { onConflict: 'email' });
+            }, { 
+              onConflict: 'email',
+              ignoreDuplicates: false 
+            });
 
           if (error) {
             console.error("❌ Database update error:", error);
             return new Response(`Database error: ${error.message}`, { status: 500, headers: corsHeaders });
           } else {
-            console.log(`✅ Subscription activated for ${customer.email}:`, {
+            console.log(`✅ Subscription activated for ${customerEmail}:`, {
               subscribed: isActiveSubscription,
               tier: subscriptionTier,
               end_date: subscriptionEndDate,
