@@ -23,22 +23,22 @@ export function AchievementsMedals({ medals }: AchievementsMedalsProps) {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-          {medals.map((medalha, index) => (
+          {medals.map((medal, index) => (
             <div
               key={index}
               className={`text-center p-4 rounded-lg border transition-all ${
-                medalha.achieved
+                medal.achieved
                   ? 'bg-neon-green/10 border-neon-green/30'
                   : 'bg-white/5 border-white/10'
               }`}
             >
-              <div className="text-3xl mb-2">{medalha.icon}</div>
+              <div className="text-3xl mb-2">{medal.icon}</div>
               <div className={`text-sm font-medium ${
-                medalha.achieved ? 'text-neon-green' : 'text-white/60'
+                medal.achieved ? 'text-neon-green' : 'text-white/60'
               }`}>
-                {medalha.name}
+                {medal.name}
               </div>
-              {medalha.achieved && (
+              {medal.achieved && (
                 <Badge className="mt-2 bg-neon-green/20 text-neon-green border-neon-green/30 text-xs">
                   Achieved
                 </Badge>

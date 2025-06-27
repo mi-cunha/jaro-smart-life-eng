@@ -79,7 +79,7 @@ const GeneralDashboard = () => {
       title: "Jaro Tea",
       icon: <Coffee className="w-6 h-6 text-neon-green" />,
       value: `${realStats.teaDosesThisMonth}/${realStats.recommendedTeaDoses * 30}`,
-      description: hasQuizData ? "Doses personalizadas este mês" : "Doses consumidas este mês",
+      description: hasQuizData ? "Personalized doses this month" : "Doses consumed this month",
       progress: Math.min(100, (realStats.teaDosesThisMonth / (realStats.recommendedTeaDoses * 30)) * 100),
       link: "/cha-jaro"
     },
@@ -87,15 +87,15 @@ const GeneralDashboard = () => {
       title: "Habits",
       icon: <CheckCircle className="w-6 h-6 text-neon-green" />,
       value: `${Math.round(realStats.habitCompletionRate)}%`,
-      description: "Taxa de conclusão mensal",
+      description: "Monthly completion rate",
       progress: Math.round(realStats.habitCompletionRate),
       link: "/habit-tracker"
     },
     {
       title: "Weight",
       icon: <Scale className="w-6 h-6 text-neon-green" />,
-      value: pesoAtual && pesoMeta ? `${formatWeight(Math.abs(currentWeightDisplay - goalWeightDisplay), false)} ${unit} restante` : "Definir meta",
-      description: "Para alcançar seu objetivo",
+      value: pesoAtual && pesoMeta ? `${formatWeight(Math.abs(currentWeightDisplay - goalWeightDisplay), false)} ${unit} remaining` : "Set goal",
+      description: "To reach your objective",
       progress: progressoPeso,
       link: "/progresso-peso"
     },
@@ -103,7 +103,7 @@ const GeneralDashboard = () => {
       title: "Favorited Recipes",
       icon: <Heart className="w-6 h-6 text-neon-green" />,
       value: `${realStats.favoritedRecipesCount}`,
-      description: hasQuizData ? "Receitas favoritas personalizadas" : "Receitas marcadas como favoritas",
+      description: hasQuizData ? "Personalized favorite recipes" : "Recipes marked as favorites",
       progress: Math.min(100, (realStats.favoritedRecipesCount / 10) * 100),
       link: "/gerador-receitas"
     },
@@ -111,15 +111,15 @@ const GeneralDashboard = () => {
       title: "Shopping",
       icon: <ShoppingCart className="w-6 h-6 text-neon-green" />,
       value: `$${realStats.monthlySpending.toFixed(2)}`,
-      description: "Gastos estimados mensais",
+      description: "Estimated monthly expenses",
       progress: 0,
       link: "/lista-compras"
     },
     {
       title: "Achievements",
       icon: <Trophy className="w-6 h-6 text-neon-green" />,
-      value: `${Math.floor(progressoPeso / 15)} medalhas`,
-      description: "Objetivos alcançados",
+      value: `${Math.floor(progressoPeso / 15)} medals`,
+      description: "Objectives achieved",
       progress: 0,
       link: "#"
     }
@@ -132,43 +132,43 @@ const GeneralDashboard = () => {
     calorias: receita.calorias || 300
   }));
 
-  // Achievements based on real user data
+  // Real achievements based on user data
   const medalhas = [
-    { name: "7 Dias de Chá", icon: "🏅", achieved: realStats.teaDosesThisMonth >= 7 },
-    { name: "30 Dias de Hábitos", icon: "🏆", achieved: realStats.habitCompletionRate >= 80 },
-    { name: "Meta de Peso", icon: "🎯", achieved: progressoPeso >= 100 },
-    { name: "Mestre das Receitas", icon: "👨‍🍳", achieved: realStats.favoritedRecipesCount >= 5 },
-    { name: "Comprador Inteligente", icon: "🛒", achieved: allItens.length >= 20 },
-    { name: "Série de Ferro", icon: "💪", achieved: realStats.habitCompletionRate >= 90 },
-    { name: "Campeão da Saúde", icon: "❤️", achieved: progressoPeso >= 50 && realStats.habitCompletionRate >= 70 }
+    { name: "7 Days of Tea", icon: "🏅", achieved: realStats.teaDosesThisMonth >= 7 },
+    { name: "30 Days of Habits", icon: "🏆", achieved: realStats.habitCompletionRate >= 80 },
+    { name: "Weight Goal", icon: "🎯", achieved: progressoPeso >= 100 },
+    { name: "Recipe Master", icon: "👨‍🍳", achieved: realStats.favoritedRecipesCount >= 5 },
+    { name: "Smart Shopper", icon: "🛒", achieved: allItens.length >= 20 },
+    { name: "Iron Streak", icon: "💪", achieved: realStats.habitCompletionRate >= 90 },
+    { name: "Health Champion", icon: "❤️", achieved: progressoPeso >= 50 && realStats.habitCompletionRate >= 70 }
   ];
 
   const improvementSuggestions = [];
   if (realStats.habitCompletionRate < 80) {
-    improvementSuggestions.push("Sua taxa de conclusão de hábitos diminuiu esta semana. Tente definir lembretes durante as refeições!");
+    improvementSuggestions.push("Your habit completion rate has decreased this week. Try setting reminders during meals!");
   }
   if (realStats.favoritedRecipesCount < 5) {
-    improvementSuggestions.push("Considere favoritar mais receitas para facilitar o acesso às suas favoritas.");
+    improvementSuggestions.push("Consider favoriting more recipes to make it easier to access your favorites.");
   }
   if (progressoPeso < 50 && pesoAtual && pesoMeta) {
-    improvementSuggestions.push("Você está se aproximando de sua meta de peso. Considere aumentar a hidratação para acelerar o metabolismo.");
+    improvementSuggestions.push("You're approaching your weight goal. Consider increasing hydration to boost metabolism.");
   }
   if (improvementSuggestions.length === 0) {
-    improvementSuggestions.push("Ótimo progresso! Continue mantendo sua rotina atual para obter resultados ideais.");
+    improvementSuggestions.push("Great progress! Keep maintaining your current routine for optimal results.");
   }
 
   if (loadingStats) {
     return (
-      <Layout title="Dashboard Geral" breadcrumb={["Home", "Dashboard Geral"]}>
+      <Layout title="General Dashboard" breadcrumb={["Home", "General Dashboard"]}>
         <div className="flex items-center justify-center min-h-64">
-          <div className="text-white">Carregando dados do dashboard...</div>
+          <div className="text-white">Loading dashboard data...</div>
         </div>
       </Layout>
     );
   }
 
   return (
-    <Layout title="Dashboard Geral" breadcrumb={["Home", "Dashboard Geral"]}>
+    <Layout title="General Dashboard" breadcrumb={["Home", "General Dashboard"]}>
       <div className="space-y-8">
         {/* Personalized Insights - New Section */}
         <PersonalizedInsights />
