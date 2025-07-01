@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { HabitosService } from '@/services/habitosService';
 import { toast } from 'sonner';
@@ -79,16 +78,16 @@ export function useHabitos() {
 
       if (error) {
         console.error('❌ useHabitos: Erro ao marcar hábito:', error);
-        toast.error('Erro ao atualizar hábito');
+        toast.error('Error updating habit');
         return;
       }
 
       // Recarregar dados após sucesso
       await carregarHabitos();
-      toast.success(concluido ? 'Hábito marcado como concluído!' : 'Hábito desmarcado');
+      toast.success(concluido ? 'Habit marked as completed!' : 'Habit unmarked');
     } catch (error) {
       console.error('❌ useHabitos: Erro inesperado ao marcar hábito:', error);
-      toast.error('Erro ao atualizar hábito');
+      toast.error('Error updating habit');
     }
   };
 

@@ -15,7 +15,7 @@ import { useSupabasePerfil } from "@/hooks/useSupabasePerfil";
 
 const Index = () => {
   const [showWelcome, setShowWelcome] = useState(false);
-  const { getHabitosHoje, getProgressoHabitos, loading: habitosLoading } = useHabitos();
+  const { getHabitosHoje, getProgressoHabitos, loading: habitosLoading, carregarHabitos } = useHabitos();
   const { pesoAtual, pesoMeta, getProgressoPeso, loading: pesoLoading } = usePeso();
   const { perfil } = useSupabasePerfil();
 
@@ -26,12 +26,19 @@ const Index = () => {
     }
   }, []);
 
+  // Force refresh habits data when component mounts or when habits change
+  useEffect(() => {
+    if (!habitosLoading) {
+      carregarHabitos();
+    }
+  }, [carregarHabitos]);
+
   const handleCloseWelcome = () => {
     setShowWelcome(false);
     localStorage.setItem('hasSeenWelcome', 'true');
   };
 
-  // Get real data from Supabase
+  // Get real data from Supabase - these will update when carregarHabitos is called
   const habitosHoje = getHabitosHoje();
   const progressoHabitos = getProgressoHabitos();
   const progressoPeso = getProgressoPeso();

@@ -9,16 +9,16 @@ interface AuthTabsProps {
 export function AuthTabs({ signUpForm, signInForm }: AuthTabsProps) {
   return (
     <Tabs defaultValue="signup" className="w-full">
-      <TabsList className="grid w-full grid-cols-2 bg-dark-bg border border-white/10 h-11">
+      <TabsList className="grid w-full grid-cols-2 bg-dark-bg border border-white/10 h-12">
         <TabsTrigger 
           value="login" 
-          className="data-[state=active]:bg-neon-green data-[state=active]:text-black text-white text-sm sm:text-base"
+          className="h-full flex items-center justify-center data-[state=active]:bg-neon-green data-[state=active]:text-black text-white text-sm sm:text-base px-4 py-2 transition-all duration-200"
         >
           Sign In
         </TabsTrigger>
         <TabsTrigger 
           value="signup" 
-          className="data-[state=active]:bg-neon-green data-[state=active]:text-black text-white text-sm sm:text-base"
+          className="h-full flex items-center justify-center data-[state=active]:bg-neon-green data-[state=active]:text-black text-white text-sm sm:text-base px-4 py-2 transition-all duration-200"
         >
           Sign Up
         </TabsTrigger>
