@@ -40,9 +40,9 @@ const Auth = () => {
         return;
       }
 
-      // If user is subscribed, go to dashboard
+      // If user is subscribed, go to home page instead of dashboard
       if (isSubscribed === true) {
-        console.log('✅ User is subscribed, redirecting to dashboard');
+        console.log('✅ User is subscribed, redirecting to home');
         navigate('/');
         return;
       }

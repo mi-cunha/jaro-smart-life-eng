@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { PesoService } from '@/services/pesoService';
 import { PerfilService } from '@/services/perfilService';
@@ -41,7 +40,7 @@ export function usePeso() {
         hasData: !!perfilRes.data 
       });
 
-      // Handle weight history
+      // Handle weight history - PRIORITY: Use most recent weight from history
       if (historicoRes.error) {
         console.error('❌ Erro ao carregar histórico:', historicoRes.error);
         setHistoricoPeso([]);
@@ -49,11 +48,15 @@ export function usePeso() {
         const historico = historicoRes.data || [];
         setHistoricoPeso(historico);
         
-        // Set current weight from latest entry
+        // ALWAYS use the most recent weight from history as current weight
         if (historico.length > 0) {
-          const latestWeight = historico[0].peso;
+          // Sort by date descending to get the most recent
+          const sortedHistorico = historico.sort((a, b) => 
+            new Date(b.data).getTime() - new Date(a.data).getTime()
+          );
+          const latestWeight = sortedHistorico[0].peso;
           setPesoAtual(latestWeight);
-          console.log('✅ Peso atual definido do histórico:', latestWeight);
+          console.log('✅ Peso atual definido do histórico mais recente:', latestWeight);
         }
       }
 
@@ -63,7 +66,8 @@ export function usePeso() {
         // Set default values when profile fails to load
         setPesoMeta(70.0);
         setPesoInicial(78.0);
-        if (!pesoAtual && (!historicoRes.data || historicoRes.data.length === 0)) {
+        // Only set current weight from profile if no history exists
+        if (!historicoRes.data || historicoRes.data.length === 0) {
           setPesoAtual(78.0);
           console.log('ℹ️ Usando peso atual padrão: 78.0');
         }
@@ -78,20 +82,17 @@ export function usePeso() {
         setPesoInicial(initialWeight);
         console.log('✅ Peso inicial definido do perfil:', initialWeight);
         
-        // If no weight history and profile has current weight, use it
+        // ONLY use profile current weight if no weight history exists
         if ((!historicoRes.data || historicoRes.data.length === 0) && perfilRes.data.peso_atual) {
           setPesoAtual(perfilRes.data.peso_atual);
-          console.log('✅ Peso atual definido do perfil:', perfilRes.data.peso_atual);
-        } else if (!pesoAtual && (!historicoRes.data || historicoRes.data.length === 0)) {
-          // Fallback to initial weight if no data anywhere
-          setPesoAtual(initialWeight);
-          console.log('ℹ️ Usando peso inicial como peso atual:', initialWeight);
+          console.log('✅ Peso atual definido do perfil (sem histórico):', perfilRes.data.peso_atual);
         }
       } else {
         // No profile data, set defaults
         setPesoMeta(70.0);
         setPesoInicial(78.0);
-        if (!pesoAtual && (!historicoRes.data || historicoRes.data.length === 0)) {
+        // Only set default current weight if no history exists
+        if (!historicoRes.data || historicoRes.data.length === 0) {
           setPesoAtual(78.0);
           console.log('ℹ️ Usando valores padrão - peso: 78.0, meta: 70.0, inicial: 78.0');
         }
@@ -99,10 +100,16 @@ export function usePeso() {
     } catch (error) {
       console.error('❌ Erro inesperado ao carregar dados:', error);
       toast.error('Erro ao carregar dados de peso');
-      // Set fallback values
-      setPesoAtual(78.0);
-      setPesoMeta(70.0);
-      setPesoInicial(78.0);
+      // Set fallback values only if no current weight is set
+      if (!pesoAtual) {
+        setPesoAtual(78.0);
+      }
+      if (!pesoMeta) {
+        setPesoMeta(70.0);
+      }
+      if (!pesoInicial) {
+        setPesoInicial(78.0);
+      }
       setHistoricoPeso([]);
     } finally {
       setLoading(false);
