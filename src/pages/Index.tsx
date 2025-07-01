@@ -10,13 +10,13 @@ import { UpcomingMeals } from "@/components/Dashboard/UpcomingMeals";
 import { CallToAction } from "@/components/Dashboard/CallToAction";
 import { useState, useEffect } from "react";
 import { useHabitos } from "@/hooks/useHabitos";
-import { usePeso } from "@/hooks/usePeso";
+import { usePesoContext } from "@/contexts/PesoContext";
 import { useSupabasePerfil } from "@/hooks/useSupabasePerfil";
 
 const Index = () => {
   const [showWelcome, setShowWelcome] = useState(false);
-  const { getHabitosHoje, getProgressoHabitos, loading: habitosLoading, carregarHabitos } = useHabitos();
-  const { pesoAtual, pesoMeta, getProgressoPeso, loading: pesoLoading } = usePeso();
+  const { getHabitosHoje, getProgressoHabitos, loading: habitosLoading } = useHabitos();
+  const { pesoAtual, pesoMeta, getProgressoPeso, loading: pesoLoading } = usePesoContext();
   const { perfil } = useSupabasePerfil();
 
   useEffect(() => {
@@ -36,9 +36,15 @@ const Index = () => {
   const progressoHabitos = getProgressoHabitos();
   const progressoPeso = getProgressoPeso();
 
-  // Use real weight data from hooks - pesoMeta comes from usePeso hook
+  // Use real weight data from context - guaranteed to be the most recent
   const currentWeight = pesoAtual || 0;
   const targetWeight = pesoMeta || 0;
+
+  console.log('🏠 Index - Using weight from context:', {
+    currentWeight,
+    targetWeight,
+    progressoPeso
+  });
 
   // Transform habits data for TodayHabits component - show empty state if no habits
   const habitosFormatados = habitosHoje.length > 0 ? habitosHoje.map(habito => ({

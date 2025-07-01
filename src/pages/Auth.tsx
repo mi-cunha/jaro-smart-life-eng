@@ -32,18 +32,18 @@ const Auth = () => {
 
       const storedPlan = localStorage.getItem('selectedPlan');
       
-      // If user has a stored plan or plan from URL, always go to pricing
-      if (storedPlan || planFromUrl) {
-        const targetPlan = planFromUrl || storedPlan;
-        console.log('✅ User has plan context, redirecting to pricing:', targetPlan);
-        navigate(`/pricing?plan=${encodeURIComponent(targetPlan)}`);
+      // SIMPLIFIED LOGIC: If user is subscribed, always go to home
+      if (isSubscribed === true) {
+        console.log('✅ User is subscribed, redirecting to HOME');
+        navigate('/');
         return;
       }
 
-      // If user is subscribed, go to home page instead of dashboard
-      if (isSubscribed === true) {
-        console.log('✅ User is subscribed, redirecting to home');
-        navigate('/');
+      // If user has a stored plan or plan from URL, go to pricing
+      if (storedPlan || planFromUrl) {
+        const targetPlan = planFromUrl || storedPlan;
+        console.log('💳 User has plan context, redirecting to pricing:', targetPlan);
+        navigate(`/pricing?plan=${encodeURIComponent(targetPlan)}`);
         return;
       }
 

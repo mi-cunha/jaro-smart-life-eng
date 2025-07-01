@@ -1,226 +1,219 @@
 
 import { Layout } from "@/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ProgressCard } from "@/components/ProgressCard";
+import { ProgressChart } from "@/components/ProgressChart";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import { WeightUnitToggle } from "@/components/WeightUnitToggle";
-import { Scale, Target, TrendingUp, Calendar } from "lucide-react";
-import { useState } from "react";
-import { usePeso } from "@/hooks/usePeso";
+import { usePesoContext } from "@/contexts/PesoContext";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
-import { useAuth } from "@/hooks/useAuth";
-import { useSupabasePerfil } from "@/hooks/useSupabasePerfil";
-import { toast } from "sonner";
+import { useState } from "react";
+import { Scale, Target, Plus } from "lucide-react";
 
 const ProgressoPeso = () => {
   const { 
     pesoAtual, 
     pesoMeta, 
-    pesoInicial,
-    historicoPeso, 
+    getProgressoPeso, 
+    getDadosGrafico, 
     adicionarPeso, 
     definirMeta, 
-    getProgressoPeso, 
-    getDadosGrafico 
-  } = usePeso();
+    loading 
+  } = usePesoContext();
   
-  const { convertToDisplayWeight, convertFromDisplayWeight, formatWeight, unit } = useWeightUnit();
-  const { user } = useAuth();
-  const { perfil } = useSupabasePerfil();
-  
+  const { formatWeight, convertToDisplayWeight, convertFromDisplayWeight } = useWeightUnit();
   const [novoPeso, setNovoPeso] = useState("");
-  const [novaMeta, setNovaMeta] = useState("");
   const [observacoes, setObservacoes] = useState("");
+  const [novaMeta, setNovaMeta] = useState("");
+  const [adicionandoPeso, setAdicionandoPeso] = useState(false);
+  const [definindoMeta, setDefinindoMeta] = useState(false);
 
   const handleAdicionarPeso = async () => {
-    if (!novoPeso || isNaN(Number(novoPeso))) {
-      toast.error("Please enter a valid weight");
-      return;
-    }
-
-    const pesoConvertido = convertFromDisplayWeight(Number(novoPeso));
-    const sucesso = await adicionarPeso(pesoConvertido, observacoes);
+    if (!novoPeso) return;
     
-    if (sucesso) {
-      setNovoPeso("");
-      setObservacoes("");
-      toast.success("Weight added successfully!");
-    } else {
-      toast.error("Error adding weight");
+    setAdicionandoPeso(true);
+    try {
+      const pesoEmKg = convertFromDisplayWeight(parseFloat(novoPeso));
+      const sucesso = await adicionarPeso(pesoEmKg, observacoes);
+      
+      if (sucesso) {
+        setNovoPeso("");
+        setObservacoes("");
+      }
+    } finally {
+      setAdicionandoPeso(false);
     }
   };
 
   const handleDefinirMeta = async () => {
-    if (!novaMeta || isNaN(Number(novaMeta))) {
-      toast.error("Please enter a valid goal weight");
-      return;
-    }
-
-    const metaConvertida = convertFromDisplayWeight(Number(novaMeta));
-    const sucesso = await definirMeta(metaConvertida);
+    if (!novaMeta) return;
     
-    if (sucesso) {
-      setNovaMeta("");
-      toast.success("Goal weight set successfully!");
-    } else {
-      toast.error("Error setting goal weight");
+    setDefinindoMeta(true);
+    try {
+      const metaEmKg = convertFromDisplayWeight(parseFloat(novaMeta));
+      const sucesso = await definirMeta(metaEmKg);
+      
+      if (sucesso) {
+        setNovaMeta("");
+      }
+    } finally {
+      setDefinindoMeta(false);
     }
   };
 
   const progressoPeso = getProgressoPeso();
+  const dadosGrafico = getDadosGrafico();
   
-  // Use initial weight from usePeso hook (which gets it from profile)
-  const initialWeight = pesoInicial ? convertToDisplayWeight(pesoInicial) : 0;
+  // Convert weights for display
   const currentWeight = pesoAtual ? convertToDisplayWeight(pesoAtual) : 0;
   const goalWeight = pesoMeta ? convertToDisplayWeight(pesoMeta) : 0;
-  
-  // Calculate weight lost and remaining
-  const weightLost = Math.max(0, initialWeight - currentWeight);
-  const weightRemaining = Math.max(0, currentWeight - goalWeight);
+  const weightDifference = Math.abs(currentWeight - goalWeight);
+
+  if (loading) {
+    return (
+      <Layout title="Weight Progress" breadcrumb={["Weight Progress"]}>
+        <div className="flex items-center justify-center min-h-64">
+          <div className="text-white">Loading weight data...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
-    <Layout title="Weight Progress" breadcrumb={["Home", "Weight Progress"]}>
+    <Layout title="Weight Progress" breadcrumb={["Weight Progress"]}>
       <div className="space-y-8">
-        
-        {/* Weight Unit Toggle */}
-        <div className="flex justify-end">
+        {/* Header with Weight Unit Toggle */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Weight Progress</h1>
+            <p className="text-white/60">Track your weight journey and achieve your goals</p>
+          </div>
           <WeightUnitToggle />
         </div>
 
-        {/* Stats Cards - 2x2 Layout */}
-        <div className="grid grid-cols-2 gap-4 md:gap-6">
-          <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-4 md:p-6 text-center">
-              <Scale className="w-6 h-6 md:w-8 md:h-8 text-neon-green mx-auto mb-2 md:mb-3" />
-              <div className="text-lg md:text-2xl font-bold text-neon-green">
-                {formatWeight(initialWeight, false)} {unit}
-              </div>
-              <div className="text-xs md:text-sm text-white/70">Initial Weight</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-4 md:p-6 text-center">
-              <Target className="w-6 h-6 md:w-8 md:h-8 text-purple-400 mx-auto mb-2 md:mb-3" />
-              <div className="text-lg md:text-2xl font-bold text-purple-400">
-                {goalWeight ? `${formatWeight(goalWeight, false)} ${unit}` : "Not set"}
-              </div>
-              <div className="text-xs md:text-sm text-white/70">Goal Weight</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-4 md:p-6 text-center">
-              <TrendingUp className="w-6 h-6 md:w-8 md:h-8 text-blue-400 mx-auto mb-2 md:mb-3" />
-              <div className="text-lg md:text-2xl font-bold text-blue-400">
-                {formatWeight(weightLost, false)} {unit}
-              </div>
-              <div className="text-xs md:text-sm text-white/70">Weight Lost</div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-dark-bg border-white/10">
-            <CardContent className="p-4 md:p-6 text-center">
-              <Calendar className="w-6 h-6 md:w-8 md:h-8 text-orange-400 mx-auto mb-2 md:mb-3" />
-              <div className="text-lg md:text-2xl font-bold text-orange-400">
-                {formatWeight(weightRemaining, false)} {unit}
-              </div>
-              <div className="text-xs md:text-sm text-white/70">Remaining</div>
-            </CardContent>
-          </Card>
+        {/* Progress Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <ProgressCard
+            title="Current Weight"
+            value={formatWeight(currentWeight)}
+            icon={Scale}
+            color="bg-neon-green"
+          />
+          <ProgressCard
+            title="Goal Weight"
+            value={formatWeight(goalWeight)}
+            icon={Target}
+            color="bg-blue-500"
+          />
+          <ProgressCard
+            title="Progress"
+            value={`${progressoPeso.toFixed(1)}%`}
+            icon={Plus}
+            color="bg-purple-500"
+          />
         </div>
 
-        {/* Progress Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <Card className="bg-dark-bg border-white/10">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Target className="w-5 h-5 text-neon-green" />
-                Progress to Goal
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Progress value={progressoPeso} className="h-4" />
-              <div className="text-center">
-                <span className="text-neon-green font-semibold text-2xl">
-                  {progressoPeso.toFixed(1)}%
-                </span>
-                <p className="text-white/60 text-sm mt-1">
-                  {weightRemaining > 0 ? `${formatWeight(weightRemaining, false)} ${unit} to go` : 'Goal achieved!'}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Progress Chart */}
+        <Card className="bg-dark-bg border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white">Weight Progress Chart</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProgressChart data={dadosGrafico} />
+          </CardContent>
+        </Card>
 
-          <Card className="bg-dark-bg border-white/10">
-            <CardHeader>
-              <CardTitle className="text-white">Add New Weight</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="peso" className="text-white">Weight ({unit})</Label>
+        {/* Add New Weight */}
+        <Card className="bg-dark-bg border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Plus className="w-5 h-5 text-neon-green" />
+              Add New Weight Entry
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="peso" className="text-white">Weight</Label>
                 <Input
                   id="peso"
                   type="number"
                   step="0.1"
+                  placeholder={`Enter weight`}
                   value={novoPeso}
                   onChange={(e) => setNovoPeso(e.target.value)}
-                  placeholder={`Enter weight in ${unit}`}
-                  className="bg-white/5 border-white/20 text-white"
+                  className="bg-white/10 border-white/20 text-white"
                 />
               </div>
-              <div>
-                <Label htmlFor="observacoes" className="text-white">Notes (optional)</Label>
+              <div className="space-y-2">
+                <Label htmlFor="observacoes" className="text-white">Notes (Optional)</Label>
                 <Textarea
                   id="observacoes"
+                  placeholder="Add any notes about this weight entry..."
                   value={observacoes}
                   onChange={(e) => setObservacoes(e.target.value)}
-                  placeholder="Add any notes about your progress..."
-                  className="bg-white/5 border-white/20 text-white"
+                  className="bg-white/10 border-white/20 text-white"
                 />
               </div>
-              <Button 
-                onClick={handleAdicionarPeso}
-                className="w-full bg-neon-green hover:bg-neon-green/80 text-black"
-              >
-                Add Weight
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            <Button 
+              onClick={handleAdicionarPeso} 
+              disabled={!novoPeso || adicionandoPeso}
+              className="bg-neon-green text-dark-bg hover:bg-neon-green/90"
+            >
+              {adicionandoPeso ? "Adding..." : "Add Weight Entry"}
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Set Goal Weight */}
         <Card className="bg-dark-bg border-white/10">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
-              <Target className="w-5 h-5 text-purple-400" />
+              <Target className="w-5 h-5 text-blue-400" />
               Set Goal Weight
             </CardTitle>
           </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="meta" className="text-white">Goal Weight</Label>
+              <Input
+                id="meta"
+                type="number"
+                step="0.1"
+                placeholder={`Enter your goal weight`}
+                value={novaMeta}
+                onChange={(e) => setNovaMeta(e.target.value)}
+                className="bg-white/10 border-white/20 text-white max-w-xs"
+              />
+            </div>
+            <Button 
+              onClick={handleDefinirMeta} 
+              disabled={!novaMeta || definindoMeta}
+              className="bg-blue-500 text-white hover:bg-blue-600"
+            >
+              {definindoMeta ? "Setting..." : "Set Goal"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Statistics Summary */}
+        <Card className="bg-dark-bg border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white">Summary</CardTitle>
+          </CardHeader>
           <CardContent>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <Label htmlFor="meta" className="text-white">Goal Weight ({unit})</Label>
-                <Input
-                  id="meta"
-                  type="number"
-                  step="0.1"
-                  value={novaMeta}
-                  onChange={(e) => setNovaMeta(e.target.value)}
-                  placeholder={`Enter goal weight in ${unit}`}
-                  className="bg-white/5 border-white/20 text-white"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white/80">
+              <div>
+                <p className="text-sm text-white/60">Weight to Goal</p>
+                <p className="text-lg font-semibold">{formatWeight(weightDifference, false)} remaining</p>
               </div>
-              <div className="flex items-end">
-                <Button 
-                  onClick={handleDefinirMeta}
-                  className="bg-purple-500 hover:bg-purple-500/80 text-white"
-                >
-                  Set Goal
-                </Button>
+              <div>
+                <p className="text-sm text-white/60">Progress</p>
+                <p className="text-lg font-semibold">{progressoPeso.toFixed(1)}% completed</p>
               </div>
             </div>
           </CardContent>
