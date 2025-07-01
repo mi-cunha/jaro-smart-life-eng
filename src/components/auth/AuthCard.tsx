@@ -11,9 +11,7 @@ export function AuthCard({
         <div className="text-center">
           <JaroSmartLogo size="lg" className="mx-auto mb-6" />
           <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Welcome back</h1>
-          <p className="text-white/60 text-sm sm:text-base">
-            Entre na sua conta ou crie uma nova
-          </p>
+          <p className="text-white/60 text-sm sm:text-base">Sign in to your account or create a new one</p>
         </div>
         
         <Card className="bg-dark-bg/90 border-white/10 backdrop-blur-sm">
