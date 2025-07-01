@@ -1,6 +1,6 @@
 
 import { Layout } from "@/components/Layout";
-import { ProgressCard } from "@/components/ProgressCard";
+import { SimpleProgressCard } from "@/components/SimpleProgressCard";
 import { ProgressChart } from "@/components/ProgressChart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -96,19 +96,19 @@ const ProgressoPeso = () => {
 
         {/* Progress Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <ProgressCard
+          <SimpleProgressCard
             title="Current Weight"
             value={formatWeight(currentWeight)}
             icon={<Scale className="w-6 h-6" />}
             color="bg-neon-green"
           />
-          <ProgressCard
+          <SimpleProgressCard
             title="Goal Weight"
             value={formatWeight(goalWeight)}
             icon={<Target className="w-6 h-6" />}
             color="bg-blue-500"
           />
-          <ProgressCard
+          <SimpleProgressCard
             title="Progress"
             value={`${progressoPeso.toFixed(1)}%`}
             icon={<Plus className="w-6 h-6" />}
