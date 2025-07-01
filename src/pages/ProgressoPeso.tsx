@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { WeightUnitToggle } from "@/components/WeightUnitToggle";
 import { usePesoContext } from "@/contexts/PesoContext";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
@@ -26,7 +25,6 @@ const ProgressoPeso = () => {
   
   const { formatWeight, convertToDisplayWeight, convertFromDisplayWeight } = useWeightUnit();
   const [novoPeso, setNovoPeso] = useState("");
-  const [observacoes, setObservacoes] = useState("");
   const [novaMeta, setNovaMeta] = useState("");
   const [adicionandoPeso, setAdicionandoPeso] = useState(false);
   const [definindoMeta, setDefinindoMeta] = useState(false);
@@ -37,11 +35,10 @@ const ProgressoPeso = () => {
     setAdicionandoPeso(true);
     try {
       const pesoEmKg = convertFromDisplayWeight(parseFloat(novoPeso));
-      const sucesso = await adicionarPeso(pesoEmKg, observacoes);
+      const sucesso = await adicionarPeso(pesoEmKg);
       
       if (sucesso) {
         setNovoPeso("");
-        setObservacoes("");
       }
     } finally {
       setAdicionandoPeso(false);
@@ -132,29 +129,17 @@ const ProgressoPeso = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="peso" className="text-white">Weight</Label>
-                <Input
-                  id="peso"
-                  type="number"
-                  step="0.1"
-                  placeholder={`Enter weight`}
-                  value={novoPeso}
-                  onChange={(e) => setNovoPeso(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="observacoes" className="text-white">Notes (Optional)</Label>
-                <Textarea
-                  id="observacoes"
-                  placeholder="Add any notes about this weight entry..."
-                  value={observacoes}
-                  onChange={(e) => setObservacoes(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="peso" className="text-white">Weight</Label>
+              <Input
+                id="peso"
+                type="number"
+                step="0.1"
+                placeholder={`Enter weight`}
+                value={novoPeso}
+                onChange={(e) => setNovoPeso(e.target.value)}
+                className="bg-white/10 border-white/20 text-white max-w-xs"
+              />
             </div>
             <Button 
               onClick={handleAdicionarPeso} 
@@ -194,29 +179,6 @@ const ProgressoPeso = () => {
             >
               {definindoMeta ? "Setting..." : "Set Goal"}
             </Button>
-          </CardContent>
-        </Card>
-
-        {/* Statistics Summary */}
-        <Card className="bg-dark-bg border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white">Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white/80">
-              <div>
-                <p className="text-sm text-white/60">Weight to Goal</p>
-                <p className="text-lg font-semibold">{formatWeight(weightDifference, false)} remaining</p>
-              </div>
-              <div>
-                <p className="text-sm text-white/60">Weight Lost</p>
-                <p className="text-lg font-semibold">{formatWeight(weightLossDisplay, false)} lost</p>
-              </div>
-              <div>
-                <p className="text-sm text-white/60">Progress</p>
-                <p className="text-lg font-semibold">{progressoPeso.toFixed(1)}% completed</p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

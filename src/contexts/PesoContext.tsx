@@ -68,7 +68,7 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
         // ALWAYS use the most recent weight from history as current weight
         if (historico.length > 0) {
           // Sort by date descending to get the most recent
-          const sortedHistorico = historico.sort((a, b) => 
+          const sortedHistorico = [...historico].sort((a, b) => 
             new Date(b.data).getTime() - new Date(a.data).getTime()
           );
           const latestWeight = sortedHistorico[0].peso;
@@ -82,11 +82,19 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
         console.error('❌ PesoContext - Erro ao carregar perfil:', perfilRes.error);
         // Set default values when profile fails to load
         setPesoMeta(70.0);
-        setPesoInicial(78.0);
-        // Only set current weight from profile if no history exists
+        
+        // Only set initial weight and current weight if no history exists
         if (!historicoRes.data || historicoRes.data.length === 0) {
+          setPesoInicial(78.0);
           setPesoAtual(78.0);
-          console.log('ℹ️ PesoContext - Usando peso atual padrão: 78.0');
+          console.log('ℹ️ PesoContext - Usando valores padrão sem histórico');
+        } else {
+          // Use the oldest weight from history as initial weight
+          const sortedHistorico = [...historicoRes.data].sort((a, b) => 
+            new Date(a.data).getTime() - new Date(b.data).getTime()
+          );
+          setPesoInicial(sortedHistorico[0].peso);
+          console.log('✅ PesoContext - Peso inicial definido do histórico mais antigo:', sortedHistorico[0].peso);
         }
       } else if (perfilRes.data) {
         // Use peso_objetivo as target weight
@@ -107,11 +115,19 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
       } else {
         // No profile data, set defaults
         setPesoMeta(70.0);
-        setPesoInicial(78.0);
-        // Only set default current weight if no history exists
+        
+        // Only set default values if no history exists
         if (!historicoRes.data || historicoRes.data.length === 0) {
+          setPesoInicial(78.0);
           setPesoAtual(78.0);
-          console.log('ℹ️ PesoContext - Usando valores padrão - peso: 78.0, meta: 70.0, inicial: 78.0');
+          console.log('ℹ️ PesoContext - Usando valores padrão completos');
+        } else {
+          // Use the oldest weight from history as initial weight
+          const sortedHistorico = [...historicoRes.data].sort((a, b) => 
+            new Date(a.data).getTime() - new Date(b.data).getTime()
+          );
+          setPesoInicial(sortedHistorico[0].peso);
+          console.log('✅ PesoContext - Peso inicial definido do histórico mais antigo:', sortedHistorico[0].peso);
         }
       }
     } catch (error) {
@@ -147,6 +163,10 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
+      // Immediately update the current weight to the new value
+      setPesoAtual(peso);
+      console.log('✅ PesoContext - Peso atual atualizado imediatamente:', peso);
+      
       // Reload data after successful addition to sync across all components
       await carregarDados();
       toast.success('Registro de peso adicionado com sucesso!');
@@ -185,7 +205,7 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
     // If current weight is higher than initial weight, return 0
     if (pesoAtual > pesoInicial) return 0;
     
-    // Calculate progress using the new formula: ((pesoInicial - pesoAtual) / (pesoInicial - pesoMeta)) * 100
+    // Calculate progress using the formula: ((pesoInicial - pesoAtual) / (pesoInicial - pesoMeta)) * 100
     const totalWeightToLose = pesoInicial - pesoMeta;
     const weightLostSoFar = pesoInicial - pesoAtual;
     
