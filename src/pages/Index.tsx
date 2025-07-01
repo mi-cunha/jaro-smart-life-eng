@@ -26,19 +26,12 @@ const Index = () => {
     }
   }, []);
 
-  // Force refresh habits data when component mounts or when habits change
-  useEffect(() => {
-    if (!habitosLoading) {
-      carregarHabitos();
-    }
-  }, [carregarHabitos]);
-
   const handleCloseWelcome = () => {
     setShowWelcome(false);
     localStorage.setItem('hasSeenWelcome', 'true');
   };
 
-  // Get real data from Supabase - these will update when carregarHabitos is called
+  // Get real data from Supabase
   const habitosHoje = getHabitosHoje();
   const progressoHabitos = getProgressoHabitos();
   const progressoPeso = getProgressoPeso();

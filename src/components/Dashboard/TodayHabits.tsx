@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle } from "lucide-react";
 import { useHabitos } from "@/hooks/useHabitos";
-import { useEffect } from "react";
 
 interface Habit {
   nome: string;
@@ -15,17 +14,13 @@ interface TodayHabitsProps {
 }
 
 export function TodayHabits({ habitos: initialHabitos }: TodayHabitsProps) {
-  const { getHabitosHoje, marcarHabito, loading, carregarHabitos } = useHabitos();
+  const { getHabitosHoje, marcarHabito, loading } = useHabitos();
   
   // Use real-time data from the hook
   const habitosAtuais = getHabitosHoje();
 
   const handleToggleHabito = async (habitoId: string, concluido: boolean) => {
     await marcarHabito(habitoId, !concluido);
-    // Force refresh to ensure UI updates immediately
-    setTimeout(() => {
-      carregarHabitos();
-    }, 500);
   };
 
   return (
