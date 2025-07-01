@@ -15,6 +15,8 @@ export class PerfilService {
         .from('perfil_usuario')
         .select('*')
         .eq('user_email', user.email)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (error) {

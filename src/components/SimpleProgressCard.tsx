@@ -15,6 +15,21 @@ export function SimpleProgressCard({
   icon,
   color
 }: SimpleProgressCardProps) {
+  const getTextColor = (color: string) => {
+    switch (color) {
+      case 'bg-neon-green':
+        return 'text-neon-green';
+      case 'bg-blue-500':
+        return 'text-blue-400';
+      case 'bg-orange-500':
+        return 'text-orange-400';
+      case 'bg-purple-500':
+        return 'text-purple-400';
+      default:
+        return 'text-white';
+    }
+  };
+
   return (
     <Card className="bg-dark-bg border-white/10 hover:border-neon-green/50 transition-all duration-300">
       <CardHeader className="pb-3">
@@ -24,7 +39,7 @@ export function SimpleProgressCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className={`text-2xl font-bold ${color === 'bg-neon-green' ? 'text-neon-green' : color === 'bg-blue-500' ? 'text-blue-400' : 'text-purple-400'}`}>
+        <div className={`text-2xl font-bold ${getTextColor(color)}`}>
           {value}
         </div>
       </CardContent>

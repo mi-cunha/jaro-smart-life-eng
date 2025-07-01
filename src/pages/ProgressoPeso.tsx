@@ -1,7 +1,6 @@
 
 import { Layout } from "@/components/Layout";
 import { SimpleProgressCard } from "@/components/SimpleProgressCard";
-import { ProgressChart } from "@/components/ProgressChart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,14 +10,15 @@ import { WeightUnitToggle } from "@/components/WeightUnitToggle";
 import { usePesoContext } from "@/contexts/PesoContext";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
 import { useState } from "react";
-import { Scale, Target, Plus } from "lucide-react";
+import { Scale, Target, Plus, TrendingDown } from "lucide-react";
 
 const ProgressoPeso = () => {
   const { 
     pesoAtual, 
     pesoMeta, 
+    pesoInicial,
     getProgressoPeso, 
-    getDadosGrafico, 
+    getWeightLoss,
     adicionarPeso, 
     definirMeta, 
     loading 
@@ -65,11 +65,12 @@ const ProgressoPeso = () => {
   };
 
   const progressoPeso = getProgressoPeso();
-  const dadosGrafico = getDadosGrafico();
+  const weightLoss = getWeightLoss();
   
   // Convert weights for display
   const currentWeight = pesoAtual ? convertToDisplayWeight(pesoAtual) : 0;
   const goalWeight = pesoMeta ? convertToDisplayWeight(pesoMeta) : 0;
+  const weightLossDisplay = convertToDisplayWeight(weightLoss);
   const weightDifference = Math.abs(currentWeight - goalWeight);
 
   if (loading) {
@@ -95,7 +96,7 @@ const ProgressoPeso = () => {
         </div>
 
         {/* Progress Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <SimpleProgressCard
             title="Current Weight"
             value={formatWeight(currentWeight)}
@@ -109,22 +110,18 @@ const ProgressoPeso = () => {
             color="bg-blue-500"
           />
           <SimpleProgressCard
+            title="Weight Loss"
+            value={formatWeight(weightLossDisplay)}
+            icon={<TrendingDown className="w-6 h-6" />}
+            color="bg-orange-500"
+          />
+          <SimpleProgressCard
             title="Progress"
             value={`${progressoPeso.toFixed(1)}%`}
             icon={<Plus className="w-6 h-6" />}
             color="bg-purple-500"
           />
         </div>
-
-        {/* Progress Chart */}
-        <Card className="bg-dark-bg border-white/10">
-          <CardHeader>
-            <CardTitle className="text-white">Weight Progress Chart</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ProgressChart data={dadosGrafico} />
-          </CardContent>
-        </Card>
 
         {/* Add New Weight */}
         <Card className="bg-dark-bg border-white/10">
@@ -206,10 +203,14 @@ const ProgressoPeso = () => {
             <CardTitle className="text-white">Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white/80">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white/80">
               <div>
                 <p className="text-sm text-white/60">Weight to Goal</p>
                 <p className="text-lg font-semibold">{formatWeight(weightDifference, false)} remaining</p>
+              </div>
+              <div>
+                <p className="text-sm text-white/60">Weight Lost</p>
+                <p className="text-lg font-semibold">{formatWeight(weightLossDisplay, false)} lost</p>
               </div>
               <div>
                 <p className="text-sm text-white/60">Progress</p>

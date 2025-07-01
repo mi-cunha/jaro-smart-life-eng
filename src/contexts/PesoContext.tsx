@@ -23,6 +23,7 @@ interface PesoContextType {
   adicionarPeso: (peso: number, observacoes?: string) => Promise<boolean>;
   definirMeta: (meta: number) => Promise<boolean>;
   getProgressoPeso: () => number;
+  getWeightLoss: () => number;
   getDadosGrafico: () => Array<{ date: string; value: number }>;
 }
 
@@ -115,7 +116,10 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('❌ PesoContext - Erro inesperado ao carregar dados:', error);
-      toast.error('Erro ao carregar dados de peso');
+      // Only show toast if not on auth page to prevent error messages before login
+      if (window.location.pathname !== '/auth') {
+        toast.error('Erro ao carregar dados de peso');
+      }
       // Set fallback values only if no current weight is set
       if (!pesoAtual) {
         setPesoAtual(78.0);
@@ -178,11 +182,25 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
   const getProgressoPeso = () => {
     if (!pesoAtual || !pesoMeta || !pesoInicial) return 0;
     
-    // Calculate progress using initial weight from profile
-    const progressoTotal = pesoInicial - pesoMeta;
-    const progressoAtual = pesoInicial - pesoAtual;
+    // If current weight is higher than initial weight, return 0
+    if (pesoAtual > pesoInicial) return 0;
     
-    return progressoTotal > 0 ? Math.max(0, Math.min(100, (progressoAtual / progressoTotal) * 100)) : 0;
+    // Calculate progress using the new formula: ((pesoInicial - pesoAtual) / (pesoInicial - pesoMeta)) * 100
+    const totalWeightToLose = pesoInicial - pesoMeta;
+    const weightLostSoFar = pesoInicial - pesoAtual;
+    
+    if (totalWeightToLose <= 0) return 0;
+    
+    const progress = (weightLostSoFar / totalWeightToLose) * 100;
+    return Math.max(0, Math.min(100, progress));
+  };
+
+  const getWeightLoss = () => {
+    if (!pesoAtual || !pesoInicial) return 0;
+    
+    // Calculate weight loss: peso inicial - peso atual
+    const weightLoss = pesoInicial - pesoAtual;
+    return Math.max(0, weightLoss); // Don't show negative weight loss
   };
 
   const getDadosGrafico = () => {
@@ -210,6 +228,7 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
       adicionarPeso,
       definirMeta,
       getProgressoPeso,
+      getWeightLoss,
       getDadosGrafico
     }}>
       {children}
