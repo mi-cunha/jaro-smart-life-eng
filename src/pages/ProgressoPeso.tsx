@@ -99,19 +99,19 @@ const ProgressoPeso = () => {
           <ProgressCard
             title="Current Weight"
             value={formatWeight(currentWeight)}
-            icon={Scale}
+            icon={<Scale className="w-6 h-6" />}
             color="bg-neon-green"
           />
           <ProgressCard
             title="Goal Weight"
             value={formatWeight(goalWeight)}
-            icon={Target}
+            icon={<Target className="w-6 h-6" />}
             color="bg-blue-500"
           />
           <ProgressCard
             title="Progress"
             value={`${progressoPeso.toFixed(1)}%`}
-            icon={Plus}
+            icon={<Plus className="w-6 h-6" />}
             color="bg-purple-500"
           />
         </div>
