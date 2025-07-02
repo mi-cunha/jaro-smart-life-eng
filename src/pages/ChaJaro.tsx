@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 const ChaJaro = () => {
   const { user } = useAuth();
-  const { getHabitosHoje, loading, carregarHabitos } = useHabitos();
+  const { habitos, getHabitosHoje, loading, carregarHabitos } = useHabitos();
   const [chaJaroHabito, setChaJaroHabito] = useState<any>(null);
   const [consumoAtual, setConsumoAtual] = useState(0);
   const [loadingAction, setLoadingAction] = useState(false);
@@ -29,7 +29,7 @@ const ChaJaro = () => {
     );
     console.log('🍵 Hábito encontrado:', chaJaro);
     setChaJaroHabito(chaJaro);
-  }, [getHabitosHoje]);
+  }, [habitos]); // Changed dependency to avoid circular reference
 
   const dailyGoal = chaJaroHabito?.meta_diaria || 2;
   const progressPercentage = (consumoAtual / dailyGoal) * 100;
@@ -72,14 +72,14 @@ const ChaJaro = () => {
       console.error('❌ Erro ao buscar consumo atual:', error);
       setConsumoAtual(0);
     }
-  }, [chaJaroHabito, user]);
+  }, [chaJaroHabito?.id, user?.email]); // Use specific properties instead of objects
 
   // Effect to fetch consumption when habit is found
   useEffect(() => {
     if (chaJaroHabito && user) {
       buscarConsumoAtual();
     }
-  }, [chaJaroHabito, user, buscarConsumoAtual]);
+  }, [chaJaroHabito?.id, user?.email]); // Use specific properties to avoid function dependency
 
   const markConsumption = useCallback(async () => {
     if (!user) {
