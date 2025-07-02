@@ -10,20 +10,20 @@ import { useHabitos } from "@/hooks/useHabitos";
 import { supabase } from "@/integrations/supabase/client";
 
 const ChaJaro = () => {
-  const { getHabitosHoje, marcarHabito, loading } = useHabitos();
+  const { getHabitosHoje, loading } = useHabitos();
   const [chaJaroHabito, setChaJaroHabito] = useState<any>(null);
+  const [consumoAtual, setConsumoAtual] = useState(0);
 
   useEffect(() => {
     const habitos = getHabitosHoje();
-    console.log('🔍 ChaJaro: Hábitos disponíveis:', habitos.map(h => h.nome));
-    const chaJaro = habitos.find(h => h.nome === 'Chá Jaro' || h.nome === 'Tomar todas as doses de chá');
-    console.log('🍵 ChaJaro: Hábito encontrado:', chaJaro);
+    const chaJaro = habitos.find(h => 
+      h.nome === 'Chá Jaro' || 
+      h.nome === 'Tomar todas as doses de chá' ||
+      h.nome.toLowerCase().includes('chá')
+    );
     setChaJaroHabito(chaJaro);
-  }, [getHabitosHoje]);
+  }, []);
 
-  // Buscar o histórico de hoje para saber quantos copos já foram consumidos
-  const [consumoAtual, setConsumoAtual] = useState(0);
-  
   const dailyGoal = chaJaroHabito?.meta_diaria || 2;
   const progressPercentage = (consumoAtual / dailyGoal) * 100;
 
@@ -39,7 +39,7 @@ const ChaJaro = () => {
           .select('quantidade')
           .eq('habito_id', chaJaroHabito.id)
           .eq('data', hoje)
-          .single();
+          .maybeSingle();
 
         if (!error && data) {
           setConsumoAtual(data.quantidade || 0);
@@ -57,7 +57,7 @@ const ChaJaro = () => {
 
   const markConsumption = async () => {
     if (!chaJaroHabito) {
-      toast.error("Hábito do Chá Jaro não encontrado");
+      toast.error("Tea habit not found");
       return;
     }
 
@@ -78,11 +78,11 @@ const ChaJaro = () => {
         .select('id')
         .eq('habito_id', chaJaroHabito.id)
         .eq('data', hoje)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         // Atualizar registro existente
-        await supabase
+        const { error } = await supabase
           .from('historico_habitos')
           .update({ 
             quantidade: novoConsumo,
@@ -90,10 +90,16 @@ const ChaJaro = () => {
             updated_at: new Date().toISOString()
           })
           .eq('id', existing.id);
+
+        if (error) {
+          console.error('Erro ao atualizar:', error);
+          toast.error('Error updating consumption');
+          return;
+        }
       } else {
         // Criar novo registro
         const { data: { user } } = await supabase.auth.getUser();
-        await supabase
+        const { error } = await supabase
           .from('historico_habitos')
           .insert({
             user_email: user?.email,
@@ -102,6 +108,12 @@ const ChaJaro = () => {
             quantidade: novoConsumo,
             concluido: habitoCompleto
           });
+
+        if (error) {
+          console.error('Erro ao inserir:', error);
+          toast.error('Error recording consumption');
+          return;
+        }
       }
 
       setConsumoAtual(novoConsumo);
@@ -113,7 +125,52 @@ const ChaJaro = () => {
       }
     } catch (error) {
       console.error('Erro ao marcar consumo:', error);
-      toast.error('Erro ao registrar consumo');
+      toast.error('Error recording consumption');
+    }
+  };
+
+  const removeConsumption = async () => {
+    if (!chaJaroHabito || consumoAtual <= 0) {
+      return;
+    }
+
+    const novoConsumo = consumoAtual - 1;
+
+    try {
+      const hoje = new Date().toISOString().split('T')[0];
+      
+      const { data: existing } = await supabase
+        .from('historico_habitos')
+        .select('id')
+        .eq('habito_id', chaJaroHabito.id)
+        .eq('data', hoje)
+        .maybeSingle();
+
+      if (existing) {
+        if (novoConsumo === 0) {
+          // Remover registro se não há mais consumo
+          await supabase
+            .from('historico_habitos')
+            .delete()
+            .eq('id', existing.id);
+        } else {
+          // Atualizar quantidade
+          await supabase
+            .from('historico_habitos')
+            .update({ 
+              quantidade: novoConsumo,
+              concluido: false,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existing.id);
+        }
+
+        setConsumoAtual(novoConsumo);
+        toast.success("Consumption removed");
+      }
+    } catch (error) {
+      console.error('Erro ao remover consumo:', error);
+      toast.error('Error removing consumption');
     }
   };
 
@@ -242,14 +299,26 @@ const ChaJaro = () => {
                   : "🎉 Daily goal achieved! Congratulations!"
                 }
               </p>
-              <Button
-                onClick={markConsumption}
-                size="sm"
-                className="bg-green-500 text-white hover:bg-green-600 w-full sm:w-auto text-xs sm:text-sm px-3 py-2"
-                disabled={consumoAtual >= dailyGoal || loading}
-              >
-                {consumoAtual >= dailyGoal ? "✓ Completed" : "Mark Consumption"}
-              </Button>
+              <div className="flex gap-2 w-full sm:w-auto">
+                {consumoAtual > 0 && (
+                  <Button
+                    onClick={removeConsumption}
+                    size="sm"
+                    variant="outline"
+                    className="border-red-500/30 text-red-400 hover:bg-red-500/10 text-xs px-2 py-1"
+                  >
+                    Remove
+                  </Button>
+                )}
+                <Button
+                  onClick={markConsumption}
+                  size="sm"
+                  className="bg-green-500 text-white hover:bg-green-600 flex-1 sm:flex-none text-xs sm:text-sm px-3 py-2"
+                  disabled={consumoAtual >= dailyGoal || loading}
+                >
+                  {consumoAtual >= dailyGoal ? "✓ Completed" : "Mark Consumption"}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
