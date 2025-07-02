@@ -14,7 +14,9 @@ const ChaJaro = () => {
 
   useEffect(() => {
     const habitos = getHabitosHoje();
-    const chaJaro = habitos.find(h => h.nome === 'Chá Jaro');
+    console.log('🔍 ChaJaro: Hábitos disponíveis:', habitos.map(h => h.nome));
+    const chaJaro = habitos.find(h => h.nome === 'Chá Jaro' || h.nome === 'Tomar todas as doses de chá');
+    console.log('🍵 ChaJaro: Hábito encontrado:', chaJaro);
     setChaJaroHabito(chaJaro);
   }, [getHabitosHoje]);
 
@@ -118,28 +120,28 @@ const ChaJaro = () => {
         <Card className="bg-gradient-to-r from-green-500/20 to-transparent border-green-500/30 overflow-hidden">
           <CardContent className="p-0">
             <div className="grid grid-cols-1 lg:grid-cols-2">
-              <div className="p-8">
-                <h1 className="text-3xl font-bold text-white mb-4">
+              <div className="p-4 sm:p-6 lg:p-8">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white mb-3 sm:mb-4">
                   🍵 Jaro Tea
                 </h1>
-                <p className="text-white/80 text-lg mb-4">
+                <p className="text-white/80 text-base sm:text-lg mb-3 sm:mb-4">
                   The powerful natural ally for your weight loss! A special combination of thermogenic ingredients 
                   that accelerate metabolism and enhance fat burning.
                 </p>
-                <div className="flex gap-4">
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                <div className="flex flex-wrap gap-2 sm:gap-4">
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs sm:text-sm">
                     🔥 Thermogenic
                   </Badge>
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs sm:text-sm">
                     💧 Diuretic
                   </Badge>
-                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30 text-xs sm:text-sm">
                     🌿 100% Natural
                   </Badge>
                 </div>
               </div>
-              <div className="h-64 lg:h-auto bg-gradient-to-br from-green-400/20 via-red-400/20 to-orange-400/20 flex items-center justify-center">
-                <div className="text-8xl">🍵</div>
+              <div className="h-48 sm:h-64 lg:h-auto bg-gradient-to-br from-green-400/20 via-red-400/20 to-orange-400/20 flex items-center justify-center">
+                <div className="text-6xl sm:text-8xl">🍵</div>
               </div>
             </div>
           </CardContent>
@@ -148,19 +150,19 @@ const ChaJaro = () => {
         {/* Daily Progress */}
         <Card className="bg-dark-bg border-white/10">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-500" />
+            <CardTitle className="text-white flex items-center gap-2 text-lg sm:text-xl">
+              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
               Daily Consumption
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-white/80">Today's progress</span>
-              <span className="text-green-500 font-bold">{dailyConsumption}/{dailyGoal} cups</span>
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+              <span className="text-white/80 text-sm sm:text-base">Today's progress</span>
+              <span className="text-green-500 font-bold text-lg sm:text-xl">{dailyConsumption}/{dailyGoal} cups</span>
             </div>
-            <Progress value={progressPercentage} className="h-3" />
-            <div className="flex justify-between">
-              <p className="text-white/60 text-sm">
+            <Progress value={progressPercentage} className="h-2 sm:h-3" />
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+              <p className="text-white/60 text-xs sm:text-sm flex-1">
                 {dailyConsumption < dailyGoal 
                   ? `${dailyGoal - dailyConsumption} cup(s) left to complete your goal!`
                   : "🎉 Daily goal achieved! Congratulations!"
@@ -169,7 +171,7 @@ const ChaJaro = () => {
               <Button
                 onClick={markConsumption}
                 size="sm"
-                className="bg-green-500 text-white hover:bg-green-600"
+                className="bg-green-500 text-white hover:bg-green-600 w-full sm:w-auto text-xs sm:text-sm px-3 py-2"
                 disabled={dailyConsumption >= dailyGoal || loading}
               >
                 {dailyConsumption >= dailyGoal ? "✓ Completed" : "Mark Consumption"}
