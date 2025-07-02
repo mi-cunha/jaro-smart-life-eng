@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useHabitos } from "@/hooks/useHabitos";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -43,28 +43,28 @@ const HabitTracker = () => {
   const [newHabitName, setNewHabitName] = useState('');
   const [defaultHabitsCreated, setDefaultHabitsCreated] = useState(false);
 
-  const habitosHoje = getHabitosHoje();
-  const progresso = getProgressoHabitos();
+  const habitosHoje = useMemo(() => getHabitosHoje(), [getHabitosHoje]);
+  const progresso = useMemo(() => getProgressoHabitos(), [getProgressoHabitos]);
 
   const completedHabits = progresso.concluidos;
   const totalHabits = progresso.total;
   const completionPercentage = totalHabits > 0 ? (completedHabits / totalHabits) * 100 : 0;
 
   // Calculate streak data from real habits
-  const streakData = {
+  const streakData = useMemo(() => ({
     current: progresso.streakAtual || 0,
     best: progresso.melhorStreak || 0,
     thisWeek: completionPercentage
-  };
+  }), [progresso, completionPercentage]);
 
-  const handleToggleHabito = async (habitoId: string) => {
+  const handleToggleHabito = useCallback(async (habitoId: string) => {
     const habito = habitosHoje.find(h => h.id === habitoId);
     if (habito) {
       await marcarHabito(habitoId, !habito.concluido);
     }
-  };
+  }, [habitosHoje, marcarHabito]);
 
-  const createDefaultHabits = async () => {
+  const createDefaultHabits = useCallback(async () => {
     if (!user || !perfil || defaultHabitsCreated) return;
 
     const defaultHabits = [
@@ -115,9 +115,9 @@ const HabitTracker = () => {
     } catch (error) {
       console.error('Error creating default habits:', error);
     }
-  };
+  }, [user, perfil, defaultHabitsCreated, carregarHabitos]);
 
-  const handleAddHabit = async () => {
+  const handleAddHabit = useCallback(async () => {
     if (!newHabitName.trim() || !user) return;
 
     try {
@@ -148,7 +148,7 @@ const HabitTracker = () => {
       console.error('Unexpected error adding habit:', error);
       toast.error('Erro inesperado ao adicionar hábito');
     }
-  };
+  }, [newHabitName, user, carregarHabitos]);
 
   // Create default habits on first load
   useEffect(() => {
@@ -172,7 +172,7 @@ const HabitTracker = () => {
     value: item.percentual || 0
   }));
 
-  const getHabitIcon = (nome: string) => {
+  const getHabitIcon = useCallback((nome: string) => {
     const iconMap: { [key: string]: React.ReactNode } = {
       'Completar todas as refeições': <Apple className="w-6 h-6" />,
       'Tomar todas as doses de chá': <Coffee className="w-6 h-6" />,
@@ -186,7 +186,7 @@ const HabitTracker = () => {
       'Meditation': <Heart className="w-6 h-6" />
     };
     return iconMap[nome] || <CheckCircle className="w-6 h-6" />;
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -298,11 +298,11 @@ const HabitTracker = () => {
                     }`}
                   >
                     <div className="flex items-center gap-4">
-                      <Checkbox
-                        checked={habit.concluido}
-                        onCheckedChange={() => handleToggleHabito(habit.id)}
-                        className="data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green w-4 h-4"
-                      />
+                       <Checkbox
+                         checked={habit.concluido}
+                         onCheckedChange={() => handleToggleHabito(habit.id)}
+                         className="data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green w-3 h-3"
+                       />
                     
                     <div className={`${habit.concluido ? 'text-neon-green' : 'text-white/70'}`}>
                       {getHabitIcon(habit.nome)}
