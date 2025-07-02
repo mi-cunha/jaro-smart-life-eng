@@ -17,26 +17,19 @@ const ChaJaro = () => {
   const [consumoAtual, setConsumoAtual] = useState(0);
   const [loadingAction, setLoadingAction] = useState(false);
 
-  // Memoize habitos to avoid unnecessary re-renders
-  const habitosHoje = useMemo(() => getHabitosHoje(), [getHabitosHoje]);
-
-  // Find tea habit with proper search logic
-  const findTeaHabit = useCallback(() => {
+  // Effect to find and set tea habit
+  useEffect(() => {
+    console.log('🔍 Buscando hábito de chá...');
+    const habitosHoje = getHabitosHoje();
     const searchTerms = ['Chá Jaro', 'Tomar todas as doses de chá', 'chá', 'tea'];
-    return habitosHoje.find(h => 
+    const chaJaro = habitosHoje.find(h => 
       searchTerms.some(term => 
         h.nome.toLowerCase().includes(term.toLowerCase())
       )
     );
-  }, [habitosHoje]);
-
-  // Effect to find and set tea habit
-  useEffect(() => {
-    console.log('🔍 Buscando hábito de chá...');
-    const chaJaro = findTeaHabit();
     console.log('🍵 Hábito encontrado:', chaJaro);
     setChaJaroHabito(chaJaro);
-  }, [findTeaHabit]);
+  }, [getHabitosHoje]);
 
   const dailyGoal = chaJaroHabito?.meta_diaria || 2;
   const progressPercentage = (consumoAtual / dailyGoal) * 100;
