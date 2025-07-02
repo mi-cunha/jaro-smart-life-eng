@@ -7,6 +7,7 @@ import { Clock, Thermometer, Droplets, Leaf, CheckCircle, Info, Zap, Heart } fro
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useHabitos } from "@/hooks/useHabitos";
+import { supabase } from "@/integrations/supabase/client";
 
 const ChaJaro = () => {
   const { getHabitosHoje, marcarHabito, loading } = useHabitos();
@@ -20,9 +21,39 @@ const ChaJaro = () => {
     setChaJaroHabito(chaJaro);
   }, [getHabitosHoje]);
 
-  const dailyConsumption = chaJaroHabito?.concluido ? chaJaroHabito.meta_diaria : 0;
-  const dailyGoal = chaJaroHabito?.meta_diaria || 3;
-  const progressPercentage = (dailyConsumption / dailyGoal) * 100;
+  // Buscar o histórico de hoje para saber quantos copos já foram consumidos
+  const [consumoAtual, setConsumoAtual] = useState(0);
+  
+  const dailyGoal = chaJaroHabito?.meta_diaria || 2;
+  const progressPercentage = (consumoAtual / dailyGoal) * 100;
+
+  // Buscar consumo atual do histórico
+  useEffect(() => {
+    const buscarConsumoAtual = async () => {
+      if (!chaJaroHabito) return;
+      
+      try {
+        const hoje = new Date().toISOString().split('T')[0];
+        const { data, error } = await supabase
+          .from('historico_habitos')
+          .select('quantidade')
+          .eq('habito_id', chaJaroHabito.id)
+          .eq('data', hoje)
+          .single();
+
+        if (!error && data) {
+          setConsumoAtual(data.quantidade || 0);
+        } else {
+          setConsumoAtual(0);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar consumo atual:', error);
+        setConsumoAtual(0);
+      }
+    };
+
+    buscarConsumoAtual();
+  }, [chaJaroHabito]);
 
   const markConsumption = async () => {
     if (!chaJaroHabito) {
@@ -30,16 +61,59 @@ const ChaJaro = () => {
       return;
     }
 
-    if (dailyConsumption < dailyGoal) {
-      await marcarHabito(chaJaroHabito.id, true);
-      toast.success("Consumption recorded! 🍵");
-      
-      // Atualizar estado local
-      const habitos = getHabitosHoje();
-      const updatedChaJaro = habitos.find(h => h.nome === 'Chá Jaro');
-      setChaJaroHabito(updatedChaJaro);
-    } else {
+    if (consumoAtual >= dailyGoal) {
       toast.success("Daily goal already achieved! 🎉");
+      return;
+    }
+
+    const novoConsumo = consumoAtual + 1;
+    const habitoCompleto = novoConsumo >= dailyGoal;
+
+    try {
+      const hoje = new Date().toISOString().split('T')[0];
+      
+      // Atualizar ou inserir histórico
+      const { data: existing } = await supabase
+        .from('historico_habitos')
+        .select('id')
+        .eq('habito_id', chaJaroHabito.id)
+        .eq('data', hoje)
+        .single();
+
+      if (existing) {
+        // Atualizar registro existente
+        await supabase
+          .from('historico_habitos')
+          .update({ 
+            quantidade: novoConsumo,
+            concluido: habitoCompleto,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existing.id);
+      } else {
+        // Criar novo registro
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase
+          .from('historico_habitos')
+          .insert({
+            user_email: user?.email,
+            habito_id: chaJaroHabito.id,
+            data: hoje,
+            quantidade: novoConsumo,
+            concluido: habitoCompleto
+          });
+      }
+
+      setConsumoAtual(novoConsumo);
+      
+      if (habitoCompleto) {
+        toast.success("Daily goal completed! 🎉");
+      } else {
+        toast.success(`Cup ${novoConsumo} recorded! 🍵`);
+      }
+    } catch (error) {
+      console.error('Erro ao marcar consumo:', error);
+      toast.error('Erro ao registrar consumo');
     }
   };
 
@@ -158,13 +232,13 @@ const ChaJaro = () => {
           <CardContent className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <span className="text-white/80 text-sm sm:text-base">Today's progress</span>
-              <span className="text-green-500 font-bold text-lg sm:text-xl">{dailyConsumption}/{dailyGoal} cups</span>
+              <span className="text-green-500 font-bold text-lg sm:text-xl">{consumoAtual}/{dailyGoal} cups</span>
             </div>
             <Progress value={progressPercentage} className="h-2 sm:h-3" />
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
               <p className="text-white/60 text-xs sm:text-sm flex-1">
-                {dailyConsumption < dailyGoal 
-                  ? `${dailyGoal - dailyConsumption} cup(s) left to complete your goal!`
+                {consumoAtual < dailyGoal 
+                  ? `${dailyGoal - consumoAtual} cup(s) left to complete your goal!`
                   : "🎉 Daily goal achieved! Congratulations!"
                 }
               </p>
@@ -172,9 +246,9 @@ const ChaJaro = () => {
                 onClick={markConsumption}
                 size="sm"
                 className="bg-green-500 text-white hover:bg-green-600 w-full sm:w-auto text-xs sm:text-sm px-3 py-2"
-                disabled={dailyConsumption >= dailyGoal || loading}
+                disabled={consumoAtual >= dailyGoal || loading}
               >
-                {dailyConsumption >= dailyGoal ? "✓ Completed" : "Mark Consumption"}
+                {consumoAtual >= dailyGoal ? "✓ Completed" : "Mark Consumption"}
               </Button>
             </div>
           </CardContent>
