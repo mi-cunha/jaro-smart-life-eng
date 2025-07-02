@@ -23,10 +23,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { useSupabasePerfil } from "@/hooks/useSupabasePerfil";
 
 const HabitTracker = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { perfil } = useSupabasePerfil();
   const { 
     getHabitosHoje, 
     getProgressoHabitos, 
@@ -39,6 +41,7 @@ const HabitTracker = () => {
   const [historicoSemanal, setHistoricoSemanal] = useState<any[]>([]);
   const [showAddHabit, setShowAddHabit] = useState(false);
   const [newHabitName, setNewHabitName] = useState('');
+  const [defaultHabitsCreated, setDefaultHabitsCreated] = useState(false);
 
   const habitosHoje = getHabitosHoje();
   const progresso = getProgressoHabitos();
@@ -58,6 +61,59 @@ const HabitTracker = () => {
     const habito = habitosHoje.find(h => h.id === habitoId);
     if (habito) {
       await marcarHabito(habitoId, !habito.concluido);
+    }
+  };
+
+  const createDefaultHabits = async () => {
+    if (!user || !perfil || defaultHabitsCreated) return;
+
+    const defaultHabits = [
+      {
+        nome: 'Completar todas as refeições',
+        descricao: 'Café da manhã, almoço e jantar',
+        meta_diaria: 3
+      },
+      {
+        nome: 'Tomar todas as doses de chá',
+        descricao: `${perfil.doses_cha || 2} doses por dia`,
+        meta_diaria: perfil.doses_cha || 2
+      },
+      {
+        nome: 'Beber água suficiente',
+        descricao: '8 copos de água por dia',
+        meta_diaria: 8
+      }
+    ];
+
+    try {
+      const { data: existingHabits } = await supabase
+        .from('habitos')
+        .select('nome')
+        .eq('user_email', user.email);
+
+      const existingNames = existingHabits?.map(h => h.nome) || [];
+      const habitsToCreate = defaultHabits.filter(h => !existingNames.includes(h.nome));
+
+      if (habitsToCreate.length > 0) {
+        const { error } = await supabase
+          .from('habitos')
+          .insert(
+            habitsToCreate.map(habit => ({
+              ...habit,
+              user_email: user.email,
+              ativo: true
+            }))
+          );
+
+        if (!error) {
+          setDefaultHabitsCreated(true);
+          await carregarHabitos();
+        }
+      } else {
+        setDefaultHabitsCreated(true);
+      }
+    } catch (error) {
+      console.error('Error creating default habits:', error);
     }
   };
 
@@ -94,6 +150,13 @@ const HabitTracker = () => {
     }
   };
 
+  // Create default habits on first load
+  useEffect(() => {
+    if (user && perfil && !defaultHabitsCreated) {
+      createDefaultHabits();
+    }
+  }, [user, perfil, defaultHabitsCreated]);
+
   // Load weekly history data
   useEffect(() => {
     const loadWeeklyData = async () => {
@@ -111,6 +174,9 @@ const HabitTracker = () => {
 
   const getHabitIcon = (nome: string) => {
     const iconMap: { [key: string]: React.ReactNode } = {
+      'Completar todas as refeições': <Apple className="w-6 h-6" />,
+      'Tomar todas as doses de chá': <Coffee className="w-6 h-6" />,
+      'Beber água suficiente': <Droplets className="w-6 h-6" />,
       'Chá Jaro': <Coffee className="w-6 h-6" />,
       'Hydration': <Droplets className="w-6 h-6" />,
       'Walk': <Footprints className="w-6 h-6" />,
@@ -223,20 +289,20 @@ const HabitTracker = () => {
               </div>
             ) : (
               habitosHoje.map((habit) => (
-                <div
-                  key={habit.id}
-                  className={`p-4 rounded-lg border transition-all ${
-                    habit.concluido
-                      ? 'bg-neon-green/10 border-neon-green/30'
-                      : 'bg-white/5 border-white/10 hover:border-white/20'
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <Checkbox
-                      checked={habit.concluido}
-                      onCheckedChange={() => handleToggleHabito(habit.id)}
-                      className="data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green"
-                    />
+                  <div
+                    key={habit.id}
+                    className={`p-4 rounded-lg border transition-all ${
+                      habit.concluido
+                        ? 'bg-neon-green/10 border-neon-green/30'
+                        : 'bg-white/5 border-white/10 hover:border-white/20'
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <Checkbox
+                        checked={habit.concluido}
+                        onCheckedChange={() => handleToggleHabito(habit.id)}
+                        className="data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green w-4 h-4"
+                      />
                     
                     <div className={`${habit.concluido ? 'text-neon-green' : 'text-white/70'}`}>
                       {getHabitIcon(habit.nome)}
@@ -265,15 +331,6 @@ const HabitTracker = () => {
           </CardContent>
         </Card>
 
-        {/* Weekly Progress Chart */}
-        {weeklyData.length > 0 && (
-          <ProgressChart
-            title="Weekly Progress (%)"
-            data={weeklyData}
-            type="bar"
-            unit="%"
-          />
-        )}
 
         {/* Streaks and Achievements */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
