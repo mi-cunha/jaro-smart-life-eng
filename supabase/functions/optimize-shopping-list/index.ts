@@ -91,7 +91,7 @@ serve(async (req) => {
 
     console.log(`🥘 Processing ${allIngredients.length} ingredients from ${receitas.length} recipes`);
 
-    // Use AI for optimization if API key is available
+// Use AI for optimization if API key is available
     if (openAIApiKey) {
       try {
         const prompt = `
@@ -107,6 +107,9 @@ CONSOLIDATION RULES:
 2. Combine different forms (chicken breast/frango → chicken)
 3. Merge units (1 cup rice/200g rice → rice)
 4. Remove duplicates intelligently
+5. Remove cooking methods (cooked bacon → bacon, grilled chicken → chicken)
+6. Consolidate similar products (greek yogurt low-fat/plain → greek yogurt)
+7. Remove unnecessary descriptors (boneless chicken → chicken)
 
 QUANTITY GUIDELINES:
 - Vegetables/Fruits: 500g-1kg based on frequency
@@ -117,6 +120,13 @@ QUANTITY GUIDELINES:
 - Eggs: count in units (6-12 eggs)
 
 CATEGORIES: proteins, vegetables, fruits, grains, dairy, seasonings, general
+
+SMART CONSOLIDATION EXAMPLES:
+- "greek yogurt, low-fat" + "greek yogurt, plain" → "greek yogurt"
+- "cooked bacon" → "bacon"
+- "boneless chicken breast" → "chicken breast"
+- "fresh spinach" → "spinach"
+- "extra virgin olive oil" → "olive oil"
 
 Return ONLY a JSON array with this exact structure:
 [
