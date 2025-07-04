@@ -107,6 +107,9 @@ export function useSupabaseReceitas() {
         return newState;
       });
 
+      // Reload recipes from database to ensure fresh data with all details
+      await carregarReceitas();
+
       toast.success('Recipe saved successfully!');
     } catch (error) {
       console.error('Error saving recipe:', error);
