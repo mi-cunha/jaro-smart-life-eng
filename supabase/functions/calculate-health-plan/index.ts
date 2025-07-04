@@ -38,7 +38,7 @@ serve(async (req) => {
     // Get user profile data
     const { data: profile, error: profileError } = await supabase
       .from('perfil_usuario')
-      .select('peso_atual, dailyRoutine')
+      .select('peso_atual, daily_routine')
       .eq('user_email', user.email)
       .single();
 
@@ -46,16 +46,16 @@ serve(async (req) => {
       throw new Error('User profile not found');
     }
 
-    const { peso_atual, dailyRoutine } = profile;
+    const { peso_atual, daily_routine } = profile;
 
     if (!peso_atual) {
       throw new Error('Current weight (peso_atual) is required for calculations');
     }
 
-    console.log(`📊 User data - Weight: ${peso_atual}kg, Activity: ${dailyRoutine || 'not set'}`);
+    console.log(`📊 User data - Weight: ${peso_atual}kg, Activity: ${daily_routine || 'not set'}`);
 
     // Set default activity level if missing
-    let activityLevel = dailyRoutine;
+    let activityLevel = daily_routine;
     if (!activityLevel || !['sedentary', 'light', 'moderate', 'intense'].includes(activityLevel)) {
       activityLevel = 'moderate';
       console.log(`⚠️ Setting default activity level: ${activityLevel}`);
@@ -63,7 +63,7 @@ serve(async (req) => {
       // Update profile with default activity level
       await supabase
         .from('perfil_usuario')
-        .update({ dailyRoutine: activityLevel })
+        .update({ daily_routine: activityLevel })
         .eq('user_email', user.email);
     }
 
@@ -92,7 +92,7 @@ serve(async (req) => {
         calorias_diarias: TDEE,
         agua_diaria_ml: total_ml,
         copos_diarios: copos_diarios,
-        dailyRoutine: activityLevel
+        daily_routine: activityLevel
       })
       .eq('user_email', user.email);
 

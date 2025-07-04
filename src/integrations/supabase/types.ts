@@ -214,12 +214,15 @@ export type Database = {
       }
       perfil_usuario: {
         Row: {
+          agua_diaria_ml: number | null
           alergias: string | null
           apple_health: boolean | null
           avatar_url: string | null
           calorias_diarias: number | null
+          copos_diarios: number | null
           created_at: string
           dados_uso: boolean | null
+          daily_routine: string | null
           doses_cha: number | null
           email: string | null
           fitbit: boolean | null
@@ -244,12 +247,15 @@ export type Database = {
           vegetariano: boolean | null
         }
         Insert: {
+          agua_diaria_ml?: number | null
           alergias?: string | null
           apple_health?: boolean | null
           avatar_url?: string | null
           calorias_diarias?: number | null
+          copos_diarios?: number | null
           created_at?: string
           dados_uso?: boolean | null
+          daily_routine?: string | null
           doses_cha?: number | null
           email?: string | null
           fitbit?: boolean | null
@@ -274,12 +280,15 @@ export type Database = {
           vegetariano?: boolean | null
         }
         Update: {
+          agua_diaria_ml?: number | null
           alergias?: string | null
           apple_health?: boolean | null
           avatar_url?: string | null
           calorias_diarias?: number | null
+          copos_diarios?: number | null
           created_at?: string
           dados_uso?: boolean | null
+          daily_routine?: string | null
           doses_cha?: number | null
           email?: string | null
           fitbit?: boolean | null

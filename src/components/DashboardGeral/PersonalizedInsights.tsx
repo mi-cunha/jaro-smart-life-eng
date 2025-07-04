@@ -62,7 +62,7 @@ export function PersonalizedInsights() {
               <div className="text-2xl font-bold text-neon-green">
                 {stats.recommendedCalories}
               </div>
-              <div className="text-xs text-white/60">Personalized target</div>
+              <div className="text-xs text-white/60">Personalized TDEE calculation</div>
             </div>
             
             <div className="bg-white/5 p-4 rounded-lg">
@@ -73,7 +73,7 @@ export function PersonalizedInsights() {
               <div className="text-2xl font-bold text-blue-400">
                 {stats.recommendedWater}
               </div>
-              <div className="text-xs text-white/60">Glasses per day</div>
+              <div className="text-xs text-white/60">Cups per day (based on weight)</div>
             </div>
             
             <div className="bg-white/5 p-4 rounded-lg">

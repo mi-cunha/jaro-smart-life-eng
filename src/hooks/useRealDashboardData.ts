@@ -51,14 +51,19 @@ export function useRealDashboardData() {
         // Get health recommendations
         let recommendations = { recommendedCalories: 2000, recommendedWater: 8, recommendedTeaDoses: 2 };
         try {
-          const { data: recData } = await supabase.functions.invoke('calculate-health-recommendations', {
+          const { data: recData } = await supabase.functions.invoke('calculate-health-plan', {
             headers: { Authorization: `Bearer ${session?.access_token}` }
           });
-          if (recData) {
-            recommendations = recData;
+          if (recData?.success) {
+            recommendations = {
+              recommendedCalories: recData.calculations.recommendedCalories,
+              recommendedWater: recData.calculations.waterIntake.cups_per_day,
+              recommendedTeaDoses: 2 // Keep tea doses as before
+            };
+            console.log('✅ Health plan calculated:', recData.calculations);
           }
         } catch (error) {
-          console.warn('Could not fetch recommendations, using defaults:', error);
+          console.warn('Could not calculate health plan, using defaults:', error);
         }
 
         // Get recipes cooked this month

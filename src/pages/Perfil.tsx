@@ -49,6 +49,10 @@ const Perfil = () => {
     handleInputChange('nome', nome);
   };
 
+  const handleActivityLevelChange = (level: string) => {
+    handleInputChange('daily_routine', level);
+  };
+
   const handleTogglePrivacy = (setting: string) => {
     if (perfil) {
       const newValue = !perfil[setting];
@@ -103,7 +107,9 @@ const Perfil = () => {
             <PersonalInfoSection 
               nome={perfil?.nome || ''}
               email={perfil?.email}
-              onNomeChange={handleNomeChange} 
+              perfil={perfil}
+              onNomeChange={handleNomeChange}
+              onActivityLevelChange={handleActivityLevelChange}
             />
             <PrivacySection 
               perfil={perfil} 

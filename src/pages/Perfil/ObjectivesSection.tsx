@@ -2,8 +2,12 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { Calculator } from "lucide-react";
 
 interface ObjectivesSectionProps {
   perfil: any;
@@ -13,6 +17,7 @@ interface ObjectivesSectionProps {
 export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectionProps) {
   const { convertToDisplayWeight, convertToStorageWeight, formatWeight, unit } = useWeightUnit();
   const [displayWeight, setDisplayWeight] = useState("");
+  const [isCalculating, setIsCalculating] = useState(false);
 
   useEffect(() => {
     if (perfil?.peso_objetivo) {
@@ -35,6 +40,35 @@ export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectio
     if (!isNaN(numValue) && numValue > 0) {
       const storageWeight = convertToStorageWeight(numValue);
       onChangeObjetivo('peso_objetivo', storageWeight.toString());
+    }
+  };
+
+  const calculateHealthPlan = async () => {
+    if (!perfil?.peso_atual) {
+      toast.error('Please set your current weight first');
+      return;
+    }
+
+    setIsCalculating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('calculate-health-plan');
+      
+      if (error) {
+        throw error;
+      }
+
+      if (data?.success) {
+        toast.success('Health plan calculated successfully!');
+        // Trigger a refresh of the profile data
+        window.location.reload();
+      } else {
+        throw new Error(data?.error || 'Calculation failed');
+      }
+    } catch (error) {
+      console.error('Error calculating health plan:', error);
+      toast.error('Failed to calculate health plan');
+    } finally {
+      setIsCalculating(false);
     }
   };
 
@@ -89,7 +123,42 @@ export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectio
               onChange={(e) => onChangeObjetivo('calorias_diarias', e.target.value)}
               className="bg-white/5 border-white/20 text-white"
               min="1000"
+              readOnly
             />
+            <div className="text-xs text-white/60">
+              {perfil?.calorias_diarias ? 'Calculated based on your profile' : 'Default value - complete your profile for personalized calculation'}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="aguaDiaria" className="text-white/80">Daily Water Goal</Label>
+            <div className="flex gap-2">
+              <Input
+                id="aguaDiaria"
+                type="number"
+                value={perfil?.copos_diarios || 8}
+                className="bg-white/5 border-white/20 text-white"
+                readOnly
+              />
+              <span className="text-white/60 text-sm self-center">cups</span>
+            </div>
+            <div className="text-xs text-white/60">
+              {perfil?.agua_diaria_ml ? `${perfil.agua_diaria_ml}ml total - Calculated based on your weight` : 'Default value - complete your profile for personalized calculation'}
+            </div>
+          </div>
+        </div>
+        
+        {/* Calculate Health Plan Button */}
+        <div className="mt-6 pt-4 border-t border-white/10">
+          <Button
+            onClick={calculateHealthPlan}
+            disabled={isCalculating || !perfil?.peso_atual}
+            className="w-full bg-neon-green hover:bg-neon-green/80 text-black font-medium"
+          >
+            <Calculator className="w-4 h-4 mr-2" />
+            {isCalculating ? 'Calculating...' : 'Calculate Personalized Health Plan'}
+          </Button>
+          <div className="text-xs text-white/60 mt-2 text-center">
+            This will calculate your daily calories and water intake based on your current weight and activity level
           </div>
         </div>
       </CardContent>
