@@ -91,12 +91,9 @@ const Perfil = () => {
         </div>
 
         <Tabs defaultValue="personal" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 bg-dark-bg border-white/10">
+          <TabsList className="grid w-full grid-cols-2 bg-dark-bg border-white/10">
             <TabsTrigger value="personal" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
               Personal
-            </TabsTrigger>
-            <TabsTrigger value="preferences" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
-              Dietary
             </TabsTrigger>
             <TabsTrigger value="objectives" className="text-white data-[state=active]:bg-neon-green data-[state=active]:text-black">
               Goals
@@ -117,13 +114,6 @@ const Perfil = () => {
             />
           </TabsContent>
 
-          <TabsContent value="preferences" className="space-y-6">
-            <PreferencesSection 
-              perfil={perfil} 
-              onTogglePreferencia={handleTogglePreferencia}
-              onChangeAlergias={handleChangeAlergias}
-            />
-          </TabsContent>
 
           <TabsContent value="objectives" className="space-y-6">
             <ObjectivesSection 

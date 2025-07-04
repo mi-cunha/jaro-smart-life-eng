@@ -288,7 +288,64 @@ const HabitTracker = () => {
                 </div>
               </div>
             ) : (
-              habitosHoje.map((habit) => (
+              habitosHoje.map((habit) => {
+                // Check if this is a water habit that should show individual cups
+                const isWaterHabit = habit.nome.toLowerCase().includes('água') || habit.nome.toLowerCase().includes('water');
+                const targetCups = habit.meta_diaria || 8;
+                
+                if (isWaterHabit) {
+                  // Show individual cup checkboxes for water habits
+                  return (
+                    <div
+                      key={habit.id}
+                      className={`p-4 rounded-lg border transition-all ${
+                        habit.concluido
+                          ? 'bg-neon-green/10 border-neon-green/30'
+                          : 'bg-white/5 border-white/10 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className={`${habit.concluido ? 'text-neon-green' : 'text-white/70'}`}>
+                          {getHabitIcon(habit.nome)}
+                        </div>
+                        
+                        <div className="flex-1">
+                          <h3 className={`font-medium ${habit.concluido ? 'text-neon-green' : 'text-white'}`}>
+                            {habit.nome}
+                          </h3>
+                          <p className="text-sm text-white/60">
+                            Target: {targetCups} cups per day
+                          </p>
+                        </div>
+                        
+                        {habit.concluido && (
+                          <Badge className="bg-neon-green/20 text-neon-green border-neon-green/30">
+                            Completed
+                          </Badge>
+                        )}
+                      </div>
+                      
+                      {/* Individual cup checkboxes */}
+                      <div className="grid grid-cols-4 gap-2 ml-10">
+                        {Array.from({ length: targetCups }, (_, index) => (
+                          <div key={index} className="flex items-center gap-1">
+                            <Checkbox
+                              checked={habit.concluido}
+                              onCheckedChange={() => {
+                                handleToggleHabito(habit.id);
+                              }}
+                              className="data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500 w-4 h-4"
+                            />
+                            <Droplets className="w-3 h-3 text-blue-400" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                
+                // Regular habit display
+                return (
                   <div
                     key={habit.id}
                     className={`p-4 rounded-lg border transition-all ${
@@ -326,7 +383,8 @@ const HabitTracker = () => {
                     )}
                   </div>
                 </div>
-              ))
+                );
+              })
             )}
           </CardContent>
         </Card>

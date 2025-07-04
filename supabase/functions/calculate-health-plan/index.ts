@@ -35,22 +35,45 @@ serve(async (req) => {
 
     console.log(`🔍 Calculating health plan for user: ${user.email}`);
 
-    // Get user profile data
-    const { data: profile, error: profileError } = await supabase
-      .from('perfil_usuario')
-      .select('peso_atual, daily_routine')
-      .eq('user_email', user.email)
-      .single();
+    // Get user profile data and weight history
+    const [profileRes, historicoRes] = await Promise.all([
+      supabase
+        .from('perfil_usuario')
+        .select('peso_atual, daily_routine')
+        .eq('user_email', user.email)
+        .single(),
+      supabase
+        .from('historico_peso')
+        .select('peso, data')
+        .eq('user_email', user.email)
+        .order('data', { ascending: false })
+        .limit(1)
+        .single()
+    ]);
 
-    if (profileError || !profile) {
-      throw new Error('User profile not found');
+    if (profileRes.error && profileRes.error.code !== 'PGRST116') {
+      console.error('Error fetching profile:', profileRes.error);
+      throw new Error('Failed to fetch user profile');
     }
 
-    const { peso_atual, daily_routine } = profile;
-
+    // Get current weight - prioritize most recent from history, fallback to profile
+    let peso_atual = null;
+    
+    // First try to get from weight history (most recent entry)
+    if (!historicoRes.error && historicoRes.data) {
+      peso_atual = historicoRes.data.peso;
+      console.log('Using weight from history:', peso_atual);
+    } else if (profileRes.data?.peso_atual) {
+      peso_atual = profileRes.data.peso_atual;
+      console.log('Using weight from profile:', peso_atual);
+    }
+    
     if (!peso_atual) {
-      throw new Error('Current weight (peso_atual) is required for calculations');
+      console.log('No weight available, cannot calculate health plan');
+      throw new Error('Current weight not available. Please set your weight first.');
     }
+
+    const daily_routine = profileRes.data?.daily_routine;
 
     console.log(`📊 User data - Weight: ${peso_atual}kg, Activity: ${daily_routine || 'not set'}`);
 
