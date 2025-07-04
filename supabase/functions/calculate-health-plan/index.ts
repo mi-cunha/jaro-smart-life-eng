@@ -35,11 +35,11 @@ serve(async (req) => {
 
     console.log(`🔍 Calculating health plan for user: ${user.email}`);
 
-    // Get user profile data and weight history
-    const [profileRes, historicoRes] = await Promise.all([
+    // Get user preferences data and weight history
+    const [preferencesRes, historicoRes] = await Promise.all([
       supabase
-        .from('perfil_usuario')
-        .select('peso_atual, daily_routine')
+        .from('preferencias_usuario')
+        .select('preferencias_alimentares')
         .eq('user_email', user.email)
         .single(),
       supabase
@@ -51,29 +51,34 @@ serve(async (req) => {
         .single()
     ]);
 
-    if (profileRes.error && profileRes.error.code !== 'PGRST116') {
-      console.error('Error fetching profile:', profileRes.error);
-      throw new Error('Failed to fetch user profile');
+    if (preferencesRes.error && preferencesRes.error.code !== 'PGRST116') {
+      console.error('Error fetching preferences:', preferencesRes.error);
+      throw new Error('Failed to fetch user preferences');
     }
 
-    // Get current weight - prioritize most recent from history, fallback to profile
+    // Get current weight and daily routine from preferences first, fallback to history
     let peso_atual = null;
+    let daily_routine = null;
     
-    // First try to get from weight history (most recent entry)
-    if (!historicoRes.error && historicoRes.data) {
+    // First try to get from preferences
+    if (preferencesRes.data?.preferencias_alimentares) {
+      const prefs = preferencesRes.data.preferencias_alimentares as any;
+      peso_atual = prefs.currentWeight;
+      daily_routine = prefs.dailyRoutine;
+      console.log('Using weight from preferences:', peso_atual);
+      console.log('Using activity level from preferences:', daily_routine);
+    }
+    
+    // Fallback to weight history if not found in preferences
+    if (!peso_atual && !historicoRes.error && historicoRes.data) {
       peso_atual = historicoRes.data.peso;
       console.log('Using weight from history:', peso_atual);
-    } else if (profileRes.data?.peso_atual) {
-      peso_atual = profileRes.data.peso_atual;
-      console.log('Using weight from profile:', peso_atual);
     }
     
     if (!peso_atual) {
       console.log('No weight available, cannot calculate health plan');
       throw new Error('Current weight not available. Please set your weight first.');
     }
-
-    const daily_routine = profileRes.data?.daily_routine;
 
     console.log(`📊 User data - Weight: ${peso_atual}kg, Activity: ${daily_routine || 'not set'}`);
 
@@ -83,11 +88,17 @@ serve(async (req) => {
       activityLevel = 'moderate';
       console.log(`⚠️ Setting default activity level: ${activityLevel}`);
       
-      // Update profile with default activity level
+      // Update preferences with default activity level
+      const currentPrefs = preferencesRes.data?.preferencias_alimentares || {};
       await supabase
-        .from('perfil_usuario')
-        .update({ daily_routine: activityLevel })
-        .eq('user_email', user.email);
+        .from('preferencias_usuario')
+        .upsert({
+          user_email: user.email,
+          preferencias_alimentares: {
+            ...currentPrefs,
+            dailyRoutine: activityLevel
+          }
+        });
     }
 
     // Calculate TDEE (Total Daily Energy Expenditure)
