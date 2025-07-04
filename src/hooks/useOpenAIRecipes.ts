@@ -16,7 +16,8 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
     preferenciasAlimentares: string,
     restricoesAlimentares: string[],
     objetivo: string,
-    itensComprados?: string[]
+    itensComprados?: string[],
+    caloriesMax?: number
   ) => {
     console.log('🔍 useOpenAIRecipes - Iniciando geração com IA');
     console.log('🔍 useOpenAIRecipes - Parâmetros recebidos:', {
@@ -60,7 +61,8 @@ export function useOpenAIRecipes({ onRecipeGenerated }: UseOpenAIRecipesProps) {
         tipoRefeicao: refeicao,
         objetivo: objetivo || 'healthy eating',
         tempoDisponivel: 45,
-        itensComprados
+        itensComprados,
+        caloriesMax
       });
 
       console.log('✅ useOpenAIRecipes - Recipe generated successfully:', recipeData);

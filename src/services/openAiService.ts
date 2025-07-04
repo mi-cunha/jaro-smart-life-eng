@@ -9,6 +9,7 @@ interface RecipeRequest {
   objetivo: string;
   tempoDisponivel: number;
   itensComprados?: string[];
+  caloriesMax?: number;
 }
 
 interface RecipeResponse {
@@ -49,7 +50,8 @@ export class OpenAIService {
           mealType: request.tipoRefeicao,
           goal: request.objetivo,
           timeAvailable: request.tempoDisponivel,
-          purchasedItems: request.itensComprados || []
+          purchasedItems: request.itensComprados || [],
+          caloriesMax: request.caloriesMax
         }
       });
 

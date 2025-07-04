@@ -62,6 +62,7 @@ const GeradorReceitas = () => {
       refeicao,
       ingredientesSelecionados,
       itensComprados,
+      caloriesMax: filtros.caloriesMax[0],
       preferencias: {
         alimentares: preferencias?.alimentares,
         restricoes: preferencias?.restricoes,
@@ -75,7 +76,8 @@ const GeradorReceitas = () => {
       itensComprados,
       preferencias?.alimentares || "nenhuma",
       preferencias?.restricoes || [],
-      preferencias?.objetivo || "alimentação saudável"
+      preferencias?.objetivo || "alimentação saudável",
+      filtros.caloriesMax[0]
     );
   };
 

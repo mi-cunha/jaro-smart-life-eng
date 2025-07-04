@@ -86,17 +86,19 @@ export function RefeicaoSection({
             <Button
               onClick={onGerarReceitas}
               disabled={loading}
-              className="bg-neon-green text-black hover:bg-neon-green/90 disabled:opacity-50"
+              className="bg-neon-green text-black hover:bg-neon-green/90 disabled:opacity-50 text-xs md:text-sm px-2 md:px-4 py-1 md:py-2 min-w-[120px] md:min-w-auto"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Creating Recipe...
+                  <Loader2 className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2 animate-spin" />
+                  <span className="hidden sm:inline">Creating Recipe...</span>
+                  <span className="sm:hidden">Creating...</span>
                 </>
               ) : (
                 <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Generate New Recipe
+                  <Plus className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                  <span className="hidden sm:inline">Generate New Recipe</span>
+                  <span className="sm:hidden">Generate</span>
                 </>
               )}
             </Button>

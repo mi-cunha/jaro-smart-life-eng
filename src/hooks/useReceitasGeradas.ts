@@ -32,7 +32,8 @@ export function useReceitasGeradas() {
     itensComprados?: string[],
     preferenciasAlimentares: string = "nenhuma",
     restricoesAlimentares: string[] = [],
-    objetivo: string = "alimentação saudável"
+    objetivo: string = "alimentação saudável",
+    caloriesMax?: number
   ) => {
     console.log('🔍 useReceitasGeradas - Iniciando geração de receitas com IA');
     console.log('🔍 useReceitasGeradas - Parâmetros:', {
@@ -68,7 +69,8 @@ export function useReceitasGeradas() {
         preferenciasAlimentares,
         restricoesAlimentares,
         objetivo,
-        itensComprados
+        itensComprados,
+        caloriesMax
       );
     } catch (error) {
       console.error("🚨 useReceitasGeradas - Error in AI recipe generation:", error);

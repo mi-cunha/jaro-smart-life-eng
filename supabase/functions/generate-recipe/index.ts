@@ -14,6 +14,7 @@ interface RecipeRequest {
   goal: string;
   timeAvailable: number;
   purchasedItems?: string[];
+  caloriesMax?: number;
 }
 
 serve(async (req) => {
@@ -22,7 +23,7 @@ serve(async (req) => {
   }
 
   try {
-    const { ingredients, dietaryPreferences, restrictions, mealType, goal, timeAvailable, purchasedItems } = await req.json() as RecipeRequest
+    const { ingredients, dietaryPreferences, restrictions, mealType, goal, timeAvailable, purchasedItems, caloriesMax } = await req.json() as RecipeRequest
 
     console.log('Received request:', { ingredients, dietaryPreferences, restrictions, mealType, goal, timeAvailable, purchasedItems });
 
@@ -40,6 +41,9 @@ serve(async (req) => {
       throw new Error('No ingredients provided for recipe generation')
     }
 
+    const calorieConstraint = caloriesMax ? `
+CALORIE LIMIT: Maximum ${caloriesMax} calories total` : '';
+
     const prompt = `Create a detailed healthy recipe in ENGLISH with these specifications:
 
 INGREDIENTS: ${allIngredients.join(', ')}
@@ -47,14 +51,15 @@ MEAL: ${mealType}
 GOAL: ${goal}
 PREFERENCES: ${dietaryPreferences}
 RESTRICTIONS: ${restrictions.join(', ')}
-TIME: ${timeAvailable} minutes
+TIME: ${timeAvailable} minutes${calorieConstraint}
 
 Requirements:
 - Recipe name in English (creative but descriptive)
 - Use the ingredients provided with specific quantities
 - Provide 8-10 DETAILED cooking steps (clear, actionable instructions with cooking times, temperatures, and techniques)
 - Calculate ACCURATE nutrition values based on actual ingredients and portions (very important!)
-- Keep preparation time under ${timeAvailable} minutes
+- Keep preparation time under ${timeAvailable} minutes${caloriesMax ? `
+- CRITICAL: Total recipe calories MUST NOT exceed ${caloriesMax} kcal - adjust portions accordingly` : ''}
 - Respect dietary restrictions strictly
 - Make it delicious and nutritious
 - Each instruction should be specific and include cooking details (e.g., "Heat oil in a large skillet over medium-high heat for 2 minutes", "Cook chicken for 6-8 minutes until golden brown")

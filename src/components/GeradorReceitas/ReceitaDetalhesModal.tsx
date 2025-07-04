@@ -29,8 +29,8 @@ export function ReceitaDetalhesModal({ receita, isOpen, onClose }: ReceitaDetalh
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-dark-bg border-white/10 max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-white text-2xl font-bold">{receita.nome}</DialogTitle>
+        <DialogHeader className="pr-8 md:pr-6">
+          <DialogTitle className="text-white text-lg md:text-2xl font-bold pr-2 md:pr-0 leading-tight">{receita.nome}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
