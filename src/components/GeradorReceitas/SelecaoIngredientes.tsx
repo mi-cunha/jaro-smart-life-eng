@@ -78,7 +78,7 @@ export function SelecaoIngredientes({
           {ingredientes.map((ingrediente, index) => (
             <div
               key={index}
-              className={`flex items-center space-x-1.5 md:space-x-2 p-2 md:p-3 rounded-lg border transition-all cursor-pointer ${
+              className={`flex items-center space-x-1.5 md:space-x-2 p-1.5 md:p-2 rounded-lg border transition-all cursor-pointer ${
                 ingrediente.selecionado
                   ? 'bg-white/10 border-white/30'
                   : 'bg-white/5 border-white/10 hover:bg-white/10'
