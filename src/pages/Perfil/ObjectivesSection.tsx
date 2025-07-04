@@ -16,39 +16,9 @@ interface ObjectivesSectionProps {
 
 export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectionProps) {
   const { convertToDisplayWeight, convertToStorageWeight, formatWeight, unit } = useWeightUnit();
-  const [displayWeight, setDisplayWeight] = useState("");
   const [isCalculating, setIsCalculating] = useState(false);
 
-  useEffect(() => {
-    if (perfil?.peso_objetivo) {
-      const converted = convertToDisplayWeight(perfil.peso_objetivo);
-      setDisplayWeight(converted.toFixed(1));
-    }
-  }, [perfil?.peso_objetivo, unit]);
-
-  const handleWeightChange = (value: string) => {
-    setDisplayWeight(value);
-    const numValue = parseFloat(value);
-    if (!isNaN(numValue) && numValue > 0) {
-      const storageWeight = convertToStorageWeight(numValue);
-      onChangeObjetivo('peso_objetivo', storageWeight.toString());
-    }
-  };
-
-  const handleWeightBlur = () => {
-    const numValue = parseFloat(displayWeight);
-    if (!isNaN(numValue) && numValue > 0) {
-      const storageWeight = convertToStorageWeight(numValue);
-      onChangeObjetivo('peso_objetivo', storageWeight.toString());
-    }
-  };
-
   const calculateHealthPlan = async () => {
-    if (!perfil?.peso_atual) {
-      toast.error('Please set your current weight first');
-      return;
-    }
-
     setIsCalculating(true);
     try {
       const { data, error } = await supabase.functions.invoke('calculate-health-plan');
@@ -72,6 +42,9 @@ export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectio
     }
   };
 
+  // Convert target weight for display
+  const displayTargetWeight = perfil?.peso_objetivo ? convertToDisplayWeight(perfil.peso_objetivo) : 0;
+
   return (
     <Card className="bg-dark-bg border-white/10">
       <CardHeader>
@@ -80,60 +53,45 @@ export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectio
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
-            <Label htmlFor="pesoObjetivo" className="text-white/80">Target Weight ({unit})</Label>
+            <Label className="text-white/80">Target Weight ({unit})</Label>
             <Input
-              id="pesoObjetivo"
               type="number"
-              value={displayWeight}
-              onChange={(e) => handleWeightChange(e.target.value)}
-              onBlur={handleWeightBlur}
+              value={formatWeight(displayTargetWeight)}
               className="bg-white/5 border-white/20 text-white"
-              step="0.1"
-              min="0"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="habitosDiarios" className="text-white/80">Daily Habits Goal</Label>
-            <Input
-              id="habitosDiarios"
-              type="number"
-              value={perfil?.habitos_diarios || 8}
-              onChange={(e) => onChangeObjetivo('habitos_diarios', e.target.value)}
-              className="bg-white/5 border-white/20 text-white"
-              min="1"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="dosesCha" className="text-white/80">Daily Tea Doses Goal</Label>
-            <Input
-              id="dosesCha"
-              type="number"
-              value={perfil?.doses_cha || 2}
-              onChange={(e) => onChangeObjetivo('doses_cha', e.target.value)}
-              className="bg-white/5 border-white/20 text-white"
-              min="1"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="caloriasDiarias" className="text-white/80">Daily Calories Goal</Label>
-            <Input
-              id="caloriasDiarias"
-              type="number"
-              value={perfil?.calorias_diarias || 2000}
-              onChange={(e) => onChangeObjetivo('calorias_diarias', e.target.value)}
-              className="bg-white/5 border-white/20 text-white"
-              min="1000"
               readOnly
             />
             <div className="text-xs text-white/60">
-              {perfil?.calorias_diarias ? 'Calculated based on your profile' : 'Default value - complete your profile for personalized calculation'}
+              {perfil?.peso_objetivo ? 'Set in your profile' : 'Not set - complete your profile'}
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="aguaDiaria" className="text-white/80">Daily Water Goal</Label>
+            <Label className="text-white/80">Daily Tea Doses Goal</Label>
+            <Input
+              type="number"
+              value={perfil?.doses_cha || 2}
+              className="bg-white/5 border-white/20 text-white"
+              readOnly
+            />
+            <div className="text-xs text-white/60">
+              Set in your profile preferences
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-white/80">Daily Calories Goal</Label>
+            <Input
+              type="number"
+              value={perfil?.calorias_diarias || 2000}
+              className="bg-white/5 border-white/20 text-white"
+              readOnly
+            />
+            <div className="text-xs text-white/60">
+              {perfil?.calorias_diarias ? 'Calculated based on your profile' : 'Default value - calculate your personalized plan'}
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label className="text-white/80">Daily Water Goal</Label>
             <div className="flex gap-2">
               <Input
-                id="aguaDiaria"
                 type="number"
                 value={perfil?.copos_diarios || 8}
                 className="bg-white/5 border-white/20 text-white"
@@ -142,7 +100,7 @@ export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectio
               <span className="text-white/60 text-sm self-center">cups</span>
             </div>
             <div className="text-xs text-white/60">
-              {perfil?.agua_diaria_ml ? `${perfil.agua_diaria_ml}ml total - Calculated based on your weight` : 'Default value - complete your profile for personalized calculation'}
+              {perfil?.agua_diaria_ml ? `${perfil.agua_diaria_ml}ml total - Calculated based on your weight` : 'Default value - calculate your personalized plan'}
             </div>
           </div>
         </div>
@@ -151,14 +109,14 @@ export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectio
         <div className="mt-6 pt-4 border-t border-white/10">
           <Button
             onClick={calculateHealthPlan}
-            disabled={isCalculating || !perfil?.peso_atual}
+            disabled={isCalculating}
             className="w-full bg-neon-green hover:bg-neon-green/80 text-black font-medium"
           >
             <Calculator className="w-4 h-4 mr-2" />
             {isCalculating ? 'Calculating...' : 'Calculate Personalized Health Plan'}
           </Button>
           <div className="text-xs text-white/60 mt-2 text-center">
-            This will calculate your daily calories and water intake based on your current weight and activity level
+            This will calculate your daily calories and water intake based on your weight and activity level
           </div>
         </div>
       </CardContent>
