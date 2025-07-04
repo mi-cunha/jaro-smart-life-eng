@@ -78,7 +78,7 @@ export function SelecaoIngredientes({
           {ingredientes.map((ingrediente, index) => (
             <div
               key={index}
-              className={`flex items-center space-x-1.5 md:space-x-2 p-1.5 md:p-2 rounded-lg border transition-all cursor-pointer ${
+              className={`flex items-center space-x-1 md:space-x-1.5 p-1 md:p-1.5 rounded-lg border transition-all cursor-pointer ${
                 ingrediente.selecionado
                   ? 'bg-white/10 border-white/30'
                   : 'bg-white/5 border-white/10 hover:bg-white/10'
@@ -87,7 +87,7 @@ export function SelecaoIngredientes({
             >
               <Checkbox
                 checked={ingrediente.selecionado}
-                className="w-3.5 h-3.5 md:w-4 md:h-4 border-white/30 data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green flex-shrink-0 [&>svg]:w-2 [&>svg]:h-2 md:[&>svg]:w-2.5 md:[&>svg]:h-2.5"
+                className="w-3 h-3 md:w-3.5 md:h-3.5 border-white/30 data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green flex-shrink-0 [&>svg]:w-1.5 [&>svg]:h-1.5 md:[&>svg]:w-2 md:[&>svg]:h-2"
               />
               <span className={`text-xs md:text-sm font-medium flex-1 min-w-0 ${
                 ingrediente.selecionado ? 'text-white' : 'text-white/70'
