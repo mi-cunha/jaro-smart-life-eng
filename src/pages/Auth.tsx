@@ -67,8 +67,8 @@ const Auth = () => {
   }
 
   return (
-    <div className="h-screen bg-dark-bg flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="h-screen w-full bg-dark-bg flex items-center justify-center p-4">
+      <div className="w-full max-w-md mx-auto">
         <AuthCard>
           <AuthForm />
         </AuthCard>
