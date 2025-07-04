@@ -26,19 +26,37 @@ export function ObjectivesSection({ perfil, onChangeObjetivo }: ObjectivesSectio
     const fetchCurrentWeight = async () => {
       if (!user?.email) return;
       
+      console.log('🔍 Fetching current weight for:', user.email);
+      
       try {
         const { data, error } = await supabase
           .from('preferencias_usuario')
           .select('preferencias_alimentares')
           .eq('user_email', user.email)
-          .single();
+          .order('updated_at', { ascending: false })
+          .maybeSingle();
+
+        console.log('📥 Query result:', { data, error });
 
         if (!error && data?.preferencias_alimentares) {
           const prefs = data.preferencias_alimentares as any;
-          setCurrentWeight(prefs.currentWeight || null);
+          console.log('🧮 Processing preferences:', prefs);
+          
+          // Check if prefs is an object (not a string) and has currentWeight
+          if (typeof prefs === 'object' && prefs !== null && prefs.currentWeight) {
+            console.log('✅ Found currentWeight:', prefs.currentWeight);
+            setCurrentWeight(prefs.currentWeight);
+          } else {
+            console.log('⚠️ No valid currentWeight found in preferences');
+            setCurrentWeight(null);
+          }
+        } else {
+          console.log('⚠️ No preferences data found');
+          setCurrentWeight(null);
         }
       } catch (err) {
-        console.error('Error fetching current weight:', err);
+        console.error('❌ Error fetching current weight:', err);
+        setCurrentWeight(null);
       }
     };
 
