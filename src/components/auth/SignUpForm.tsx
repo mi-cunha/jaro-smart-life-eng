@@ -17,7 +17,7 @@ interface SignUpFormProps {
 
 export function SignUpForm({ formData, isLoading, onSubmit, onInputChange }: SignUpFormProps) {
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={onSubmit} className="space-y-3">
       <div className="space-y-2">
         <Label htmlFor="name" className="text-white text-sm">Full Name</Label>
         <Input
@@ -25,7 +25,7 @@ export function SignUpForm({ formData, isLoading, onSubmit, onInputChange }: Sig
           type="text"
           value={formData.name}
           onChange={(e) => onInputChange('name', e.target.value)}
-          className="bg-dark-bg border-white/20 text-white h-11 text-base focus:border-neon-green"
+          className="bg-dark-bg border-white/20 text-white h-10 text-base focus:border-neon-green"
           placeholder="Enter your full name"
           required
         />
@@ -37,7 +37,7 @@ export function SignUpForm({ formData, isLoading, onSubmit, onInputChange }: Sig
           type="email"
           value={formData.email}
           onChange={(e) => onInputChange('email', e.target.value)}
-          className="bg-dark-bg border-white/20 text-white h-11 text-base focus:border-neon-green"
+          className="bg-dark-bg border-white/20 text-white h-10 text-base focus:border-neon-green"
           placeholder="Enter your email"
           required
         />
@@ -49,7 +49,7 @@ export function SignUpForm({ formData, isLoading, onSubmit, onInputChange }: Sig
           type="password"
           value={formData.password}
           onChange={(e) => onInputChange('password', e.target.value)}
-          className="bg-dark-bg border-white/20 text-white h-11 text-base focus:border-neon-green"
+          className="bg-dark-bg border-white/20 text-white h-10 text-base focus:border-neon-green"
           placeholder="Create a password (min. 6 characters)"
           required
           minLength={6}
@@ -57,7 +57,7 @@ export function SignUpForm({ formData, isLoading, onSubmit, onInputChange }: Sig
       </div>
       <Button
         type="submit"
-        className="w-full bg-neon-green text-black hover:bg-neon-green/90 h-11 text-base font-medium"
+        className="w-full bg-neon-green text-black hover:bg-neon-green/90 h-10 text-base font-medium mt-4"
         disabled={isLoading}
       >
         {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
