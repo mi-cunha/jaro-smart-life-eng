@@ -74,11 +74,11 @@ export function SelecaoIngredientes({
       )}
 
       {ingredientes.length > 0 ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 md:gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
           {ingredientes.map((ingrediente, index) => (
             <div
               key={index}
-              className={`flex items-center space-x-2 md:space-x-3 p-3 md:p-4 rounded-lg border transition-all cursor-pointer ${
+              className={`flex items-center space-x-1.5 md:space-x-2 p-2 md:p-3 rounded-lg border transition-all cursor-pointer ${
                 ingrediente.selecionado
                   ? 'bg-white/10 border-white/30'
                   : 'bg-white/5 border-white/10 hover:bg-white/10'
@@ -87,9 +87,9 @@ export function SelecaoIngredientes({
             >
               <Checkbox
                 checked={ingrediente.selecionado}
-                className="w-4 h-4 md:w-5 md:h-5 border-white/30 data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green [&>svg]:w-2.5 [&>svg]:h-2.5 md:[&>svg]:w-3 md:[&>svg]:h-3"
+                className="w-3.5 h-3.5 md:w-4 md:h-4 border-white/30 data-[state=checked]:bg-neon-green data-[state=checked]:border-neon-green flex-shrink-0 [&>svg]:w-2 [&>svg]:h-2 md:[&>svg]:w-2.5 md:[&>svg]:h-2.5"
               />
-              <span className={`text-sm md:text-base font-medium truncate ${
+              <span className={`text-xs md:text-sm font-medium flex-1 min-w-0 ${
                 ingrediente.selecionado ? 'text-white' : 'text-white/70'
               }`}>
                 {ingrediente.nome}
