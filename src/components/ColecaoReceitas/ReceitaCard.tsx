@@ -112,7 +112,8 @@ const ReceitaCard = ({
               className="flex-1 border-white/20 text-white hover:bg-white/10"
             >
               <Eye className="w-4 h-4 mr-1" />
-              View Recipe
+              <span className="hidden sm:inline">View Recipe</span>
+              <span className="sm:hidden">View</span>
             </Button>
             
             <Button
