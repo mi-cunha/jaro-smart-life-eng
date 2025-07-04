@@ -1,37 +1,51 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ProgressChart } from "@/components/ProgressChart";
 import { QuizBasedRecommendations } from "./QuizBasedRecommendations";
-import { TrendingUp, BarChart } from "lucide-react";
+import { BarChart } from "lucide-react";
 
 interface AdvancedStatisticsProps {
-  weightData: any[];
   habitsWeekly: any[];
 }
 
-export function AdvancedStatistics({ weightData, habitsWeekly }: AdvancedStatisticsProps) {
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Weight Progress Chart */}
-      <Card className="bg-dark-bg border-white/10">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-neon-green" />
-            Weight Progress Trend
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProgressChart 
-            title="Weight Progress"
-            data={weightData} 
-            type="line"
-            color="#00FF66"
-            unit="lbs"
-          />
-        </CardContent>
-      </Card>
+export function AdvancedStatistics({ habitsWeekly }: AdvancedStatisticsProps) {
+  // Generate full week data (Sunday to Saturday)
+  const generateWeekData = () => {
+    const today = new Date();
+    const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const weekData = [];
+    
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    
+    // Create data for all 7 days of the week
+    for (let i = 0; i < 7; i++) {
+      const dayIndex = i;
+      const dayName = dayNames[dayIndex];
+      
+      // Find matching data from habitsWeekly
+      const matchingData = habitsWeekly.find(day => {
+        const dayOfWeek = new Date(day.date).getDay();
+        return dayOfWeek === dayIndex;
+      });
+      
+      const completionRate = matchingData && matchingData.total > 0 
+        ? (matchingData.completed / matchingData.total) * 100 
+        : 0;
+      
+      weekData.push({
+        dayName,
+        completionRate,
+        hasData: !!matchingData
+      });
+    }
+    
+    return weekData;
+  };
 
-      {/* Habits Weekly Progress */}
+  const weekData = generateWeekData();
+
+  return (
+    <div className="grid grid-cols-1 gap-6">
+      {/* Habits Weekly Progress - Full Width */}
       <Card className="bg-dark-bg border-white/10">
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
@@ -41,39 +55,34 @@ export function AdvancedStatistics({ weightData, habitsWeekly }: AdvancedStatist
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {habitsWeekly.length > 0 ? (
-              habitsWeekly.slice(0, 5).map((day, index) => {
-                const completionRate = day.total > 0 ? (day.completed / day.total) * 100 : 0;
-                return (
-                  <div key={index} className="flex items-center justify-between">
-                    <span className="text-white/80 text-sm">
-                      {new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-white/10 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-neon-green transition-all duration-300"
-                          style={{ width: `${completionRate}%` }}
-                        />
-                      </div>
-                      <span className="text-white text-sm font-medium min-w-[3rem]">
-                        {Math.round(completionRate)}%
-                      </span>
-                    </div>
+            {weekData.map((day, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <span className="text-white/80 text-sm w-20">
+                  {day.dayName}
+                </span>
+                <div className="flex items-center gap-2">
+                  <div className="w-32 h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-300 ${
+                        day.hasData ? 'bg-neon-green' : 'bg-white/20'
+                      }`}
+                      style={{ width: `${day.completionRate}%` }}
+                    />
                   </div>
-                );
-              })
-            ) : (
-              <div className="text-white/60 text-center py-4">
-                No habit data available for this week
+                  <span className={`text-sm font-medium min-w-[3rem] ${
+                    day.hasData ? 'text-white' : 'text-white/40'
+                  }`}>
+                    {Math.round(day.completionRate)}%
+                  </span>
+                </div>
               </div>
-            )}
+            ))}
           </div>
         </CardContent>
       </Card>
 
       {/* Quiz-Based Recommendations - Full Width */}
-      <div className="lg:col-span-2">
+      <div>
         <QuizBasedRecommendations />
       </div>
     </div>

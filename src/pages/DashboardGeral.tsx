@@ -2,17 +2,12 @@ import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ProgressChart } from "@/components/ProgressChart";
 import { 
   Coffee, 
   CheckCircle, 
   Scale, 
-  ChefHat, 
   ShoppingCart, 
   Trophy,
-  TrendingUp,
-  Calendar,
-  Target,
   Heart
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -24,7 +19,6 @@ import { useSupabaseListaCompras } from "@/hooks/useSupabaseListaCompras";
 import { useEffect, useState } from "react";
 import { ProgressCards } from "@/components/DashboardGeral/ProgressCards";
 import { AdvancedStatistics } from "@/components/DashboardGeral/AdvancedStatistics";
-import { TopRecipesTable } from "@/components/DashboardGeral/TopRecipesTable";
 import { AchievementsMedals } from "@/components/DashboardGeral/AchievementsMedals";
 import { ImprovementSuggestions } from "@/components/DashboardGeral/ImprovementSuggestions";
 import { MonthlySummary } from "@/components/DashboardGeral/MonthlySummary";
@@ -37,7 +31,7 @@ import { useRealDashboardData } from "@/hooks/useRealDashboardData";
 const GeneralDashboard = () => {
   const navigate = useNavigate();
   const { user, userProfile } = useAuth();
-  const { pesoAtual, pesoMeta, getProgressoPeso, getDadosGrafico, historicoPeso } = usePeso();
+  const { pesoAtual, pesoMeta, getProgressoPeso } = usePeso();
   const { getHabitosHoje, getProgressoHabitos, getHistoricoSemanal } = useHabitos();
   const { receitas, loading: loadingReceitas } = useSupabaseReceitas();
   const { itensCompra, loading: loadingCompras } = useSupabaseListaCompras();
@@ -50,7 +44,6 @@ const GeneralDashboard = () => {
   const habitosHoje = getHabitosHoje();
   const progressoHabitos = getProgressoHabitos();
   const progressoPeso = getProgressoPeso();
-  const dadosGraficoPeso = getDadosGrafico();
 
   useEffect(() => {
     const loadHistorico = async () => {
@@ -125,12 +118,7 @@ const GeneralDashboard = () => {
     }
   ];
 
-  // Top 5 recipes with real data
-  const receitasTop = allReceitas.slice(0, 5).map((receita, index) => ({
-    nome: receita.nome,
-    consumos: Math.floor(Math.random() * 8) + 1, // This could be enhanced with actual consumption tracking
-    calorias: receita.calorias || 300
-  }));
+  // Top 5 recipes - removed since there's no real consumption tracking data
 
   // Real achievements based on user data
   const medalhas = [
@@ -177,10 +165,7 @@ const GeneralDashboard = () => {
         <ProgressCards cards={progressoCards} />
         
         {/* Advanced Statistics */}
-        <AdvancedStatistics weightData={dadosGraficoPeso} habitsWeekly={historicoSemanal} />
-        
-        {/* Top 5 Recipes */}
-        <TopRecipesTable recipes={receitasTop} />
+        <AdvancedStatistics habitsWeekly={historicoSemanal} />
         
         {/* Achievements & Medals */}
         <AchievementsMedals medals={medalhas} />
