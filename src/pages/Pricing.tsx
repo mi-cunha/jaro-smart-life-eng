@@ -46,7 +46,6 @@ const Pricing = () => {
       price: "$9.99",
       period: "/week",
       features: [
-        "7-day free trial",
         "Personalized meal plans",
         "Custom workout routines",
         "Progress tracking",
@@ -60,7 +59,6 @@ const Pricing = () => {
       price: "$19.99",
       period: "/month",
       features: [
-        "7-day free trial",
         "Personalized meal plans",
         "Custom workout routines",
         "Progress tracking",
@@ -70,11 +68,10 @@ const Pricing = () => {
       priceId: "STRIPE_MONTHLY_PRICE_ID_EN"
     },
     {
-      name: "Quarterly Plan",
-      price: "$35",
-      period: "/3 months",
+      name: "Annual Plan",
+      price: "$99",
+      period: "/year",
       features: [
-        "7-day free trial",
         "Personalized meal plans",
         "Custom workout routines",
         "Progress tracking",
@@ -82,7 +79,7 @@ const Pricing = () => {
       ],
       popular: false,
       badge: "Best Value",
-      priceId: "STRIPE_QUARTERLY_PRICE_ID_EN"
+      priceId: "STRIPE_ANNUAL_PRICE_ID_EN"
     }
   ];
 
@@ -233,13 +230,8 @@ const Pricing = () => {
             Choose Your Plan
           </h1>
           
-          <div className="inline-flex items-center gap-2 bg-neon-green/20 text-neon-green px-4 py-2 rounded-full mb-6">
-            <Star className="w-4 h-4" />
-            <span className="font-medium">7 Days Free Trial Included!</span>
-          </div>
-
           <p className="text-white/70 text-lg mb-8">
-            Start your transformation today with zero risk
+            Start your transformation today
           </p>
 
           {/* Plans Grid */}
@@ -299,7 +291,7 @@ const Pricing = () => {
           </div>
 
           <p className="text-white/50 text-sm">
-            All plans include 7 days free trial. Cancel anytime during the trial period.
+            Cancel anytime. No commitments.
           </p>
         </div>
       </div>
