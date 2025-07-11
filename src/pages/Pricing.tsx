@@ -253,11 +253,20 @@ const Pricing = () => {
                   </div>
                 )}
                 
-                {plan.badge && !plan.popular && (
-                  <div className="absolute -top-3 right-4">
-                    <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      {plan.badge}
-                    </span>
+                {/* Discount badges */}
+                {plan.name === "Monthly Plan" && (
+                  <div className="absolute -top-3 -right-3 z-10">
+                    <div className="bg-red-500 text-white w-16 h-16 rounded-full flex items-center justify-center text-xs font-bold">
+                      50% OFF
+                    </div>
+                  </div>
+                )}
+                
+                {plan.name === "Annual Plan" && (
+                  <div className="absolute -top-3 -right-3 z-10">
+                    <div className="bg-red-500 text-white w-16 h-16 rounded-full flex items-center justify-center text-xs font-bold">
+                      80% OFF
+                    </div>
                   </div>
                 )}
 
@@ -267,6 +276,14 @@ const Pricing = () => {
                   <div className="mb-6">
                     <span className="text-3xl font-bold text-white">{plan.price}</span>
                     <span className="text-white/60">{plan.period}</span>
+                    
+                    {plan.badge && (
+                      <div className="mt-2">
+                        <span className="bg-neon-green text-black px-3 py-1 rounded-full text-sm font-medium">
+                          {plan.badge}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   <ul className="space-y-3 mb-8">
