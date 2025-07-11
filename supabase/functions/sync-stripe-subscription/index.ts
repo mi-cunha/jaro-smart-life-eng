@@ -149,23 +149,20 @@ Deno.serve(async (req) => {
     })
 
     // Determine subscription tier based on price
-    let subscriptionTier = 'Basic'
+    let subscriptionTier = 'weekly'
     if (subscription.items.data.length > 0) {
       const priceId = subscription.items.data[0].price.id
       const price = await stripe.prices.retrieve(priceId)
-      const amount = price.unit_amount || 0
       
-      console.log('💰 Price details:', { priceId, amount, interval: price.recurring?.interval })
+      console.log('💰 Price details:', { priceId, interval: price.recurring?.interval })
       
-      // Determine tier based on amount and interval
+      // Determine tier based on interval
       if (price.recurring?.interval === 'year') {
-        subscriptionTier = 'Annual'
+        subscriptionTier = 'annual'
       } else if (price.recurring?.interval === 'month') {
-        if (amount >= 1999) {
-          subscriptionTier = 'Premium'
-        } else {
-          subscriptionTier = 'Basic'
-        }
+        subscriptionTier = 'monthly'
+      } else if (price.recurring?.interval === 'week') {
+        subscriptionTier = 'weekly'
       }
     }
 

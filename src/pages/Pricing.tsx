@@ -263,22 +263,6 @@ const Pricing = () => {
             Start your transformation today
           </p>
 
-          {/* Sync button for logged in users who might have subscription issues */}
-          {user && isSubscribed === false && (
-            <div className="mb-8 p-4 bg-dark-bg border border-yellow-500/30 rounded-lg">
-              <p className="text-yellow-400 text-sm mb-3">
-                Teve problemas com sua assinatura? Tente sincronizar os dados:
-              </p>
-              <Button
-                onClick={handleSyncSubscription}
-                disabled={isSyncing}
-                variant="outline"
-                className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10"
-              >
-                {isSyncing ? 'Sincronizando...' : 'Sincronizar Assinatura'}
-              </Button>
-            </div>
-          )}
 
           {/* Plans Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
