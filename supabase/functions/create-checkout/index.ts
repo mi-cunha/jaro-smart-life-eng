@@ -61,8 +61,8 @@ serve(async (req) => {
       case "Monthly Plan":
         priceId = Deno.env.get("STRIPE_MONTHLY_PRICE_ID_EN");
         break;
-      case "Quarterly Plan":
-        priceId = Deno.env.get("STRIPE_QUARTERLY_PRICE_ID_EN");
+      case "Annual Plan":
+        priceId = Deno.env.get("STRIPE_ANNUAL_PRICE_ID_EN");
         break;
       default:
         priceId = Deno.env.get("STRIPE_MONTHLY_PRICE_ID_EN");
