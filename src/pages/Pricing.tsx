@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Check, Star, CheckCircle, LogOut } from 'lucide-react';
 import { JaroSmartLogo } from '@/components/JaroSmartLogo';
 import { supabase } from '@/integrations/supabase/client';
+import { SubscriptionService } from '@/services/subscriptionService';
 import { toast } from 'sonner';
 
 const Pricing = () => {
@@ -14,6 +15,7 @@ const Pricing = () => {
   const [searchParams] = useSearchParams();
   const { user, loading, isSubscribed, signOut } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Check for plan from URL params or localStorage on component mount
   useEffect(() => {
@@ -150,6 +152,33 @@ const Pricing = () => {
     }
   };
 
+  const handleSyncSubscription = async () => {
+    if (!user) return;
+    
+    setIsSyncing(true);
+    toast.info('Sincronizando dados da assinatura...');
+    
+    try {
+      const session = await supabase.auth.getSession();
+      const result = await SubscriptionService.syncWithStripe(user.email!, session.data.session);
+      
+      if (result.success) {
+        toast.success(result.message || 'Dados sincronizados com sucesso!');
+        if (result.subscribed) {
+          // Force a page reload to update auth state
+          window.location.reload();
+        }
+      } else {
+        toast.error(result.message || 'Erro ao sincronizar dados');
+      }
+    } catch (error) {
+      console.error('Erro na sincronização:', error);
+      toast.error('Erro inesperado ao sincronizar dados');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   // If user is already subscribed, show different content
   if (user && isSubscribed === true) {
     return (
@@ -233,6 +262,23 @@ const Pricing = () => {
           <p className="text-white/70 text-lg mb-8">
             Start your transformation today
           </p>
+
+          {/* Sync button for logged in users who might have subscription issues */}
+          {user && isSubscribed === false && (
+            <div className="mb-8 p-4 bg-dark-bg border border-yellow-500/30 rounded-lg">
+              <p className="text-yellow-400 text-sm mb-3">
+                Teve problemas com sua assinatura? Tente sincronizar os dados:
+              </p>
+              <Button
+                onClick={handleSyncSubscription}
+                disabled={isSyncing}
+                variant="outline"
+                className="border-yellow-500 text-yellow-400 hover:bg-yellow-500/10"
+              >
+                {isSyncing ? 'Sincronizando...' : 'Sincronizar Assinatura'}
+              </Button>
+            </div>
+          )}
 
           {/* Plans Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

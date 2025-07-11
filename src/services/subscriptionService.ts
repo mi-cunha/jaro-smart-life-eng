@@ -141,4 +141,35 @@ export class SubscriptionService {
     // Then do a fresh check with updated data
     return await this.checkSubscription(email, session);
   }
+
+  static async syncWithStripe(email: string, session: any): Promise<{ success: boolean; subscribed: boolean; message?: string }> {
+    console.log('🔄 Syncing subscription with Stripe for:', email);
+    
+    try {
+      const { data: syncResult, error: syncError } = await supabase.functions.invoke('sync-stripe-subscription', {
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+      });
+
+      if (syncError) {
+        console.error('❌ Error calling sync-stripe-subscription function:', syncError);
+        return { success: false, subscribed: false, message: 'Failed to sync with Stripe' };
+      }
+
+      if (syncResult) {
+        console.log('✅ Stripe sync result:', syncResult);
+        return {
+          success: syncResult.success,
+          subscribed: syncResult.subscribed || false,
+          message: syncResult.message
+        };
+      }
+
+      return { success: false, subscribed: false, message: 'No response from sync function' };
+    } catch (error) {
+      console.error('❌ Unexpected error in syncWithStripe:', error);
+      return { success: false, subscribed: false, message: 'Unexpected error occurred' };
+    }
+  }
 }

@@ -1,5 +1,6 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Stripe from 'https://esm.sh/stripe@14.21.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -61,6 +62,86 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       )
+    }
+
+    console.log('📋 Current subscriber data:', {
+      stripe_customer_id: subscriber.stripe_customer_id,
+      stripe_subscription_id: subscriber.stripe_subscription_id,
+      subscribed: subscriber.subscribed,
+      subscription_tier: subscriber.subscription_tier,
+      subscription_end: subscriber.subscription_end
+    })
+
+    // If subscription data is incomplete, try to sync with Stripe
+    const needsSync = !subscriber.stripe_subscription_id || !subscriber.subscription_tier || subscriber.subscribed === false
+    
+    if (needsSync && subscriber.stripe_customer_id) {
+      console.log('🔄 Subscription data incomplete, syncing with Stripe...')
+      
+      try {
+        const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+          apiVersion: '2023-10-16',
+        })
+
+        const subscriptions = await stripe.subscriptions.list({
+          customer: subscriber.stripe_customer_id,
+          status: 'active',
+          limit: 1
+        })
+
+        if (subscriptions.data.length > 0) {
+          const subscription = subscriptions.data[0]
+          console.log('✅ Found active Stripe subscription:', subscription.id)
+          
+          // Determine subscription tier
+          let subscriptionTier = 'Basic'
+          if (subscription.items.data.length > 0) {
+            const priceId = subscription.items.data[0].price.id
+            const price = await stripe.prices.retrieve(priceId)
+            const amount = price.unit_amount || 0
+            
+            if (price.recurring?.interval === 'year') {
+              subscriptionTier = 'Annual'
+            } else if (price.recurring?.interval === 'month') {
+              subscriptionTier = amount >= 1999 ? 'Premium' : 'Basic'
+            }
+          }
+
+          const subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString()
+
+          // Update subscriber with Stripe data
+          await supabaseClient
+            .from('subscribers')
+            .update({
+              stripe_subscription_id: subscription.id,
+              subscribed: true,
+              subscription_tier: subscriptionTier,
+              subscription_end: subscriptionEnd,
+              user_id: user.id,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_email', user.email)
+
+          console.log('✅ Updated subscriber with Stripe data')
+          
+          return new Response(
+            JSON.stringify({ 
+              subscribed: true,
+              subscription_details: {
+                tier: subscriptionTier,
+                end_date: subscriptionEnd,
+                stripe_customer_id: subscriber.stripe_customer_id,
+                stripe_subscription_id: subscription.id
+              }
+            }),
+            { 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            }
+          )
+        }
+      } catch (stripeError) {
+        console.error('❌ Error syncing with Stripe:', stripeError)
+      }
     }
 
     // IMPROVED subscription check logic - prioritize explicit subscription status
