@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { PesoService } from '@/services/pesoService';
 import { UserProfileService } from '@/services/userProfileService';
+import { PreferencesService } from '@/services/preferencesService';
 import { toast } from 'sonner';
 
 interface HistoricoPeso {
@@ -118,10 +119,53 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
             console.log('✅ PesoContext - Usando dados do perfil diretamente:', profileCurrentWeight);
           }
         } else {
-          // No profile data either - show zero values instead of defaults
-          console.log('ℹ️ PesoContext - Sem dados do perfil, mostrando valores zerados');
-          setPesoAtual(null);
-          setPesoInicial(null);
+          // No profile data - try preferences as last fallback
+          console.log('📝 PesoContext - Sem dados do perfil, tentando preferências do usuário...');
+          
+          try {
+            const preferencesRes = await PreferencesService.buscarPreferencias();
+            console.log('🎯 PesoContext - Resultado preferências:', { 
+              success: !preferencesRes.error, 
+              hasData: !!preferencesRes.data 
+            });
+            
+            if (preferencesRes.data && !preferencesRes.error) {
+              const preferencesData = preferencesRes.data.preferencias_alimentares;
+              if (preferencesData && typeof preferencesData === 'object') {
+                const currentWeight = preferencesData.currentWeight;
+                const targetWeight = preferencesData.targetWeight;
+                
+                console.log('📊 PesoContext - Dados das preferências:', { currentWeight, targetWeight });
+                
+                if (currentWeight) {
+                  console.log('✅ PesoContext - Usando dados das preferências:', currentWeight);
+                  setPesoAtual(currentWeight);
+                  setPesoInicial(currentWeight);
+                  
+                  if (targetWeight) {
+                    setPesoMeta(targetWeight);
+                    console.log('✅ PesoContext - Meta das preferências:', targetWeight);
+                  }
+                } else {
+                  console.log('ℹ️ PesoContext - Sem dados nas preferências, mostrando valores zerados');
+                  setPesoAtual(null);
+                  setPesoInicial(null);
+                }
+              } else {
+                console.log('ℹ️ PesoContext - Preferências sem dados válidos, mostrando valores zerados');
+                setPesoAtual(null);
+                setPesoInicial(null);
+              }
+            } else {
+              console.log('ℹ️ PesoContext - Erro ao carregar preferências, mostrando valores zerados');
+              setPesoAtual(null);
+              setPesoInicial(null);
+            }
+          } catch (error) {
+            console.error('❌ PesoContext - Erro ao buscar preferências:', error);
+            setPesoAtual(null);
+            setPesoInicial(null);
+          }
         }
       }
     } catch (error) {
