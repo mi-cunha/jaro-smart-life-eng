@@ -54,80 +54,81 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
       
       console.log('👤 PesoContext - Resultado perfil:', { 
         success: !perfilRes.error, 
-        hasData: !!perfilRes.data 
+        hasData: !!perfilRes.data,
+        pesoAtual: perfilRes.data?.peso_atual,
+        pesoObjetivo: perfilRes.data?.peso_objetivo
       });
 
-      // Handle weight history - PRIORITY: Use most recent weight from history
-      if (historicoRes.error) {
-        console.error('❌ PesoContext - Erro ao carregar histórico:', historicoRes.error);
-        setHistoricoPeso([]);
+      // Handle profile data first to get quiz values
+      let profileCurrentWeight = null;
+      let profileTargetWeight = null;
+      let profileInitialWeight = null;
+
+      if (perfilRes.data && !perfilRes.error) {
+        profileCurrentWeight = perfilRes.data.peso_atual;
+        profileTargetWeight = perfilRes.data.peso_objetivo || perfilRes.data.meta_peso;
+        profileInitialWeight = perfilRes.data.peso_atual; // Use current weight as initial weight from quiz
+
+        // Set target weight from profile
+        setPesoMeta(profileTargetWeight || 70.0);
+        console.log('✅ PesoContext - Meta de peso definida do perfil:', profileTargetWeight);
       } else {
-        const historico = historicoRes.data || [];
-        setHistoricoPeso(historico);
-        
-        // ALWAYS use the most recent weight from history as current weight
-        if (historico.length > 0) {
-          // Sort by date descending to get the most recent
-          const sortedHistorico = [...historico].sort((a, b) => 
-            new Date(b.data).getTime() - new Date(a.data).getTime()
-          );
-          const latestWeight = sortedHistorico[0].peso;
-          setPesoAtual(latestWeight);
-          console.log('✅ PesoContext - Peso atual definido do histórico mais recente:', latestWeight);
-        }
+        console.error('❌ PesoContext - Erro ao carregar perfil:', perfilRes.error);
+        setPesoMeta(70.0);
       }
 
-      // Handle profile data
-      if (perfilRes.error) {
-        console.error('❌ PesoContext - Erro ao carregar perfil:', perfilRes.error);
-        // Set default values when profile fails to load
-        setPesoMeta(70.0);
-        
-        // Only set initial weight and current weight if no history exists
-        if (!historicoRes.data || historicoRes.data.length === 0) {
-          setPesoInicial(78.0);
-          setPesoAtual(78.0);
-          console.log('ℹ️ PesoContext - Usando valores padrão sem histórico');
-        } else {
-          // Use the oldest weight from history as initial weight
-          const sortedHistorico = [...historicoRes.data].sort((a, b) => 
-            new Date(a.data).getTime() - new Date(b.data).getTime()
-          );
-          setPesoInicial(sortedHistorico[0].peso);
-          console.log('✅ PesoContext - Peso inicial definido do histórico mais antigo:', sortedHistorico[0].peso);
-        }
-      } else if (perfilRes.data) {
-        // Use peso_objetivo as target weight
-        const targetWeight = perfilRes.data.peso_objetivo || perfilRes.data.meta_peso || 70.0;
-        setPesoMeta(targetWeight);
-        console.log('✅ PesoContext - Meta de peso definida:', targetWeight);
-        
-        // Use peso_atual from profile as initial weight
-        const initialWeight = perfilRes.data.peso_atual || 78.0;
-        setPesoInicial(initialWeight);
-        console.log('✅ PesoContext - Peso inicial definido do perfil:', initialWeight);
-        
-        // ONLY use profile current weight if no weight history exists
-        if ((!historicoRes.data || historicoRes.data.length === 0) && perfilRes.data.peso_atual) {
-          setPesoAtual(perfilRes.data.peso_atual);
-          console.log('✅ PesoContext - Peso atual definido do perfil (sem histórico):', perfilRes.data.peso_atual);
-        }
+      // Handle weight history
+      const historico = historicoRes.data || [];
+      setHistoricoPeso(historico);
+
+      if (historico.length > 0) {
+        // Use weight history for current and initial weights
+        const sortedHistorico = [...historico].sort((a, b) => 
+          new Date(b.data).getTime() - new Date(a.data).getTime()
+        );
+        const latestWeight = sortedHistorico[0].peso;
+        setPesoAtual(latestWeight);
+        console.log('✅ PesoContext - Peso atual do histórico:', latestWeight);
+
+        // Use oldest weight from history as initial weight
+        const oldestWeight = [...historico].sort((a, b) => 
+          new Date(a.data).getTime() - new Date(b.data).getTime()
+        )[0].peso;
+        setPesoInicial(oldestWeight);
+        console.log('✅ PesoContext - Peso inicial do histórico:', oldestWeight);
       } else {
-        // No profile data, set defaults
-        setPesoMeta(70.0);
+        // No weight history - use profile data or create initial entry
+        console.log('📝 PesoContext - Sem histórico, usando dados do perfil');
         
-        // Only set default values if no history exists
-        if (!historicoRes.data || historicoRes.data.length === 0) {
-          setPesoInicial(78.0);
-          setPesoAtual(78.0);
-          console.log('ℹ️ PesoContext - Usando valores padrão completos');
+        if (profileCurrentWeight) {
+          // Create initial weight entry from profile data
+          console.log('💾 PesoContext - Criando entrada inicial no histórico com peso do quiz:', profileCurrentWeight);
+          
+          try {
+            const { error: addError } = await PesoService.adicionarPeso(profileCurrentWeight, 'Peso inicial do quiz');
+            if (!addError) {
+              console.log('✅ PesoContext - Entrada inicial criada com sucesso');
+              // Set values from profile
+              setPesoAtual(profileCurrentWeight);
+              setPesoInicial(profileCurrentWeight);
+              console.log('✅ PesoContext - Peso atual e inicial definidos do perfil:', profileCurrentWeight);
+            } else {
+              console.error('❌ PesoContext - Erro ao criar entrada inicial:', addError);
+              // Fallback to profile values without creating history entry
+              setPesoAtual(profileCurrentWeight);
+              setPesoInicial(profileCurrentWeight);
+            }
+          } catch (error) {
+            console.error('❌ PesoContext - Erro inesperado ao criar entrada inicial:', error);
+            // Fallback to profile values
+            setPesoAtual(profileCurrentWeight);
+            setPesoInicial(profileCurrentWeight);
+          }
         } else {
-          // Use the oldest weight from history as initial weight
-          const sortedHistorico = [...historicoRes.data].sort((a, b) => 
-            new Date(a.data).getTime() - new Date(b.data).getTime()
-          );
-          setPesoInicial(sortedHistorico[0].peso);
-          console.log('✅ PesoContext - Peso inicial definido do histórico mais antigo:', sortedHistorico[0].peso);
+          // No profile data either - use defaults
+          console.log('ℹ️ PesoContext - Sem dados do perfil, usando valores padrão');
+          setPesoAtual(78.0);
+          setPesoInicial(78.0);
         }
       }
     } catch (error) {
