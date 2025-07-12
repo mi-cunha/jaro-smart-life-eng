@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Scale, CheckCircle2 } from "lucide-react";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
-import { usePeso } from "@/hooks/usePeso";
+import { usePesoContext } from "@/contexts/PesoContext";
 
 interface ProgressSectionProps {
   progressoPeso: number;
@@ -21,7 +21,7 @@ export function ProgressSection({
   totalHabitos
 }: ProgressSectionProps) {
   const { formatWeight, convertToDisplayWeight } = useWeightUnit();
-  const { historicoPeso } = usePeso();
+  const { historicoPeso } = usePesoContext();
   const percentualHabitos = totalHabitos > 0 ? (habitosConcluidos / totalHabitos) * 100 : 0;
   
   const currentWeight = pesoAtual ? convertToDisplayWeight(pesoAtual) : null;

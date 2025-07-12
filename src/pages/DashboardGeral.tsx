@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { usePeso } from "@/hooks/usePeso";
+import { usePesoContext } from "@/contexts/PesoContext";
 import { useHabitos } from "@/hooks/useHabitos";
 import { useSupabaseReceitas } from "@/hooks/useSupabaseReceitas";
 import { useSupabaseListaCompras } from "@/hooks/useSupabaseListaCompras";
@@ -31,7 +31,7 @@ import { useRealDashboardData } from "@/hooks/useRealDashboardData";
 const GeneralDashboard = () => {
   const navigate = useNavigate();
   const { user, userProfile } = useAuth();
-  const { pesoAtual, pesoMeta, getProgressoPeso } = usePeso();
+  const { pesoAtual, pesoMeta, getProgressoPeso } = usePesoContext();
   const { getHabitosHoje, getProgressoHabitos, getHistoricoSemanal } = useHabitos();
   const { receitas, loading: loadingReceitas } = useSupabaseReceitas();
   const { itensCompra, loading: loadingCompras } = useSupabaseListaCompras();
