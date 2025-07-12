@@ -54,7 +54,7 @@ export class PreferencesService {
         .from('preferencias_usuario')
         .select('*')
         .eq('user_email', user.email)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error fetching preferences:', error);

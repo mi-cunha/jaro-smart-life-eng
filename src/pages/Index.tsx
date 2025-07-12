@@ -19,6 +19,16 @@ const Index = () => {
   const { pesoAtual, pesoMeta, getProgressoPeso, loading: pesoLoading } = usePesoContext();
   const { perfil } = useSupabasePerfil();
 
+  // Teste dos dados de peso
+  useEffect(() => {
+    console.log('🧪 INDEX - Dados de peso:', { 
+      pesoAtual, 
+      pesoMeta, 
+      loading: pesoLoading,
+      progressoPeso: getProgressoPeso()
+    });
+  }, [pesoAtual, pesoMeta, pesoLoading]);
+
   useEffect(() => {
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
     if (!hasSeenWelcome) {

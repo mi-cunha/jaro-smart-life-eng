@@ -39,12 +39,18 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
 
   const carregarDados = async () => {
     setLoading(true);
-    console.log('🔍 PesoContext - Carregando dados de peso...');
+    console.log('🔍 PesoContext - Iniciando carregamento de dados...');
     
     try {
       // 1. First try to load from weight history
+      console.log('📊 PesoContext - Buscando histórico de peso...');
       const historicoRes = await PesoService.buscarHistoricoPeso(30);
       const historico = historicoRes.data || [];
+      console.log('📊 PesoContext - Resultado histórico:', { 
+        error: historicoRes.error, 
+        dataLength: historico.length,
+        data: historico 
+      });
       setHistoricoPeso(historico);
 
       if (historico.length > 0) {
@@ -59,48 +65,60 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
 
         setPesoAtual(latestWeight);
         setPesoInicial(oldestWeight);
-        console.log('✅ PesoContext - Dados do histórico:', { atual: latestWeight, inicial: oldestWeight });
+        console.log('✅ PesoContext - Usando dados do histórico:', { atual: latestWeight, inicial: oldestWeight });
 
         // Also try to get target weight from profile
+        console.log('👤 PesoContext - Buscando meta do perfil...');
         const perfilRes = await UserProfileService.buscarPerfilUsuario();
+        console.log('👤 PesoContext - Resultado perfil:', { error: perfilRes.error, data: perfilRes.data });
         if (perfilRes.data && !perfilRes.error) {
           const targetWeight = perfilRes.data.peso_objetivo || perfilRes.data.meta_peso;
           setPesoMeta(targetWeight || null);
+          console.log('✅ PesoContext - Meta do perfil:', targetWeight);
         }
       } else {
         // 2. No weight history - try preferences
         console.log('📝 PesoContext - Histórico vazio, buscando preferências...');
         
         const preferencesRes = await PreferencesService.buscarPreferencias();
+        console.log('🎯 PesoContext - Resultado preferências:', { 
+          error: preferencesRes.error, 
+          hasData: !!preferencesRes.data,
+          data: preferencesRes.data 
+        });
+        
         if (preferencesRes.data && !preferencesRes.error) {
           const preferencesData = preferencesRes.data.preferencias_alimentares;
+          console.log('🎯 PesoContext - preferencias_alimentares raw:', preferencesData);
+          
           if (preferencesData && typeof preferencesData === 'object') {
             const currentWeight = preferencesData.currentWeight;
             const targetWeight = preferencesData.targetWeight;
+            console.log('🎯 PesoContext - Extraído das preferências:', { currentWeight, targetWeight });
             
             if (currentWeight) {
               setPesoAtual(currentWeight);
               setPesoInicial(currentWeight);
               setPesoMeta(targetWeight || null);
-              console.log('✅ PesoContext - Dados das preferências:', { atual: currentWeight, meta: targetWeight });
+              console.log('✅ PesoContext - Definindo dados das preferências:', { atual: currentWeight, meta: targetWeight });
             } else {
               // 3. No data anywhere - set to null
               setPesoAtual(null);
               setPesoInicial(null);
               setPesoMeta(null);
-              console.log('ℹ️ PesoContext - Nenhum dado encontrado');
+              console.log('❌ PesoContext - Nenhum peso encontrado nas preferências');
             }
           } else {
             setPesoAtual(null);
             setPesoInicial(null);
             setPesoMeta(null);
-            console.log('ℹ️ PesoContext - Preferências inválidas');
+            console.log('❌ PesoContext - Preferências sem dados válidos');
           }
         } else {
           setPesoAtual(null);
           setPesoInicial(null);
           setPesoMeta(null);
-          console.log('ℹ️ PesoContext - Erro ao carregar preferências');
+          console.log('❌ PesoContext - Erro ao carregar preferências ou sem dados');
         }
       }
     } catch (error) {
