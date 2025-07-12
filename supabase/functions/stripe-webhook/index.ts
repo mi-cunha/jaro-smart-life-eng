@@ -98,7 +98,7 @@ serve(async (req) => {
           
           console.log(`Customer: ${customer.email}, Subscription: ${subscription.id}, Status: ${subscription.status}`);
           
-          // Determine subscription tier based on plan from metadata
+          // Determine subscription tier based on plan from metadata or price
           let subscriptionTier = "Monthly"; // default
           const planFromMetadata = session.metadata?.plan;
           
@@ -109,24 +109,31 @@ serve(async (req) => {
               subscriptionTier = "Monthly";
             } else if (planFromMetadata.toLowerCase().includes('quarterly')) {
               subscriptionTier = "Quarterly";
+            } else if (planFromMetadata.toLowerCase().includes('annual')) {
+              subscriptionTier = "Annual";
             }
             console.log(`Plan from metadata: ${planFromMetadata}, Tier set to: ${subscriptionTier}`);
           } else {
-            // Fallback: check price amount if no metadata
+            // Fallback: check price details for annual plan
             if (subscription.items.data.length > 0) {
               const priceId = subscription.items.data[0].price.id;
               const price = await stripe.prices.retrieve(priceId);
-              const amount = price.unit_amount || 0;
               
-              // Based on your pricing: Weekly $9.99, Monthly $19.99, Quarterly $35
-              if (amount <= 1000) {
+              // Check if it's annual based on interval
+              if (price.recurring?.interval === 'year') {
+                subscriptionTier = "Annual";
+              } else if (price.recurring?.interval === 'month') {
+                const amount = price.unit_amount || 0;
+                // Based on your pricing: Monthly $19.99, Quarterly $35
+                if (amount <= 2000) {
+                  subscriptionTier = "Monthly";
+                } else {
+                  subscriptionTier = "Quarterly";
+                }
+              } else if (price.recurring?.interval === 'week') {
                 subscriptionTier = "Weekly";
-              } else if (amount <= 2000) {
-                subscriptionTier = "Monthly";
-              } else {
-                subscriptionTier = "Quarterly";
               }
-              console.log(`Price fallback: ${priceId}, Amount: ${amount}, Tier: ${subscriptionTier}`);
+              console.log(`Price fallback: ${priceId}, Amount: ${price.unit_amount}, Interval: ${price.recurring?.interval}, Tier: ${subscriptionTier}`);
             }
           }
 

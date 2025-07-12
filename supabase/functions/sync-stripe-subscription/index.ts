@@ -154,9 +154,9 @@ Deno.serve(async (req) => {
       const priceId = subscription.items.data[0].price.id
       const price = await stripe.prices.retrieve(priceId)
       
-      console.log('💰 Price details:', { priceId, interval: price.recurring?.interval })
+      console.log('💰 Price details:', { priceId, interval: price.recurring?.interval, amount: price.unit_amount })
       
-      // Determine tier based on interval
+      // Determine tier based on interval and amount
       if (price.recurring?.interval === 'year') {
         subscriptionTier = 'annual'
       } else if (price.recurring?.interval === 'month') {

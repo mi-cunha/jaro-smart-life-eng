@@ -17,6 +17,9 @@ const Pricing = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
+  // Check for session_id in URL params (returned from successful Stripe checkout)
+  const sessionId = searchParams.get('session_id');
+
   // Check for plan from URL params or localStorage on component mount
   useEffect(() => {
     const planFromUrl = searchParams.get('plan');
@@ -24,15 +27,28 @@ const Pricing = () => {
       localStorage.setItem('selectedPlan', planFromUrl);
     }
 
-    // If user is logged in and subscribed, redirect to home
-    if (user && isSubscribed === true) {
+    // Auto-sync subscription if returning from Stripe checkout
+    if (sessionId && user && isSubscribed === false) {
+      console.log('🎯 Returned from Stripe checkout, auto-syncing subscription...');
+      toast.info('Verificando status da assinatura...');
+      // Wait a moment for Stripe webhook to process, then sync
+      setTimeout(() => {
+        handleSyncSubscription();
+      }, 3000);
+    }
+  }, [sessionId, user, isSubscribed]);
+
+  // Check for user login and stored plan
+  useEffect(() => {
+    // If user is logged in and subscribed, redirect to home (unless we just completed checkout)
+    if (user && isSubscribed === true && !sessionId) {
       console.log('User is already subscribed, redirecting to home');
       navigate('/');
       return;
     }
 
     // If user is logged in and there's a stored plan, proceed to checkout
-    if (user && !loading && isSubscribed === false) {
+    if (user && !loading && isSubscribed === false && !sessionId) {
       const storedPlan = localStorage.getItem('selectedPlan');
       if (storedPlan) {
         console.log('User is logged in with stored plan:', storedPlan);
@@ -40,7 +56,7 @@ const Pricing = () => {
         handleChoosePlan(storedPlan);
       }
     }
-  }, [user, loading, searchParams, isSubscribed]);
+  }, [user, loading, isSubscribed, sessionId]);
 
   const plans = [
     {
@@ -259,6 +275,22 @@ const Pricing = () => {
             Choose Your Plan
           </h1>
           
+          {/* Show sync button if we have a session_id (just returned from checkout) */}
+          {sessionId && user && !isSubscribed && (
+            <div className="mb-8 p-4 bg-white/5 border border-neon-green/20 rounded-lg">
+              <p className="text-white/80 mb-4">
+                Checkout concluído! Clique no botão abaixo para ativar sua assinatura.
+              </p>
+              <Button
+                onClick={handleSyncSubscription}
+                disabled={isSyncing}
+                className="bg-neon-green text-black hover:bg-neon-green/90 font-medium py-2 px-6"
+              >
+                {isSyncing ? 'Sincronizando...' : 'Ativar Assinatura'}
+              </Button>
+            </div>
+          )}
+
           <p className="text-white/70 text-lg mb-8">
             Start your transformation today
           </p>
