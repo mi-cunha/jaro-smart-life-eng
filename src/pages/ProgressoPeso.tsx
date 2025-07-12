@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { WeightUnitToggle } from "@/components/WeightUnitToggle";
 import { usePesoContext } from "@/contexts/PesoContext";
 import { useWeightUnit } from "@/hooks/useWeightUnit";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Scale, Target, Plus, TrendingDown } from "lucide-react";
+import { testPesoServices } from "@/utils/testPesoService";
 
 const ProgressoPeso = () => {
   const { 
@@ -22,6 +23,22 @@ const ProgressoPeso = () => {
     definirMeta, 
     loading 
   } = usePesoContext();
+  
+  // Debug logs
+  console.log('🏋️ ProgressoPeso - Estado atual:', {
+    pesoAtual,
+    pesoMeta,
+    pesoInicial,
+    loading,
+    progressoPeso: getProgressoPeso(),
+    weightLoss: getWeightLoss()
+  });
+  
+  // Executar teste automático na primeira renderização
+  useEffect(() => {
+    console.log('🧪 ProgressoPeso - Executando teste automático...');
+    testPesoServices();
+  }, []);
   
   const { formatWeight, convertToDisplayWeight, convertFromDisplayWeight } = useWeightUnit();
   const [novoPeso, setNovoPeso] = useState("");
@@ -147,6 +164,20 @@ const ProgressoPeso = () => {
               className="bg-neon-green text-dark-bg hover:bg-neon-green/90"
             >
               {adicionandoPeso ? "Adding..." : "Add Weight Entry"}
+            </Button>
+            {/* Botão de teste temporário */}
+            <Button 
+              onClick={() => {
+                console.log('🧪 Teste manual - Recarregando dados...');
+                // Vamos acessar diretamente a função de carregamento se existir
+                if (window.location.reload) {
+                  window.location.reload();
+                }
+              }}
+              variant="outline"
+              className="ml-2 border-white/20 text-white"
+            >
+              🧪 Teste Reload
             </Button>
           </CardContent>
         </Card>
