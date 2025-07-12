@@ -48,7 +48,9 @@ export class PreferencesService {
 
   static async buscarPreferencias() {
     try {
+      console.log('🔄 PreferencesService - buscarPreferencias chamado');
       const user = await this.getAuthenticatedUser();
+      console.log('👤 PreferencesService - Usuário autenticado:', user.email);
       
       const { data, error } = await supabase
         .from('preferencias_usuario')

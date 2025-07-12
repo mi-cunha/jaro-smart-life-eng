@@ -213,6 +213,7 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    console.log('🚀 PesoContext - useEffect executado, iniciando carregamento...');
     carregarDados();
   }, []);
 
