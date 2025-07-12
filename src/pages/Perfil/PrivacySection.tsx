@@ -4,17 +4,50 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Shield, Mail } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useState } from "react";
 
 interface PrivacySectionProps {
   perfil: any;
   onTogglePrivacy: (setting: string) => void;
+  isSubscribed: boolean;
 }
 
-export function PrivacySection({ perfil, onTogglePrivacy }: PrivacySectionProps) {
+export function PrivacySection({ perfil, onTogglePrivacy, isSubscribed }: PrivacySectionProps) {
+  const [isCancelling, setIsCancelling] = useState(false);
+
   const handleSupport = () => {
     const subject = encodeURIComponent("Support Request");
     const body = encodeURIComponent("Hello JaroSmart Support Team,\n\nI need assistance with the app.\n\nBest regards");
     window.location.href = `mailto:suporte@smartjaro.site?subject=${subject}&body=${body}`;
+  };
+
+  const handleCancelSubscription = async () => {
+    setIsCancelling(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('cancel-subscription');
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data.success) {
+        toast.success(data.message);
+        // Refresh page to update subscription status
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        toast.error(data.error || 'Error cancelling subscription');
+      }
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      toast.error('Failed to cancel subscription. Please try again.');
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   return (
@@ -52,6 +85,16 @@ export function PrivacySection({ perfil, onTogglePrivacy }: PrivacySectionProps)
             <Mail className="w-4 h-4 mr-2" />
             Contact Support
           </Button>
+          {isSubscribed && (
+            <Button 
+              variant="ghost" 
+              onClick={handleCancelSubscription}
+              disabled={isCancelling}
+              className="w-full text-white/60 hover:text-white/80 hover:bg-white/5 text-sm"
+            >
+              {isCancelling ? 'Cancelling...' : 'Cancel Plan'}
+            </Button>
+          )}
           <Button
             variant="outline"
             className="w-full border-red-400/30 text-red-400 hover:bg-red-400/10"
