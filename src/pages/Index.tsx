@@ -17,10 +17,6 @@ const Index = () => {
   const { getHabitosHoje, getProgressoHabitos, loading: habitosLoading } = useHabitos();
   const { pesoAtual, pesoMeta, getProgressoPeso, loading: pesoLoading } = usePesoContext();
 
-  // Debug logs
-  useEffect(() => {
-    console.log('📊 Index - Dados de peso:', { pesoAtual, pesoMeta, pesoLoading });
-  }, [pesoAtual, pesoMeta, pesoLoading]);
   const { perfil } = useSupabasePerfil();
 
   useEffect(() => {

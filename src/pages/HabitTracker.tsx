@@ -291,7 +291,7 @@ const HabitTracker = () => {
               habitosHoje.map((habit) => {
                 // Check if this is a water habit that should show individual cups
                 const isWaterHabit = habit.nome.toLowerCase().includes('água') || habit.nome.toLowerCase().includes('water');
-                const targetCups = habit.meta_diaria || 8;
+                const targetCups = 8; // Fixed to 8 cups to avoid multiple sections
                 
                 if (isWaterHabit) {
                   // Show individual cup checkboxes for water habits

@@ -13,10 +13,7 @@ export interface HistoricoPeso {
 export class PesoService {
   static async buscarHistoricoPeso(limite: number = 30) {
     try {
-      console.log('🔄 PesoService - buscarHistoricoPeso chamado');
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('👤 PesoService - Usuário atual:', { user: user?.email, id: user?.id });
-      
       if (!user?.email) {
         console.error('❌ Usuário não autenticado');
         return { data: [], error: new Error('User not authenticated') };
