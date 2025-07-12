@@ -99,16 +99,6 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
           <p className="text-white/60 mb-4">
             {loading ? 'Carregando...' : 'Verificando assinatura...'}
           </p>
-          {user && refreshSubscriptionStatus && (
-            <button
-              onClick={handleRefreshStatus}
-              disabled={isRefreshing}
-              className="flex items-center gap-2 mx-auto px-4 py-2 text-neon-green hover:text-neon-green/80 text-sm underline disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Atualizando...' : 'Atualizar Status'}
-            </button>
-          )}
         </div>
       </div>
     );
@@ -129,14 +119,6 @@ export function AuthWrapper({ children }: AuthWrapperProps) {
               className="bg-neon-green text-dark-bg px-6 py-3 rounded-lg font-medium hover:bg-neon-green/90 transition-colors"
             >
               Ver Planos
-            </button>
-            <button
-              onClick={handleRefreshStatus}
-              disabled={isRefreshing}
-              className="flex items-center justify-center gap-2 px-6 py-3 border border-white/20 text-white rounded-lg hover:border-white/40 transition-colors disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Verificando...' : 'Verificar Status'}
             </button>
           </div>
         </div>
