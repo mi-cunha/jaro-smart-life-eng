@@ -36,7 +36,7 @@ export class HabitosService {
 
       const habitosPadrao = [
         { nome: 'Chá Jaro', descricao: 'Tomar chá verde para acelerar metabolismo', meta_diaria: 2 },
-        { nome: 'Hydration', descricao: 'Beber pelo menos 2L de água por dia', meta_diaria: 8 },
+        { nome: 'Beber água suficiente', descricao: 'Beber pelo menos 2L de água por dia', meta_diaria: 8 },
         { nome: 'Healthy Eating', descricao: 'Seguir plano alimentar saudável', meta_diaria: 1 },
         { nome: 'Exercise', descricao: 'Fazer pelo menos 30min de exercício', meta_diaria: 1 },
         { nome: 'Quality Sleep', descricao: 'Dormir pelo menos 7 horas', meta_diaria: 1 }
