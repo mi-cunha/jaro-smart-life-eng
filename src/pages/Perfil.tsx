@@ -11,10 +11,14 @@ import { ObjectivesSection } from "./Perfil/ObjectivesSection";
 import { PrivacySection } from "./Perfil/PrivacySection";
 import { SaveConfigBar } from "./Perfil/SaveConfigBar";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const Perfil = () => {
   const { perfil, loading, atualizarPerfil, salvarAvatar } = useSupabasePerfil();
+  const { isSubscribed } = useAuth();
   const [hasChanges, setHasChanges] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const handleInputChange = async (field: string, value: any) => {
     if (perfil) {
@@ -72,6 +76,33 @@ const Perfil = () => {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    setIsCancelling(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('cancel-subscription');
+      
+      if (error) {
+        throw error;
+      }
+      
+      if (data.success) {
+        toast.success(data.message);
+        // Refresh page to update subscription status
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        toast.error(data.error || 'Error cancelling subscription');
+      }
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      toast.error('Failed to cancel subscription. Please try again.');
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   if (loading) {
     return (
       <Layout title="Profile Settings" breadcrumb={["Profile", "Settings"]}>
@@ -89,6 +120,24 @@ const Perfil = () => {
           <h1 className="text-3xl font-bold text-white mb-2">Profile Settings</h1>
           <p className="text-white/70">Manage your personal information and preferences</p>
         </div>
+
+        {isSubscribed && (
+          <Card className="bg-dark-card border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white">Subscription Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                variant="destructive" 
+                onClick={handleCancelSubscription}
+                disabled={isCancelling}
+                className="w-full"
+              >
+                {isCancelling ? 'Cancelling...' : 'Cancel Plan'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="personal" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 bg-dark-bg border-white/10">
