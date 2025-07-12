@@ -96,40 +96,33 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
         )[0].peso;
         setPesoInicial(oldestWeight);
         console.log('✅ PesoContext - Peso inicial do histórico:', oldestWeight);
-        } else {
-          // No weight history - use profile data or show zero values
-          console.log('📝 PesoContext - Sem histórico, verificando dados do perfil');
-          
-          if (profileCurrentWeight) {
-          // Create initial weight entry from profile data
+      } else {
+        // No weight history - use profile data and create initial entry
+        console.log('📝 PesoContext - Sem histórico, usando dados do perfil');
+        
+        if (profileCurrentWeight) {
+          // Create initial weight entry from profile data automatically
           console.log('💾 PesoContext - Criando entrada inicial no histórico com peso do quiz:', profileCurrentWeight);
           
-          try {
-            const { error: addError } = await PesoService.adicionarPeso(profileCurrentWeight, 'Peso inicial do quiz');
-            if (!addError) {
-              console.log('✅ PesoContext - Entrada inicial criada com sucesso');
-              // Set values from profile
-              setPesoAtual(profileCurrentWeight);
-              setPesoInicial(profileCurrentWeight);
-              console.log('✅ PesoContext - Peso atual e inicial definidos do perfil:', profileCurrentWeight);
-            } else {
-              console.error('❌ PesoContext - Erro ao criar entrada inicial:', addError);
-              // Fallback to profile values without creating history entry
-              setPesoAtual(profileCurrentWeight);
-              setPesoInicial(profileCurrentWeight);
-            }
-          } catch (error) {
-            console.error('❌ PesoContext - Erro inesperado ao criar entrada inicial:', error);
-            // Fallback to profile values
+          const { error: addError } = await PesoService.adicionarPeso(profileCurrentWeight, 'Peso inicial do quiz');
+          if (!addError) {
+            console.log('✅ PesoContext - Entrada inicial criada com sucesso');
+            // Reload to get the new history entry
+            await carregarDados();
+            return;
+          } else {
+            console.error('❌ PesoContext - Erro ao criar entrada inicial:', addError);
+            // Use profile values directly if can't create history entry
             setPesoAtual(profileCurrentWeight);
             setPesoInicial(profileCurrentWeight);
+            console.log('✅ PesoContext - Usando dados do perfil diretamente:', profileCurrentWeight);
           }
-          } else {
-            // No profile data either - show zero values instead of defaults
-            console.log('ℹ️ PesoContext - Sem dados do perfil, mostrando valores zerados');
-            setPesoAtual(null);
-            setPesoInicial(null);
-          }
+        } else {
+          // No profile data either - show zero values instead of defaults
+          console.log('ℹ️ PesoContext - Sem dados do perfil, mostrando valores zerados');
+          setPesoAtual(null);
+          setPesoInicial(null);
+        }
       }
     } catch (error) {
       console.error('❌ PesoContext - Erro inesperado ao carregar dados:', error);
