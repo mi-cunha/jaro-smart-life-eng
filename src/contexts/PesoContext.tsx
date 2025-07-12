@@ -38,6 +38,7 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
 
   const carregarDados = async () => {
+    console.log('🔄 PesoContext - Iniciando carregamento de dados...');
     setLoading(true);
     
     try {
