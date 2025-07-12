@@ -7,8 +7,8 @@ import { usePeso } from "@/hooks/usePeso";
 
 interface ProgressSectionProps {
   progressoPeso: number;
-  pesoAtual: number;
-  pesoMeta: number;
+  pesoAtual: number | null;
+  pesoMeta: number | null;
   habitosConcluidos: number;
   totalHabitos: number;
 }
@@ -24,16 +24,16 @@ export function ProgressSection({
   const { historicoPeso } = usePeso();
   const percentualHabitos = totalHabitos > 0 ? (habitosConcluidos / totalHabitos) * 100 : 0;
   
-  const currentWeight = convertToDisplayWeight(pesoAtual);
-  const goalWeight = convertToDisplayWeight(pesoMeta);
+  const currentWeight = pesoAtual ? convertToDisplayWeight(pesoAtual) : null;
+  const goalWeight = pesoMeta ? convertToDisplayWeight(pesoMeta) : null;
   
   // Calculate initial weight from history
   const initialWeight = historicoPeso.length > 0 ? 
     convertToDisplayWeight(historicoPeso[historicoPeso.length - 1].peso) : 
     currentWeight;
   
-  // Calculate remaining weight to lose
-  const remainingWeight = Math.max(0, currentWeight - goalWeight);
+  // Calculate remaining weight to lose - only if we have both values
+  const remainingWeight = currentWeight && goalWeight ? Math.max(0, currentWeight - goalWeight) : null;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -51,7 +51,7 @@ export function ProgressSection({
               {progressoPeso.toFixed(1)}%
             </span>
             <p className="text-white/60 text-sm">
-              {formatWeight(remainingWeight, false)} remaining
+              {remainingWeight ? `${formatWeight(remainingWeight, false)} remaining` : "No data available"}
             </p>
           </div>
         </CardContent>

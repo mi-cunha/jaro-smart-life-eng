@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { PesoService } from '@/services/pesoService';
-import { PerfilService } from '@/services/perfilService';
+import { UserProfileService } from '@/services/userProfileService';
 import { toast } from 'sonner';
 
 interface HistoricoPeso {
@@ -44,7 +44,7 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
       // Load weight history and profile in parallel
       const [historicoRes, perfilRes] = await Promise.all([
         PesoService.buscarHistoricoPeso(30),
-        PerfilService.buscarPerfil()
+        UserProfileService.buscarPerfilUsuario()
       ]);
 
       console.log('📊 PesoContext - Resultado histórico peso:', { 
@@ -70,11 +70,11 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
         profileInitialWeight = perfilRes.data.peso_atual; // Use current weight as initial weight from quiz
 
         // Set target weight from profile
-        setPesoMeta(profileTargetWeight || 70.0);
+        setPesoMeta(profileTargetWeight || null);
         console.log('✅ PesoContext - Meta de peso definida do perfil:', profileTargetWeight);
       } else {
         console.error('❌ PesoContext - Erro ao carregar perfil:', perfilRes.error);
-        setPesoMeta(70.0);
+        setPesoMeta(null);
       }
 
       // Handle weight history
@@ -96,11 +96,11 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
         )[0].peso;
         setPesoInicial(oldestWeight);
         console.log('✅ PesoContext - Peso inicial do histórico:', oldestWeight);
-      } else {
-        // No weight history - use profile data or create initial entry
-        console.log('📝 PesoContext - Sem histórico, usando dados do perfil');
-        
-        if (profileCurrentWeight) {
+        } else {
+          // No weight history - use profile data or show zero values
+          console.log('📝 PesoContext - Sem histórico, verificando dados do perfil');
+          
+          if (profileCurrentWeight) {
           // Create initial weight entry from profile data
           console.log('💾 PesoContext - Criando entrada inicial no histórico com peso do quiz:', profileCurrentWeight);
           
@@ -124,12 +124,12 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
             setPesoAtual(profileCurrentWeight);
             setPesoInicial(profileCurrentWeight);
           }
-        } else {
-          // No profile data either - use defaults
-          console.log('ℹ️ PesoContext - Sem dados do perfil, usando valores padrão');
-          setPesoAtual(78.0);
-          setPesoInicial(78.0);
-        }
+          } else {
+            // No profile data either - show zero values instead of defaults
+            console.log('ℹ️ PesoContext - Sem dados do perfil, mostrando valores zerados');
+            setPesoAtual(null);
+            setPesoInicial(null);
+          }
       }
     } catch (error) {
       console.error('❌ PesoContext - Erro inesperado ao carregar dados:', error);
@@ -137,15 +137,15 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
       if (window.location.pathname !== '/auth') {
         toast.error('Erro ao carregar dados de peso');
       }
-      // Set fallback values only if no current weight is set
+      // Set fallback values as null to show empty state
       if (!pesoAtual) {
-        setPesoAtual(78.0);
+        setPesoAtual(null);
       }
       if (!pesoMeta) {
-        setPesoMeta(70.0);
+        setPesoMeta(null);
       }
       if (!pesoInicial) {
-        setPesoInicial(78.0);
+        setPesoInicial(null);
       }
       setHistoricoPeso([]);
     } finally {
@@ -182,7 +182,7 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
   const definirMeta = async (meta: number) => {
     try {
       console.log('🎯 PesoContext - Definindo meta de peso:', meta);
-      const { error } = await PerfilService.atualizarPerfil({ peso_objetivo: meta });
+      const { error } = await UserProfileService.atualizarPerfilUsuario({ peso_objetivo: meta });
       
       if (error) {
         console.error('❌ PesoContext - Erro ao definir meta:', error);

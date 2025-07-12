@@ -36,9 +36,9 @@ const Index = () => {
   const progressoHabitos = getProgressoHabitos();
   const progressoPeso = getProgressoPeso();
 
-  // Use real weight data from context - guaranteed to be the most recent
-  const currentWeight = pesoAtual || 0;
-  const targetWeight = pesoMeta || 0;
+  // Use real weight data from context - show null if no data
+  const currentWeight = pesoAtual;
+  const targetWeight = pesoMeta;
 
   console.log('🏠 Index - Using weight from context:', {
     currentWeight,
