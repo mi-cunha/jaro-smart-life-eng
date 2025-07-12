@@ -1,4 +1,3 @@
-
 import { Layout } from "@/components/Layout";
 import { WelcomeModal } from "@/components/WelcomeModal";
 import { DashboardHeader } from "@/components/Dashboard/DashboardHeader";
@@ -19,16 +18,6 @@ const Index = () => {
   const { pesoAtual, pesoMeta, getProgressoPeso, loading: pesoLoading } = usePesoContext();
   const { perfil } = useSupabasePerfil();
 
-  // Teste dos dados de peso
-  useEffect(() => {
-    console.log('🧪 INDEX - Dados de peso:', { 
-      pesoAtual, 
-      pesoMeta, 
-      loading: pesoLoading,
-      progressoPeso: getProgressoPeso()
-    });
-  }, [pesoAtual, pesoMeta, pesoLoading]);
-
   useEffect(() => {
     const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
     if (!hasSeenWelcome) {
@@ -41,97 +30,59 @@ const Index = () => {
     localStorage.setItem('hasSeenWelcome', 'true');
   };
 
-  // Get real data from Supabase
-  const habitosHoje = getHabitosHoje();
-  const progressoHabitos = getProgressoHabitos();
-  const progressoPeso = getProgressoPeso();
-
-  // Use real weight data from context - show null if no data
-  const currentWeight = pesoAtual;
-  const targetWeight = pesoMeta;
-
-  console.log('🏠 Index - Using weight from context:', {
-    currentWeight,
-    targetWeight,
-    progressoPeso
-  });
-
-  // Transform habits data for TodayHabits component - show empty state if no habits
-  const habitosFormatados = habitosHoje.length > 0 ? habitosHoje.map(habito => ({
-    nome: habito.nome,
-    concluido: habito.concluido
-  })) : [];
-
-  // Generate upcoming meals based on time of day
-  const generateUpcomingMeals = () => {
-    const now = new Date();
-    const currentHour = now.getHours();
-    
-    const meals = [
-      { nome: "Breakfast", horario: "7:00 AM", calorias: 350 },
-      { nome: "Morning Snack", horario: "10:00 AM", calorias: 150 },
-      { nome: "Lunch", horario: "12:30 PM", calorias: 450 },
-      { nome: "Afternoon Snack", horario: "3:30 PM", calorias: 150 },
-      { nome: "Dinner", horario: "7:00 PM", calorias: 400 },
-    ];
-
-    // Return next 2 meals based on current time
-    const upcomingMeals = meals.filter((meal) => {
-      const mealHour = parseInt(meal.horario.split(':')[0]);
-      const isPM = meal.horario.includes('PM');
-      const adjustedHour = isPM && mealHour !== 12 ? mealHour + 12 : mealHour;
-      return adjustedHour > currentHour;
-    }).slice(0, 2);
-
-    return upcomingMeals.length > 0 ? upcomingMeals : [
-      { nome: "Breakfast", horario: "7:00 AM", calorias: 350 },
-      { nome: "Lunch", horario: "12:30 PM", calorias: 450 }
-    ];
-  };
-
-  const proximasRefeicoes = generateUpcomingMeals();
-
+  // Handle loading states
   if (habitosLoading || pesoLoading) {
     return (
-      <Layout title="JaroSmart Dashboard" breadcrumb={["Home"]}>
+      <Layout title="Dashboard" breadcrumb={["Dashboard"]}>
         <div className="flex items-center justify-center min-h-64">
-          <div className="text-white">Loading dashboard...</div>
+          <div className="text-white">Loading dashboard data...</div>
         </div>
       </Layout>
     );
   }
 
+  const habitosHoje = getHabitosHoje();
+  const progressoHabitos = getProgressoHabitos();
+  const progressoPeso = getProgressoPeso();
+
+  const habitosConcluidos = habitosHoje.filter(h => h.concluido).length;
+  const totalHabitos = habitosHoje.length;
+
   return (
-    <Layout title="JaroSmart Dashboard" breadcrumb={["Home"]}>
-      <WelcomeModal isOpen={showWelcome} onClose={handleCloseWelcome} />
-      
+    <Layout title="Dashboard" breadcrumb={["Dashboard"]}>
       <div className="space-y-8">
         <DashboardHeader />
-
-        <StatisticsCards
-          pesoAtual={currentWeight}
-          pesoMeta={targetWeight}
-          habitosConcluidos={progressoHabitos.concluidos}
-          totalHabitos={progressoHabitos.total}
+        
+        <StatisticsCards 
+          habitosConcluidos={habitosConcluidos}
+          totalHabitos={totalHabitos}
           progressoPeso={progressoPeso}
+          pesoAtual={pesoAtual}
+          pesoMeta={pesoMeta}
         />
-
-        <ProgressSection
+        
+        <ProgressSection 
           progressoPeso={progressoPeso}
-          pesoAtual={currentWeight}
-          pesoMeta={targetWeight}
-          habitosConcluidos={progressoHabitos.concluidos}
-          totalHabitos={progressoHabitos.total}
+          habitosConcluidos={habitosConcluidos}
+          totalHabitos={totalHabitos}
+          pesoAtual={pesoAtual}
+          pesoMeta={pesoMeta}
         />
-
-        <QuickActions />
-
-        <TodayHabits habitos={habitosFormatados} />
-
-        <UpcomingMeals refeicoes={proximasRefeicoes} />
-
-        <CallToAction />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-8">
+            <TodayHabits habitos={habitosHoje} />
+            <UpcomingMeals refeicoes={[]} />
+          </div>
+          
+          <div className="space-y-8">
+            <QuickActions />
+            <CallToAction />
+          </div>
+        </div>
       </div>
+      
+      {showWelcome && <WelcomeModal isOpen={showWelcome} onClose={handleCloseWelcome} />}
     </Layout>
   );
 };

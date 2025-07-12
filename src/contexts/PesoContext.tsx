@@ -39,11 +39,9 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
 
   const carregarDados = async () => {
     setLoading(true);
-    console.log('🔍 PesoContext - Iniciando carregamento de dados...');
     
     try {
       // 1. First try to load from weight history
-      console.log('📊 PesoContext - Buscando histórico de peso...');
       const historicoRes = await PesoService.buscarHistoricoPeso(30);
       const historico = historicoRes.data || [];
       console.log('📊 PesoContext - Resultado histórico:', { 
