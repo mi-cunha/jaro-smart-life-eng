@@ -42,148 +42,72 @@ export function PesoProvider({ children }: { children: React.ReactNode }) {
     console.log('🔍 PesoContext - Carregando dados de peso...');
     
     try {
-      // Load weight history and profile in parallel
-      const [historicoRes, perfilRes] = await Promise.all([
-        PesoService.buscarHistoricoPeso(30),
-        UserProfileService.buscarPerfilUsuario()
-      ]);
-
-      console.log('📊 PesoContext - Resultado histórico peso:', { 
-        success: !historicoRes.error, 
-        dataLength: historicoRes.data?.length || 0 
-      });
-      
-      console.log('👤 PesoContext - Resultado perfil:', { 
-        success: !perfilRes.error, 
-        hasData: !!perfilRes.data,
-        pesoAtual: perfilRes.data?.peso_atual,
-        pesoObjetivo: perfilRes.data?.peso_objetivo
-      });
-
-      // Handle profile data first to get quiz values
-      let profileCurrentWeight = null;
-      let profileTargetWeight = null;
-      let profileInitialWeight = null;
-
-      if (perfilRes.data && !perfilRes.error) {
-        profileCurrentWeight = perfilRes.data.peso_atual;
-        profileTargetWeight = perfilRes.data.peso_objetivo || perfilRes.data.meta_peso;
-        profileInitialWeight = perfilRes.data.peso_atual; // Use current weight as initial weight from quiz
-
-        // Set target weight from profile
-        setPesoMeta(profileTargetWeight || null);
-        console.log('✅ PesoContext - Meta de peso definida do perfil:', profileTargetWeight);
-      } else {
-        console.error('❌ PesoContext - Erro ao carregar perfil:', perfilRes.error);
-        setPesoMeta(null);
-      }
-
-      // Handle weight history
+      // 1. First try to load from weight history
+      const historicoRes = await PesoService.buscarHistoricoPeso(30);
       const historico = historicoRes.data || [];
       setHistoricoPeso(historico);
 
       if (historico.length > 0) {
-        // Use weight history for current and initial weights
+        // Use weight history data
         const sortedHistorico = [...historico].sort((a, b) => 
           new Date(b.data).getTime() - new Date(a.data).getTime()
         );
         const latestWeight = sortedHistorico[0].peso;
-        setPesoAtual(latestWeight);
-        console.log('✅ PesoContext - Peso atual do histórico:', latestWeight);
-
-        // Use oldest weight from history as initial weight
         const oldestWeight = [...historico].sort((a, b) => 
           new Date(a.data).getTime() - new Date(b.data).getTime()
         )[0].peso;
+
+        setPesoAtual(latestWeight);
         setPesoInicial(oldestWeight);
-        console.log('✅ PesoContext - Peso inicial do histórico:', oldestWeight);
+        console.log('✅ PesoContext - Dados do histórico:', { atual: latestWeight, inicial: oldestWeight });
+
+        // Also try to get target weight from profile
+        const perfilRes = await UserProfileService.buscarPerfilUsuario();
+        if (perfilRes.data && !perfilRes.error) {
+          const targetWeight = perfilRes.data.peso_objetivo || perfilRes.data.meta_peso;
+          setPesoMeta(targetWeight || null);
+        }
       } else {
-        // No weight history - use profile data and create initial entry
-        console.log('📝 PesoContext - Sem histórico, usando dados do perfil');
+        // 2. No weight history - try preferences
+        console.log('📝 PesoContext - Histórico vazio, buscando preferências...');
         
-        if (profileCurrentWeight) {
-          // Create initial weight entry from profile data automatically
-          console.log('💾 PesoContext - Criando entrada inicial no histórico com peso do quiz:', profileCurrentWeight);
-          
-          const { error: addError } = await PesoService.adicionarPeso(profileCurrentWeight, 'Peso inicial do quiz');
-          if (!addError) {
-            console.log('✅ PesoContext - Entrada inicial criada com sucesso');
-            // Reload to get the new history entry
-            await carregarDados();
-            return;
-          } else {
-            console.error('❌ PesoContext - Erro ao criar entrada inicial:', addError);
-            // Use profile values directly if can't create history entry
-            setPesoAtual(profileCurrentWeight);
-            setPesoInicial(profileCurrentWeight);
-            console.log('✅ PesoContext - Usando dados do perfil diretamente:', profileCurrentWeight);
-          }
-        } else {
-          // No profile data - try preferences as last fallback
-          console.log('📝 PesoContext - Sem dados do perfil, tentando preferências do usuário...');
-          
-          try {
-            const preferencesRes = await PreferencesService.buscarPreferencias();
-            console.log('🎯 PesoContext - Resultado preferências:', { 
-              success: !preferencesRes.error, 
-              hasData: !!preferencesRes.data 
-            });
+        const preferencesRes = await PreferencesService.buscarPreferencias();
+        if (preferencesRes.data && !preferencesRes.error) {
+          const preferencesData = preferencesRes.data.preferencias_alimentares;
+          if (preferencesData && typeof preferencesData === 'object') {
+            const currentWeight = preferencesData.currentWeight;
+            const targetWeight = preferencesData.targetWeight;
             
-            if (preferencesRes.data && !preferencesRes.error) {
-              const preferencesData = preferencesRes.data.preferencias_alimentares;
-              if (preferencesData && typeof preferencesData === 'object') {
-                const currentWeight = preferencesData.currentWeight;
-                const targetWeight = preferencesData.targetWeight;
-                
-                console.log('📊 PesoContext - Dados das preferências:', { currentWeight, targetWeight });
-                
-                if (currentWeight) {
-                  console.log('✅ PesoContext - Usando dados das preferências:', currentWeight);
-                  setPesoAtual(currentWeight);
-                  setPesoInicial(currentWeight);
-                  
-                  if (targetWeight) {
-                    setPesoMeta(targetWeight);
-                    console.log('✅ PesoContext - Meta das preferências:', targetWeight);
-                  }
-                } else {
-                  console.log('ℹ️ PesoContext - Sem dados nas preferências, mostrando valores zerados');
-                  setPesoAtual(null);
-                  setPesoInicial(null);
-                }
-              } else {
-                console.log('ℹ️ PesoContext - Preferências sem dados válidos, mostrando valores zerados');
-                setPesoAtual(null);
-                setPesoInicial(null);
-              }
+            if (currentWeight) {
+              setPesoAtual(currentWeight);
+              setPesoInicial(currentWeight);
+              setPesoMeta(targetWeight || null);
+              console.log('✅ PesoContext - Dados das preferências:', { atual: currentWeight, meta: targetWeight });
             } else {
-              console.log('ℹ️ PesoContext - Erro ao carregar preferências, mostrando valores zerados');
+              // 3. No data anywhere - set to null
               setPesoAtual(null);
               setPesoInicial(null);
+              setPesoMeta(null);
+              console.log('ℹ️ PesoContext - Nenhum dado encontrado');
             }
-          } catch (error) {
-            console.error('❌ PesoContext - Erro ao buscar preferências:', error);
+          } else {
             setPesoAtual(null);
             setPesoInicial(null);
+            setPesoMeta(null);
+            console.log('ℹ️ PesoContext - Preferências inválidas');
           }
+        } else {
+          setPesoAtual(null);
+          setPesoInicial(null);
+          setPesoMeta(null);
+          console.log('ℹ️ PesoContext - Erro ao carregar preferências');
         }
       }
     } catch (error) {
-      console.error('❌ PesoContext - Erro inesperado ao carregar dados:', error);
-      // Only show toast if not on auth page to prevent error messages before login
-      if (window.location.pathname !== '/auth') {
-        toast.error('Erro ao carregar dados de peso');
-      }
-      // Set fallback values as null to show empty state
-      if (!pesoAtual) {
-        setPesoAtual(null);
-      }
-      if (!pesoMeta) {
-        setPesoMeta(null);
-      }
-      if (!pesoInicial) {
-        setPesoInicial(null);
-      }
+      console.error('❌ PesoContext - Erro ao carregar dados:', error);
+      setPesoAtual(null);
+      setPesoInicial(null);
+      setPesoMeta(null);
       setHistoricoPeso([]);
     } finally {
       setLoading(false);
